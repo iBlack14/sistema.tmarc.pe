@@ -1,0 +1,31 @@
+module.exports = { apps: [{
+  "name": "odin_app_04c52f14-5753-4141-8964-5e76465062ef",
+  "cwd": "/home/tmarc/sistema.tmarc.pe",
+  "script": "/home/tmarc/sistema.tmarc.pe/.odin-start.sh",
+  "interpreter": "/bin/bash",
+  "env": {
+    "PORT": "3000",
+    "APP_URL": "https://sistema.tmarc.pe",
+    "DB_HOST": "localhost",
+    "DB_NAME": "tmarc_sistema",
+    "DB_PORT": "3306",
+    "DB_USER": "tmarc_usr89",
+    "BASE_URL": "https://sistema.tmarc.pe",
+    "SMTP_HOST": "smtp-relay.gmail.com",
+    "SMTP_PORT": "465",
+    "SMTP_USER": "sistema@tmarc.pe",
+    "ADMIN_USER": "admin",
+    "EMAIL_FROM": "sistema@tmarc.pe",
+    "JWT_SECRET": "26189e2a1825f95fe266a5be3a4881669b88974e4073fa8c74699bac8e718faf51868f91dadc0a0f77b90b6c3faf37b1c3a317fa82981a55d9cfda59bb2e4857",
+    "ADMIN_EMAIL": "sistema@tmarc.pe",
+    "DB_PASSWORD": "Devloper2.",
+    "SMTP_PASSWORD": "sistema@tmarc.pe2026",
+    "SMTP_USE_AUTH": "false",
+    "ADMIN_PASSWORD": "admin123",
+    "SMTP_FROM_NAME": "Sistema Mesa de Partes Virtual",
+    "SMTP_FROM_EMAIL": "sistema@tmarc.pe",
+    "SMTP_SSL_ENABLED": "true",
+    "HOST": "0.0.0.0",
+    "NODE_ENV": "production"
+  }
+}] };

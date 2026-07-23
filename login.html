@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMARC | Acceso Judicial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --primary-hover: #E5C158;
+            --surface: #1A1A1A;
+            --background: #0D0D0D;
+            --text-main: #FFFFFF;
+            --text-muted: #A0A0A0;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(212, 175, 55, 0.15);
+            --error: #FF4D4D;
+            --success: #00E676;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* Hero Background */
+        .bg-img {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            filter: brightness(0.3);
+        }
+
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+            z-index: -1;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 440px;
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+            animation: fadeInScale 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .login-header {
+            padding: 48px 40px 24px;
+            text-align: center;
+        }
+
+        .login-header .logo-area {
+            width: 64px;
+            height: 64px;
+            background: var(--primary);
+            border-radius: 16px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+        }
+
+        .login-header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #FFF 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .login-form {
+            padding: 0 48px 48px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            margin-left: 4px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: #FFF;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-btn:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(212, 175, 55, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .form-footer {
+            margin-top: 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.3s ease;
+        }
+
+        .form-footer a:hover {
+            color: var(--primary);
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            margin: 20px 0;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .alert-error {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.2);
+            color: var(--error);
+        }
+
+        .alert-success {
+            background: rgba(0, 230, 118, 0.1);
+            border: 1px solid rgba(0, 230, 118, 0.2);
+            color: var(--success);
+        }
+
+        .loading-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                border-radius: 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-overlay"></div>
+    <img src="assets/img/login.png" class="bg-img" alt="Background">
+
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo-area">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="black">
+                    <path
+                        d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
+                </svg>
+            </div>
+            <h1>Acceso Judicial</h1>
+            <p>Mesa de Partes Virtual TMARC</p>
+        </div>
+
+        <form id="loginForm" class="login-form">
+            <div id="errorMessage" class="alert alert-error"></div>
+            <div id="successMessage" class="alert alert-success"></div>
+
+            <div class="form-group">
+                <label class="form-label" for="username">Usuario o Email</label>
+                <div class="input-wrapper">
+                    <input type="text" id="username" class="form-input" placeholder="nombre@correo.com" required
+                        autocomplete="username">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Contraseña</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" class="form-input" placeholder="••••••••" required
+                        autocomplete="current-password">
+                </div>
+            </div>
+
+            <button type="submit" id="loginBtn" class="login-btn">
+                <span>INICIAR SESIÓN</span>
+            </button>
+
+            <div class="form-footer">
+                <a href="#" onclick="forgotPassword()">¿Olvidaste tu contraseña?</a>
+                <div class="divider"></div>
+                <a href="registrarse.html" style="font-weight: 600; color: var(--primary)">¿No tienes cuenta?
+                    Regístrate aquí</a>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- Script de conexión de datos -->
+    <script src="conexion-datos.js"></script>
+
+    <script>
+        // Sistema de autenticación usando API backend
+        class AuthSystem {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                // Capturar parámetros de URL (Professional Redirect)
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirect = urlParams.get('redirect');
+                const codigo = urlParams.get('codigo');
+
+                if (redirect) sessionStorage.setItem('redirectAfterLogin', redirect);
+                if (codigo) sessionStorage.setItem('codigoPendiente', codigo);
+
+                // Verificar si ya hay una sesión activa
+                const token = sessionStorage.getItem('authToken');
+                const userId = sessionStorage.getItem('userId');
+                const userData = sessionStorage.getItem('user');
+
+                if (token && userId && userData) {
+                    try {
+                        const user = JSON.parse(userData);
+                        this.usuarioActual = user;
+                        this.token = token;
+
+                        // Verificar que el ID coincida
+                        if (user.id.toString() === userId) {
+                            console.log('✅ Sesión activa detectada, redirigiendo...');
+                            this.redirigirDashboard(user);
+                        } else {
+                            console.warn('⚠️ ID de usuario no coincide, limpiando sesión');
+                            this.limpiarSesion();
+                        }
+                    } catch (error) {
+                        console.error('Error parsing user data:', error);
+                        this.limpiarSesion();
+                    }
+                }
+            }
+
+            async login(username, password) {
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            usernameOEmail: username,
+                            password: password
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const usuario = data.data.usuario;
+                        const token = data.data.token;
+
+                        // ✅ GUARDAR CON LAS CLAVES CORRECTAS que usa el dashboard
+                        sessionStorage.setItem('authToken', token);
+                        sessionStorage.setItem('userId', usuario.id.toString());
+                        sessionStorage.setItem('user', JSON.stringify(usuario));
+
+                        // También mantener userData para compatibilidad
+                        sessionStorage.setItem('userData', JSON.stringify(usuario));
+
+                        this.token = token;
+                        this.usuarioActual = usuario;
+
+                        console.log('✅ Login exitoso - Usuario:', usuario.nombre, 'ID:', usuario.id);
+
+                        return {
+                            success: true,
+                            message: data.message,
+                            usuario: usuario
+                        };
+                    } else {
+                        return {
+                            success: false,
+                            message: data.error || 'Error de autenticación'
+                        };
+                    }
+                } catch (error) {
+                    console.error('Error en login:', error);
+                    return {
+                        success: false,
+                        message: 'Error de conexión. Intente nuevamente.'
+                    };
+                }
+            }
+
+            logout() {
+                this.limpiarSesion();
+                window.location.href = 'login.html';
+            }
+
+            limpiarSesion() {
+                // Limpiar TODAS las claves relacionadas con la sesión
+                sessionStorage.removeItem('authToken');
+                sessionStorage.removeItem('userId');
+                sessionStorage.removeItem('user');
+                sessionStorage.removeItem('userData');
+                sessionStorage.removeItem('usuarioActual');
+
+                this.token = null;
+                this.usuarioActual = null;
+
+                console.log('✅ Sesión limpiada completamente');
+            }
+
+            redirigirDashboard(user) {
+                if (user) {
+                    console.log('🔄 Redirigiendo al dashboard para:', user.tipo);
+
+                    // Verificar si hay código pendiente de seguimiento
+                    const codigoPendiente = sessionStorage.getItem('codigoPendiente');
+
+                    if (codigoPendiente) {
+                        // Limpiar flags y redirigir a seguimiento con el código
+                        sessionStorage.removeItem('codigoPendiente');
+                        sessionStorage.removeItem('redirectAfterLogin');
+                        sessionStorage.removeItem('loginRedirect');
+                        window.location.href = `seguimiento.html?codigo=${encodeURIComponent(codigoPendiente)}`;
+                        return;
+                    }
+
+                    // Verificar si debe redirigir a seguimiento (desde index.html)
+                    const redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
+
+                    if (redirectAfterLogin === 'seguimiento') {
+                        sessionStorage.removeItem('redirectAfterLogin');
+                        sessionStorage.removeItem('loginRedirect');
+                        window.location.href = 'seguimiento.html';
+                        return;
+                    }
+
+                    // Limpiar flag de bucle
+                    sessionStorage.removeItem('loginRedirect');
+
+                    // Redirección normal según tipo de usuario
+                    if (user.tipo === 'admin') {
+                        window.location.href = 'public/admin/index.html';
+                    } else {
+                        window.location.href = 'dashboard-modular.html';
+                    }
+                }
+            }
+
+            mostrarMensaje(tipo, mensaje) {
+                const errorDiv = document.getElementById('errorMessage');
+                const successDiv = document.getElementById('successMessage');
+
+                // Ocultar ambos mensajes
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+
+                if (tipo === 'error') {
+                    errorDiv.textContent = mensaje;
+                    errorDiv.style.display = 'block';
+                } else if (tipo === 'success') {
+                    successDiv.textContent = mensaje;
+                    successDiv.style.display = 'block';
+                }
+            }
+        }
+
+        // Instancia global del sistema de autenticación
+        const authSystem = new AuthSystem();
+
+        const registroExitoso = sessionStorage.getItem('registroExitoso');
+        if (registroExitoso) {
+            authSystem.mostrarMensaje('success', registroExitoso);
+            sessionStorage.removeItem('registroExitoso');
+        }
+
+        // Manejar el envío del formulario de login
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+
+            // Validación básica
+            if (!username || !password) {
+                authSystem.mostrarMensaje('error', 'Por favor, complete todos los campos.');
+                return;
+            }
+
+            // Mostrar loading
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<div class="loading-spinner"></div><span>ENTRANDO...</span>';
+
+            try {
+                const resultado = await authSystem.login(username, password);
+
+                if (resultado.success) {
+                    authSystem.mostrarMensaje('success', resultado.message);
+                    setTimeout(() => {
+                        authSystem.redirigirDashboard(resultado.usuario);
+                    }, 1000);
+                } else {
+                    authSystem.mostrarMensaje('error', resultado.message);
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<span>INICIAR SESIÓN</span>';
+                }
+            } catch (error) {
+                console.error('Error en login:', error);
+                authSystem.mostrarMensaje('error', 'Error de conexión. Intente nuevamente.');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<span>INICIAR SESIÓN</span>';
+            }
+        });
+
+        // Función para recuperar contraseña
+        function forgotPassword() {
+            window.location.href = 'recuperar-password.html';
+        }
+
+        // Función global para logout (usada desde otros archivos)
+        window.logout = function () {
+            authSystem.logout();
+        };
+    </script>
+</body>
+
+</html>

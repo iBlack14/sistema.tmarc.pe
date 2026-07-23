@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesa de Partes Virtual | TMARC</title>
+
+    <!-- Google Fonts: Outfit for titles, Inter for body -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            /* Palette Light Premium */
+            --gold-primary: #d4af37;
+            --gold-dark: #aa8a2e;
+            --gold-light: #e5c158;
+            --gold-bg: rgba(212, 175, 55, 0.05);
+
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1a202c;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --input-focus: #d4af37;
+
+            --shadow-premium: 0 20px 40px -10px rgba(0, 0, 0, 0.05), 0 0 20px rgba(212, 175, 55, 0.03);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            background-image: radial-gradient(circle at 0% 0%, var(--gold-bg) 0%, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            background: var(--bg-card);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-premium);
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header Sticky */
+        .header {
+            background: linear-gradient(135deg, #fff 0%, #f9f9f9 100%);
+            padding: 40px 40px;
+            text-align: center;
+            border-bottom: 2px solid var(--gold-bg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.02);
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 4px;
+            background: var(--gold-primary);
+            border-radius: 2px;
+        }
+
+        .header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 span {
+            color: var(--gold-primary);
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Form Layout */
+        .form-content {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .form-section.collapsed .form-body {
+            display: none;
+        }
+
+        .form-header {
+            background: #fdfdfd;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .form-header:hover {
+            background: #f8f8f8;
+        }
+
+        .form-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gold-dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-title i {
+            font-style: normal;
+            font-size: 1.5rem;
+        }
+
+        .toggle-icon {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            transition: transform 0.3s ease;
+        }
+
+        .form-section:not(.collapsed) .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .form-body {
+            padding: 30px;
+            background: #fff;
+        }
+
+        /* Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .form-item {
+            margin-bottom: 5px;
+        }
+
+        .form-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Inputs */
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            background: #fcfcfc;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            color: var(--text-main);
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--gold-primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px var(--gold-bg);
+        }
+
+        /* Radio buttons */
+        .radio-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .radio-option input {
+            accent-color: var(--gold-primary);
+            width: 18px;
+            height: 18px;
+        }
+
+        .radio-option.active {
+            color: var(--gold-dark);
+        }
+
+        /* Buttons */
+        .btn-submit {
+            width: 100%;
+            max-width: 400px;
+            margin: 40px auto 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(212, 175, 55, 0.3);
+            background: linear-gradient(135deg, var(--gold-light), var(--gold-primary));
+        }
+
+        /* Table */
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .file-table th {
+            text-align: left;
+            padding: 15px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .file-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 50px;
+            border-radius: 24px;
+            max-width: 550px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gold-bg);
+            color: var(--gold-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 25px;
+        }
+
+        .warning-icon {
+            width: 70px;
+            height: 70px;
+            background: #fff8e1;
+            color: #ffa000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 20px;
+            border: 2px solid #ffecb3;
+        }
+
+        .modal-content.warning {
+            border-top: 5px solid #ffa000;
+        }
+
+        /* Modal Importante (Dark Glow) - Floating Style */
+        .modal-content.dark-glow {
+            background: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.6);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 30px rgba(212, 175, 55, 0.2);
+            color: white;
+            padding: 45px;
+            border-radius: 32px;
+            max-width: 500px;
+            animation: floatingModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes floatingModal {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .dark-glow .close-btn {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            width: 36px;
+            height: 36px;
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid var(--gold-primary);
+            border-radius: 50%;
+            color: var(--gold-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .dark-glow .close-btn:hover {
+            background: var(--gold-primary);
+            color: black;
+        }
+
+        .dark-glow .info-icon-box {
+            width: 80px;
+            height: 60px;
+            background: #fff;
+            border-radius: 10px;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .dark-glow h2 {
+            font-family: 'Outfit';
+            color: var(--gold-primary);
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .dark-glow .info-box {
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: left;
+            margin-top: 25px;
+        }
+
+        .info-list-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .info-list-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-list-item i {
+            font-size: 1.2rem;
+            min-width: 25px;
+        }
+
+        /* Floating Info Card (Always Visible) */
+        .floating-info-card {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 320px;
+            background: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3), 0 0 20px rgba(212, 175, 55, 0.1);
+            color: white;
+            padding: 25px;
+            z-index: 5000;
+            animation: slideInRight 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .floating-info-card h3 {
+            font-family: 'Outfit';
+            color: var(--gold-primary);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .floating-info-card .info-list-item {
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            opacity: 0.9;
+        }
+
+        .floating-info-card .close-card {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .floating-info-card .close-card:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .form-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>MESA DE PARTES <span>VIRTUAL</span></h1>
+            <p>ARBITRAJE, JPRD, CONCILIACION </p>
+        </div>
+
+        <form id="solicitudForm" class="form-content">
+
+            <!-- SECCIÓN 1: DEMANDANTE -->
+            <div class="form-section">
+                <div class="form-header" onclick="toggleSection(this)">
+                    <div class="form-title"><i>👤</i> SOLICITANTE O DEMANDANTE</div>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="form-body">
+                    <div class="radio-container">
+                        <label class="radio-option active">
+                            <input type="radio" name="tipo_persona_demandante" value="natural" checked
+                                onchange="updateRadioUI(this); toggleFields('demandante', 'natural')">
+                            Persona Natural
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="tipo_persona_demandante" value="juridica"
+                                onchange="updateRadioUI(this); toggleFields('demandante', 'juridica')">
+                            Persona Jurídica
+                        </label>
+                    </div>
+
+                    <!-- Campos Persona Natural -->
+                    <div id="fields_demandante_natural" class="form-grid">
+                        <div class="form-item full-width">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="nombre_demandante" class="form-input"
+                                placeholder="Nombres y apellidos">
+                        </div>
+                        <div class="form-item">
+                            <label>Tipo Documento</label>
+                            <select id="doc_tipo_demandante" class="form-select">
+                                <option value="DNI">DNI</option>
+                                <option value="CE">Carné de Extranjería</option>
+                                <option value="RUC">RUC</option>
+                            </select>
+                        </div>
+                        <div class="form-item">
+                            <label>Número Documento</label>
+                            <input type="text" id="doc_num_demandante" class="form-input" placeholder="00000000">
+                        </div>
+                    </div>
+
+                    <!-- Campos Persona Jurídica -->
+                    <div id="fields_demandante_juridica" class="form-grid" style="display:none;">
+                        <div class="form-item full-width">
+                            <label>Razón Social</label>
+                            <input type="text" id="razon_social_demandante" class="form-input"
+                                placeholder="Nombre legal de la empresa">
+                        </div>
+                        <div class="form-item">
+                            <label>RUC</label>
+                            <input type="text" id="ruc_demandante" class="form-input"
+                                placeholder="Número de RUC (11 dígitos)">
+                        </div>
+                        <div class="form-item">
+                            <label>Representante / Apoderado</label>
+                            <input type="text" id="rep_legal_demandante" class="form-input"
+                                placeholder="Nombre completo del representante">
+                        </div>
+                    </div>
+
+                    <div class="form-grid" style="margin-top:20px;">
+                        <div class="form-item">
+                            <label>Correo Electrónico</label>
+                            <input type="email" id="email_demandante" class="form-input"
+                                placeholder="correo@ejemplo.com" required>
+                        </div>
+                        <div class="form-item">
+                            <label>Celular / WhatsApp</label>
+                            <input type="tel" id="tel_demandante" class="form-input" placeholder="+51 900 000 000">
+                        </div>
+                        <div class="form-item full-width">
+                            <label>Dirección de Domicilio</label>
+                            <input type="text" id="domicilio_demandante" class="form-input"
+                                placeholder="Calle, Número, Distrito, Provincia">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: DEMANDADO -->
+            <div class="form-section">
+                <div class="form-header" onclick="toggleSection(this)">
+                    <div class="form-title"><i>⚖️</i> DATOS DE LA OTRA PARTE O DEMANDADO</div>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="form-body">
+                    <div class="radio-container">
+                        <label class="radio-option active">
+                            <input type="radio" name="tipo_persona_demandado" value="natural" checked
+                                onchange="updateRadioUI(this); toggleFields('demandado', 'natural')">
+                            Persona Natural
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="tipo_persona_demandado" value="juridica"
+                                onchange="updateRadioUI(this); toggleFields('demandado', 'juridica')">
+                            Persona Jurídica
+                        </label>
+                    </div>
+
+                    <!-- Campos Persona Natural (Demandado) -->
+                    <div id="fields_demandado_natural" class="form-grid">
+                        <div class="form-item full-width">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="nombre_demandado" class="form-input"
+                                placeholder="Nombres y apellidos del demandado">
+                        </div>
+                        <div class="form-item">
+                            <label>Tipo Documento</label>
+                            <select id="doc_tipo_demandado" class="form-select">
+                                <option value="DNI">DNI</option>
+                                <option value="CE">Carné de Extranjería</option>
+                                <option value="RUC">RUC</option>
+                            </select>
+                        </div>
+                        <div class="form-item">
+                            <label>Número Documento</label>
+                            <input type="text" id="doc_num_demandado" class="form-input"
+                                placeholder="Número de documento">
+                        </div>
+                    </div>
+
+                    <!-- Campos Persona Jurídica (Demandado) -->
+                    <div id="fields_demandado_juridica" class="form-grid" style="display:none;">
+                        <div class="form-item full-width">
+                            <label>Razón Social</label>
+                            <input type="text" id="razon_social_demandado" class="form-input"
+                                placeholder="Nombre legal de la empresa demandada">
+                        </div>
+                        <div class="form-item">
+                            <label>RUC</label>
+                            <input type="text" id="ruc_demandado" class="form-input"
+                                placeholder="Número de RUC (11 dígitos)">
+                        </div>
+                        <div class="form-item">
+                            <label>Representante Legal / Procurador</label>
+                            <input type="text" id="rep_legal_demandado" class="form-input"
+                                placeholder="Nombre del representante (si se conoce)">
+                        </div>
+                    </div>
+
+                    <div class="form-grid" style="margin-top:20px;">
+                        <div class="form-item">
+                            <label>Correo (Si se Conoce)</label>
+                            <input type="email" id="email_demandado" class="form-input"
+                                placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="form-item">
+                            <label>Celular (Si se Conoce)</label>
+                            <input type="tel" id="tel_demandado" class="form-input" placeholder="+51 900 000 000">
+                        </div>
+                        <div class="form-item full-width">
+                            <label>Dirección de Domicilio</label>
+                            <input type="text" id="domicilio_demandado" class="form-input"
+                                placeholder="Dirección conocida">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: DETALLES DE LA SOLICITUD -->
+            <div class="form-section">
+                <div class="form-header" onclick="toggleSection(this)">
+                    <div class="form-title"><i>📋</i> 3. DETALLES DE LA SOLICITUD</div>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="form-body">
+                    <div class="form-grid">
+                        <div class="form-item">
+                            <label>Asunto</label>
+                            <input type="text" id="asunto" class="form-input"
+                                placeholder="Ej: Solicitud de Inicio de Arbitraje" required>
+                        </div>
+                        <div class="form-item">
+                            <label>Tipo de Solicitud</label>
+                            <select id="tipo_solicitud" class="form-select">
+                                <option value="Arbitraje">Arbitraje</option>
+                                <option value="Junta de Prevención y Resolución de Disputas">Junta de Prevención y
+                                    Resolución de Disputas</option>
+                                <option value="Conciliación Extrajudicial">Conciliación Extrajudicial</option>
+                                <option value="Arbitraje de Emergencia">Arbitraje de Emergencia</option>
+                                <option value="Arbitraje Express">Arbitraje Express</option>
+                                <option value="Arbitraje entre Privados">Arbitraje entre Privados</option>
+                                <option value="Centro de Formación y Capacitación">Centro de Formación y Capacitación
+                                </option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-item full-width">
+                            <label>Descripción / Sumilla (Opcional)</label>
+                            <textarea id="descripcion" class="form-textarea" rows="4"
+                                placeholder="Breve descripción de la solicitud..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 4: ANEXOS -->
+            <div class="form-section">
+                <div class="form-header" onclick="toggleSection(this)">
+                    <div class="form-title"><i>▼</i> 4. ANEXOS</div>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="form-body">
+                    <a href="https://tmarc.pe/sistema-de-mesa-virtual/" target="_blank" rel="noopener noreferrer"
+                        class="btn-submit"
+                        style="margin: 0 0 25px 0; width: auto; padding: 10px 20px; background: #fff; color: var(--gold-dark); border: 1px solid var(--gold-primary); font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                        📄 Ver Lista de Requisitos
+                    </a>
+
+                    <div class="form-item full-width">
+                        <label>Documento (El archivo no debe exceder los 500 MB, máximo 10 archivos)</label>
+                        <div
+                            style="border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; background: #fafafa;">
+                            <button type="button" onclick="document.getElementById('file-input').click()"
+                                style="background: #fff; border: 1px solid var(--gold-primary); color: var(--gold-dark); padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                Seleccionar archivo
+                            </button>
+                            <span id="file-name-display"
+                                style="color: var(--text-muted); font-size: 0.9rem; font-style: italic;">Ningún archivo
+                                seleccionado</span>
+                            <input type="file" id="file-input" multiple style="display:none"
+                                onchange="handleFiles(this.files)">
+                        </div>
+                        <p style="font-size: 0.75rem; color: #718096; margin-top: 8px; font-style: italic;">
+                            Caracteres no permitidos: ! * ' ( ) ; : @ & = + $ , / ? % # [ ] <> "
+                        </p>
+                    </div>
+
+                    <div id="file-list-container" style="margin-top: 30px;">
+                        <table class="file-table" style="font-size: 0.8rem;">
+                            <thead>
+                                <tr style="text-transform: uppercase; letter-spacing: 1px; background: #f8fafc;">
+                                    <th style="width: 40px;">#</th>
+                                    <th>ARCHIVO</th>
+                                    <th>PÁGINA FIN</th>
+                                    <th>DESCRIPCIÓN</th>
+                                    <th>FOLIOS</th>
+                                    <th>PESO</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="file-list">
+                                <tr>
+                                    <td colspan="7"
+                                        style="text-align: center; padding: 30px; color: var(--text-muted); font-style: italic;">
+                                        No se han agregado archivos</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div
+                            style="margin-top: 15px; text-align: right; font-weight: 600; padding: 15px; border: 1px solid var(--border-color); border-radius: 10px;">
+                            Total: <span id="total-weight">0 MB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submit-btn">
+                Enviar Solicitud
+            </button>
+        </form>
+    </div>
+
+    <!-- Card Informativo Flotante (Siempre Visible) -->
+    <div class="floating-info-card" id="floatingInfo">
+        <div class="close-card" onclick="document.getElementById('floatingInfo').style.display='none'">×</div>
+        <h3><i>📧</i> ¡Importante!</h3>
+        <p style="font-size: 0.85rem; margin-bottom: 15px; color: rgba(255,255,255,0.7);">Las credenciales se enviarán
+            automáticamente a su correo.</p>
+
+        <div class="info-list-item">
+            <i>📩</i> <span>Revisa tu bandeja de entrada</span>
+        </div>
+        <div class="info-list-item">
+            <i>⚠️</i> <span>Verifica carpeta de spam</span>
+        </div>
+        <div class="info-list-item">
+            <i>🔐</i> <span>Guarda tus credenciales</span>
+        </div>
+    </div>
+
+    <!-- Modal Informativo Credenciales (Mantener para el flujo de envío si se desea) -->
+    <div class="modal" id="infoCredencialesModal">
+        <div class="modal-content dark-glow">
+            <div class="close-btn" onclick="document.getElementById('infoCredencialesModal').style.display='none'">×
+            </div>
+            <div class="info-icon-box">📧</div>
+            <h2>¡Importante!</h2>
+            <p style="font-size: 1.1rem; opacity: 0.9;">Tus <b>credenciales de acceso</b> serán enviadas automáticamente
+                a tu correo electrónico</p>
+
+            <div class="info-box">
+                <div class="info-list-item">
+                    <i>📩</i>
+                    <span>Revisa tu bandeja de entrada</span>
+                </div>
+                <div class="info-list-item">
+                    <i>⚠️</i>
+                    <span>Verifica carpeta de spam</span>
+                </div>
+                <div class="info-list-item">
+                    <i>🔐</i>
+                    <span>Guarda tus credenciales</span>
+                </div>
+            </div>
+
+            <button onclick="continuarALaAdvertencia()" class="btn-submit"
+                style="margin-top: 30px; width: 100%; max-width: none;">Entendido, continuar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Advertencia (Declaración Jurada) -->
+    <div class="modal" id="warningModal">
+        <div class="modal-content warning">
+            <div class="warning-icon">⚠️</div>
+            <h2 style="font-family: 'Outfit'; margin-bottom: 15px; color: #b45309;">DECLARACIÓN JURADA</h2>
+            <p
+                style="color: var(--text-muted); margin-bottom: 25px; text-align: justify; line-height: 1.6; font-size: 0.95rem;">
+                Al enviar esta solicitud, usted declara bajo juramento que la información proporcionada es verídica y
+                que los documentos adjuntos son copias fieles de sus originales.
+                <br><br>
+                Cualquier falsedad detectada dará lugar a las acciones legales correspondientes conforme a ley.
+            </p>
+
+            <div style="display: flex; justify-content: center;">
+                <button onclick="ejecutarEnvioFinal()" class="btn-submit"
+                    style="margin:0; width: 100%; padding: 15px 25px; font-size: 1rem; background: #b45309;">Acepto y
+                    deseo enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Éxito -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <div class="success-icon">✓</div>
+            <h2 style="font-family: 'Outfit'; margin-bottom: 15px;">¡Solicitud Ingresada!</h2>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">Su expediente ha sido registrado exitosamente en
+                el sistema.</p>
+
+            <div
+                style="background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 30px;">
+                <p style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px;">
+                    Número de Registro</p>
+                <p id="res-numero" style="font-size: 2rem; font-weight: 700; color: var(--gold-dark); margin-top: 5px;">
+                    ---</p>
+            </div>
+
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button onclick="descargarCargo()" class="btn-submit"
+                    style="margin:0; padding: 12px 25px; font-size: 0.9rem;">Descargar Cargo</button>
+                <button onclick="window.location.href='index.html'" class="btn-submit"
+                    style="margin:0; padding: 12px 25px; font-size: 0.9rem; background: #fff; color: var(--text-main); border: 1px solid var(--border-color);">Volver</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="assets/js/registro-usuario.js?v=20260723-1"></script>
+    <script src="assets/js/email-service.js"></script>
+    <script src="assets/js/cargo-generator.js?v=20260723-2"></script>
+
+    <script>
+        let uploadedFiles = [];
+
+        function toggleSection(header) {
+            header.parentElement.classList.toggle('collapsed');
+        }
+
+        function updateRadioUI(input) {
+            const container = input.closest('.radio-container');
+            container.querySelectorAll('.radio-option').forEach(opt => opt.classList.remove('active'));
+            input.parentElement.classList.add('active');
+        }
+
+        function toggleFields(rol, type) {
+            const natural = document.getElementById(`fields_${rol}_natural`);
+            const juridica = document.getElementById(`fields_${rol}_juridica`);
+            if (natural && juridica) {
+                natural.style.display = type === 'natural' ? 'grid' : 'none';
+                juridica.style.display = type === 'juridica' ? 'grid' : 'none';
+            }
+        }
+
+        function handleFiles(files) {
+            Array.from(files).forEach(f => {
+                // Agregar metadatos por defecto
+                f.paginaFin = 0;
+                f.folios = 0;
+                f.descripcionPersonalizada = '';
+                uploadedFiles.push(f);
+            });
+            document.getElementById('file-name-display').textContent = `${uploadedFiles.length} archivo(s) seleccionado(s)`;
+            renderFileList();
+        }
+
+        function renderFileList() {
+            const list = document.getElementById('file-list');
+            if (uploadedFiles.length === 0) {
+                list.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted); font-style: italic;">No se han agregado archivos</td></tr>';
+                document.getElementById('total-weight').textContent = '0 MB';
+                return;
+            }
+
+            let totalWeight = 0;
+            list.innerHTML = uploadedFiles.map((f, i) => {
+                totalWeight += f.size;
+                return `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td style="font-weight: 500;">${f.name}</td>
+                        <td><input type="number" class="form-input" style="padding: 5px; font-size: 0.8rem;" value="${f.paginaFin}" onchange="uploadedFiles[${i}].paginaFin = this.value"></td>
+                        <td><input type="text" class="form-input" style="padding: 5px; font-size: 0.8rem;" placeholder="Descripción..." value="${f.descripcionPersonalizada}" onchange="uploadedFiles[${i}].descripcionPersonalizada = this.value"></td>
+                        <td><input type="number" class="form-input" style="padding: 5px; font-size: 0.8rem;" value="${f.folios}" onchange="uploadedFiles[${i}].folios = this.value"></td>
+                        <td>${(f.size / 1024 / 1024).toFixed(2)} MB</td>
+                        <td><button type="button" onclick="removeFile(${i})" style="color:red; border:none; background:none; cursor:pointer;">❌</button></td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('total-weight').textContent = `${(totalWeight / 1024 / 1024).toFixed(2)} MB`;
+        }
+
+        function removeFile(i) {
+            uploadedFiles.splice(i, 1);
+            renderFileList();
+        }
+
+        const V = (id) => document.getElementById(id)?.value || '';
+
+        document.getElementById('solicitudForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('🚀 Intento de envío detectado');
+
+            if (uploadedFiles.length === 0) {
+                console.warn('⚠️ No hay archivos adjuntos');
+                alert('Por favor, adjunte al menos un documento (PDF o Imagen) antes de continuar.');
+                return;
+            }
+
+            // Mostramos el modal informativo de credenciales (Dark Glow)
+            console.log('✨ Mostrando modal informativo de credenciales');
+            document.getElementById('infoCredencialesModal').style.display = 'flex';
+        });
+
+        function continuarALaAdvertencia() {
+            document.getElementById('infoCredencialesModal').style.display = 'none';
+            // Ejecutamos el envío final directamente (Sin Declaración Jurada)
+            console.log('🚀 Procediendo al envío final...');
+            ejecutarEnvioFinal();
+        }
+
+        async function ejecutarEnvioFinal() {
+            // Ocultar modal advertencia
+            document.getElementById('warningModal').style.display = 'none';
+
+            const btn = document.getElementById('submit-btn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Procesando...';
+
+            try {
+                const tipoDemandante = document.querySelector('input[name="tipo_persona_demandante"]:checked').value;
+                const nombreDemandante = tipoDemandante === 'natural' ? V('nombre_demandante') : V('razon_social_demandante');
+                const emailDemandante = V('email_demandante');
+
+                // 1. Registro
+                const cred = window.RegistroUsuario.generarCredenciales(nombreDemandante, emailDemandante);
+                const reg = await window.RegistroUsuario.registrarUsuario(cred, { telefono: V('tel_demandante') });
+
+                const usuarioId = reg.usuario?.id || reg.id || null;
+                console.log('👤 Usuario identificado:', { usuarioId, yaExistia: reg.yaExistia });
+
+                if (!usuarioId) {
+                    throw new Error(reg.message || 'No se pudo identificar o registrar al usuario.');
+                }
+
+                // 2. FormData
+                const fd = new FormData();
+                fd.append('usuario_id', usuarioId);
+                fd.append('tipo_presentacion', V('tipo_solicitud'));
+                fd.append('materia', 'Arbitraje');
+                fd.append('asunto', V('asunto'));
+                fd.append('descripcion', V('descripcion'));
+                fd.append('sumilla', V('descripcion'));
+
+                const tipoDemandado = document.querySelector('input[name="tipo_persona_demandado"]:checked').value;
+                const demandado = {
+                    tipo_persona: tipoDemandado,
+                    nombre: tipoDemandado === 'natural' ? V('nombre_demandado') : V('razon_social_demandado'),
+                    documento_tipo: tipoDemandado === 'natural' ? V('doc_tipo_demandado') : 'RUC',
+                    documento_numero: tipoDemandado === 'natural' ? V('doc_num_demandado') : V('ruc_demandado'),
+                    representante: tipoDemandado === 'juridica' ? V('rep_legal_demandado') : null,
+                    correo: V('email_demandado'),
+                    telefono: V('tel_demandado'),
+                    domicilio: V('domicilio_demandado')
+                };
+
+                const demandante = {
+                    tipo_persona: tipoDemandante,
+                    nombre: nombreDemandante,
+                    documento_tipo: tipoDemandante === 'natural' ? V('doc_tipo_demandante') : 'RUC',
+                    documento_numero: tipoDemandante === 'natural' ? V('doc_num_demandante') : V('ruc_demandante'),
+                    representante: tipoDemandante === 'juridica' ? V('rep_legal_demandante') : null,
+                    correo: emailDemandante,
+                    telefono: V('tel_demandante'),
+                    domicilio: V('domicilio_demandante')
+                };
+
+                fd.append('demandante', JSON.stringify(demandante));
+                fd.append('demandado', JSON.stringify(demandado));
+
+                uploadedFiles.forEach(f => fd.append('documentos', f));
+
+                // 3. API - Guardar en Base de Datos
+                const res = await fetch('/api/mesa-partes', { method: 'POST', body: fd });
+                const result = await res.json();
+
+                if (!res.ok) throw new Error(result.error);
+
+                // 4. ÉXITO INMEDIATO (No esperamos al email para mostrar el éxito)
+                document.getElementById('res-numero').textContent = result.numero_registro;
+                window.tokenSeguimientoActual = result.token_seguimiento;
+                document.getElementById('successModal').style.display = 'flex';
+
+                // Resetear botón rápidamente
+                btn.disabled = false;
+                btn.textContent = originalText;
+
+                // 5. EMAIL EN SEGUNDO PLANO (Fire and Forget)
+                console.log('📧 Disparando envío de email en segundo plano...');
+                window.EmailService.enviarCredenciales(cred, {
+                    numeroExpediente: result.numero_registro,
+                    idUsuario: usuarioId,
+                    urlLogin: window.location.origin + '/login.html'
+                }).then(resEmail => {
+                    console.log('✅ Resultado email diferido:', resEmail);
+                }).catch(errEmail => {
+                    console.error('❌ Error en email diferido:', errEmail);
+                });
+
+            } catch (err) {
+                alert('Error: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        function descargarCargo() {
+            const datos = {
+                expediente: document.getElementById('res-numero').textContent,
+                solicitante: V('nombre_demandante') || V('razon_social_demandante'),
+                fecha: new Date().toLocaleString(),
+                folios: uploadedFiles.length,
+                tipo_servicio: V('tipo_solicitud'),
+                asunto: V('asunto'),
+                token: window.tokenSeguimientoActual
+            };
+            window.CargoGenerator.descargar(datos);
+        }
+    </script>
+</body>
+
+</html>

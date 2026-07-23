@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMARC | Seguimiento de Expedientes</title>
+    <!-- Google Fonts: Outfit for titles, Inter for body -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+    
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Professional Notifications & Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/public/admin/js/utils.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #B8860B; /* Darker Gold for contrast on white */
+            --primary-light: #D4AF37;
+            --primary-dark: #8B6508;
+            --surface: #FFFFFF;
+            --background: #F8FAFC;
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
+            --glass: rgba(255, 255, 255, 0.8);
+            --success: #10B981;
+            --info: #3B82F6;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+            background-image: radial-gradient(circle at top right, rgba(184,134,11,0.05), transparent),
+                              radial-gradient(circle at bottom left, rgba(184,134,11,0.05), transparent);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(32px, 6vw, 48px);
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Search Section - Premium Light Card */
+        .search-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 48px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 40px;
+            transition: all 0.4s ease;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            background: #F1F5F9;
+            padding: 6px;
+            border-radius: 16px;
+            width: fit-content;
+        }
+
+        .tab {
+            padding: 10px 24px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-group {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: #F8FAFC;
+            border: 2px solid #F1F5F9;
+            padding: 20px 24px;
+            border-radius: 20px;
+            color: var(--text-main);
+            font-size: 16px;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-light);
+            background: #FFF;
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+        }
+
+        .btn-search {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #FFF;
+            border: none;
+            padding: 20px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(184, 134, 11, 0.3);
+        }
+
+        /* Results Display */
+        .results-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            display: none;
+        }
+
+        .results-section.show {
+            opacity: 1;
+            transform: translateY(0);
+            display: block;
+        }
+
+        .cej-view {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .section-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 32px;
+            border-bottom: 2px solid #F1F5F9;
+            padding-bottom: 15px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        .cej-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .data-item {
+            padding: 20px;
+            background: #F8FAFC;
+            border-radius: 20px;
+            border: 1px solid #F1F5F9;
+            transition: all 0.3s;
+        }
+
+        .data-item:hover {
+            background: #FFF;
+            border-color: var(--primary-light);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .data-item label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .data-item .value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: #F1F5F9;
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .btn-download:hover {
+            background: var(--primary);
+            color: #FFF;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* Timeline (Seguimiento) PRO MAX LIGHT */
+        .cej-timeline {
+            position: relative;
+            padding-left: 50px;
+            margin-top: 20px;
+        }
+
+        .cej-timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #F1F5F9;
+            border-radius: 3px;
+        }
+
+        .timeline-entry {
+            position: relative;
+            margin-bottom: 48px;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -50px;
+            top: 0;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #FFF;
+            border: 4px solid var(--primary);
+            box-shadow: 0 0 0 6px #FFF;
+            z-index: 2;
+        }
+
+        .entry-card {
+            background: #FFF;
+            border-radius: 24px;
+            padding: 28px;
+            border: 1px solid #F1F5F9;
+            border-left: 6px solid var(--primary);
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .entry-card:hover {
+            transform: translateX(10px);
+            box-shadow: var(--shadow-lg);
+            border-left-width: 12px;
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #E2E8F0;
+        }
+
+        .entry-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .entry-title {
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .entry-sumilla {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            background: #F8FAFC;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .entry-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+        }
+
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .notif-box {
+            background: #FFFBEB;
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 13px;
+            border: 1px solid #FEF3C7;
+        }
+
+        .notif-box label {
+            display: block;
+            color: #92400E;
+            margin-bottom: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .qr-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #F1F5F9;
+            text-align: center;
+        }
+
+        .qr-btn {
+            background: #F8FAFC;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 14px 28px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .qr-btn:hover {
+            background: var(--surface);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div id="user-info" style="position: absolute; top: 0; right: 0; display: flex; align-items: center; gap: 15px; font-size: 14px; padding: 10px;">
+                <!-- Poblado por JS -->
+            </div>
+            <h1>Seguimiento de Expedientes</h1>
+            <p>Consulta el estado y avance de tu expediente</p>
+        </header>
+
+        <section class="search-section">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('codigo')">Por Código</button>
+                <button class="tab" onclick="switchTab('nombre')">Por Nombre</button>
+            </div>
+
+            <form id="search-form" onsubmit="buscarExpediente(event)">
+                <div id="group-codigo" class="search-group">
+                    <input type="text" id="codigo-mpv" class="search-input" placeholder="Ej: TMARC-0001-2025">
+                </div>
+                <div id="group-nombre" class="search-group" style="display:none">
+                    <input type="text" id="razon" class="search-input" placeholder="Nombre completo o Razón Social">
+                </div>
+                
+                <button type="submit" class="btn-search">
+                    <i class="fas fa-search"></i>
+                    Consultar Expediente
+                </button>
+            </form>
+
+            <div class="qr-section">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">¿Tienes un código QR?</p>
+                <input type="file" id="qr-input" accept="image/*" style="display:none" onchange="processQR(event)">
+                <button class="qr-btn" onclick="document.getElementById('qr-input').click()">📸 Escanear QR desde Imagen</button>
+                <div id="qr-result" style="margin-top: 10px; font-size: 12px;"></div>
+            </div>
+        </section>
+
+        <!-- Mis Registros (NUEVO) -->
+        <section id="mis-registros-section" class="search-section" style="display:none; padding: 32px; border-top: 5px solid var(--primary);">
+            <div class="section-title" style="margin-bottom: 20px;">
+                <i class="fas fa-briefcase"></i> Mis Expedientes y Presentaciones
+            </div>
+            <div id="lista-mis-registros" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+                <!-- Cargando... -->
+                <div style="color: var(--text-muted); font-size: 14px;">Cargando tus registros...</div>
+            </div>
+        </section>
+
+        <div id="results-section" class="results-section">
+            <!-- Dynamic content -->
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        // === SEGURIDAD PRO MAX EVOLVED ===
+        let token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
+        let user = JSON.parse(sessionStorage.getItem('usuario') || sessionStorage.getItem('user') || '{}');
+
+        // Actualizar UI del header según estado de sesión
+        function actualizarHeader() {
+            const userInfo = document.getElementById('user-info');
+            if (token && user.nombre) {
+                userInfo.innerHTML = `
+                    <span style="font-weight: 600; color: var(--text-muted);">Hola, ${user.nombre}</span>
+                    <button onclick="logout()" class="qr-btn" style="padding: 8px 16px; font-size: 12px; border-color: var(--danger); color: var(--danger);">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                `;
+                cargarMisRegistros();
+            } else {
+                userInfo.innerHTML = `
+                    <button onclick="window.location.href='/login.html?redirect=seguimiento'" class="qr-btn" style="background: var(--primary); color: white; border: none;">
+                        <i class="fas fa-user-lock"></i> Iniciar Sesión
+                    </button>
+                `;
+                document.getElementById('mis-registros-section').style.display = 'none';
+            }
+        }
+
+        actualizarHeader();
+
+        async function cargarMisRegistros() {
+            try {
+                const section = document.getElementById('mis-registros-section');
+                const lista = document.getElementById('lista-mis-registros');
+                
+                section.style.display = 'block';
+
+                // Fetch expedientes y mesa de partes del usuario
+                const [respExp, respMP] = await Promise.all([
+                    fetch(`/api/expedientes?usuario_id=${user.id}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch(`/api/mesa-partes?usuario_id=${user.id}`, { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
+
+                const dataExp = await respExp.json();
+                const dataMP = await respMP.json();
+
+                let html = '';
+                const items = [];
+
+                if (dataExp.success && dataExp.data) {
+                    dataExp.data.forEach(e => items.push({ id: e.numero || e.id, tipo: 'Expediente', estado: e.estado }));
+                }
+                if (dataMP.success && dataMP.data) {
+                    dataMP.data.forEach(m => items.push({ id: m.numero_registro, tipo: 'Presentación', estado: m.estado }));
+                }
+
+                if (items.length === 0) {
+                    lista.innerHTML = '<div style="color: var(--text-muted); font-size: 14px; grid-column: 1/-1;">No tienes registros asociados aún.</div>';
+                    return;
+                }
+
+                items.forEach(item => {
+                    html += `
+                    <div class="data-item" style="cursor:pointer; padding: 15px; background: #f1f5f930;" onclick="buscarRapido('${item.id}')">
+                        <div style="font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase;">${item.tipo}</div>
+                        <div style="font-weight: 700; margin: 5px 0;">${item.id}</div>
+                        <div style="font-size: 12px; opacity: 0.7;">Estado: ${item.estado}</div>
+                    </div>`;
+                });
+
+                lista.innerHTML = html;
+            } catch (error) {
+                console.error('Error cargando mis registros:', error);
+            }
+        }
+
+        function buscarRapido(id) {
+            document.getElementById('codigo-mpv').value = id;
+            document.getElementById('group-codigo').style.display = 'block';
+            document.getElementById('group-nombre').style.display = 'none';
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.textContent.includes('Código')));
+            buscarPorCodigo(id);
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            token = null;
+            user = {};
+            actualizarHeader();
+            Swal.fire({
+                title: 'Sesión Finalizada',
+                text: 'Ha cerrado sesión correctamente.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.reload();
+            });
+        }
+
+        function switchTab(type) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('group-codigo').style.display = type === 'codigo' ? 'block' : 'none';
+            document.getElementById('group-nombre').style.display = type === 'nombre' ? 'block' : 'none';
+        }
+
+        async function buscarExpediente(event) {
+            event.preventDefault();
+            const codigo = document.getElementById('codigo-mpv').value.trim();
+            const nombre = document.getElementById('razon').value.trim();
+            const val = codigo || nombre;
+
+            if (!val) {
+                return showError('Por favor, ingresa un código o nombre para buscar.');
+            }
+
+            showLoading('Buscando expediente...', 'Validando credenciales de acceso...');
+            
+            // Simulación de búsqueda (aquí iría el fetch real)
+            setTimeout(() => {
+                buscarPorCodigo(val);
+            }, 500);
+        }
+
+        async function buscarPorCodigo(codigo) {
+            if (!token) {
+                // Si no hay token, pedimos login de forma profesional
+                Swal.fire({
+                    title: '<strong>Acceso Restringido</strong>',
+                    icon: 'info',
+                    html: `Para ver el detalle de <b>${codigo}</b>, debe iniciar sesión en su cuenta TMARC.`,
+                    showCloseButton: true,
+                    showCancelButton: true,
+                    focusConfirm: false,
+                    confirmButtonText: '<i class="fa fa-sign-in-alt"></i> Iniciar Sesión',
+                    confirmButtonAriaLabel: 'Iniciar Sesión',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#B8860B'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        sessionStorage.setItem('codigoPendiente', codigo);
+                        window.location.href = `/login.html?redirect=seguimiento&codigo=${encodeURIComponent(codigo)}`;
+                    }
+                });
+                return;
+            }
+
+            try {
+                showLoading('Consultando expediente...', 'Autenticando su identidad...');
+                // Usar el endpoint de seguimiento-completo con TOKEN de seguridad
+                const response = await fetch(`/api/seguimiento-completo/${encodeURIComponent(codigo)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                
+                hideLoading();
+
+                if (data.success) {
+                    mostrarResultados(data);
+                    const results = document.getElementById('results-section');
+                    results.classList.add('show');
+                    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    if (response.status === 403) {
+                        Swal.fire({
+                            title: 'Acceso Denegado',
+                            text: 'Este expediente pertenece a otro usuario. Por razones de seguridad, solo el propietario puede consultarlo.',
+                            icon: 'warning',
+                            confirmButtonColor: '#B8860B'
+                        });
+                    } else {
+                        document.getElementById('results-section').innerHTML = '<div style="text-align:center; padding:50px">❌ Registro no encontrado.</div>';
+                        showError('No se encontró ningún registro con el código: ' + codigo);
+                    }
+                }
+            } catch (error) {
+                hideLoading();
+                console.error(error);
+                showError('Error al conectar con el servidor de seguridad.');
+            }
+        }
+
+        // Recuperar búsqueda pendiente tras login
+        window.addEventListener('load', () => {
+            const pending = sessionStorage.getItem('codigoPendiente');
+            if (pending && token) {
+                sessionStorage.removeItem('codigoPendiente');
+                document.getElementById('codigo-mpv').value = pending;
+                buscarPorCodigo(pending);
+            }
+        });
+
+        const BADGE = {
+            'Nuevo': '#d4af37', 'En Trámite': '#2196F3', 'En Procesamiento': '#9C27B0',
+            'Completado': '#4CAF50', 'Archivado': '#607D8B',
+            'Pendiente': '#FF9800', 'Aprobado': '#4CAF50', 'Rechazado': '#f44336',
+            'NOTA': '#607D8B', 'OFICIO': '#1565C0', 'RESOLUCION': '#6A1B9A',
+            'AUTO': '#AD1457', 'DECRETO': '#00838F', 'SENTENCIA': '#1B5E20', 'OTRO': '#37474F'
+        };
+
+        function badge(txt, color) {
+            return `<span class="status-badge" style="background:${color}15; color:${color}; border:1px solid ${color}30">${txt}</span>`;
+        }
+
+        // ── MOSTRAR RESULTADOS (vista CEJ completa - PRO MAX) ───────────────────────────
+        function mostrarResultados(rawData) {
+            const rs = document.getElementById('results-section');
+            rs.className = 'results-section show';
+            
+            const data   = rawData.data || rawData;
+            const exp    = data.datos_generales || {};
+            const partes = data.partes_procesales || [];
+            const timeline = data.timeline || []; // Usamos el timeline unificado
+            const docs   = data.documentos || [];
+            const fuente = data.fuente || 'expediente';
+
+            const fmtF = (f) => f ? new Date(f).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+            const fmtFH = (f) => f ? new Date(f).toLocaleString('es-PE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+
+            // 1. DATOS GENERALES
+            let htmlGen = `
+            <div class="cej-view">
+                <div class="section-card">
+                    <div class="section-title">
+                        <i class="fas fa-folder-open"></i>
+                        Datos Generales del Proceso
+                    </div>
+                    <div class="cej-grid">
+                        <div class="data-item">
+                            <label>Expediente</label>
+                            <div class="value" style="color:var(--primary); font-size:20px; font-weight:800">${exp.numero || exp.codigo || '—'}</div>
+                        </div>
+                        <div class="data-item">
+                            <label>Estado</label>
+                            <div class="value">${badge(exp.estado || 'EN TRÁMITE', BADGE[exp.estado] || '#888')}</div>
+                        </div>
+                        <div class="data-item">
+                            <label>Fecha de Registro</label>
+                            <div class="value">${fmtF(exp.fecha_creacion || exp.fecha_inicio)}</div>
+                        </div>
+                        <div class="data-item">
+                            <label>Materia / Tipo</label>
+                            <div class="value">${exp.materia || exp.tipo || 'ARBITRAJE'}</div>
+                        </div>
+                        <div class="data-item">
+                            <label>Secretaría / Tribunal Arbitral</label>
+                            <div class="value">${exp.juez || exp.especialista_legal || 'POR ASIGNAR'}</div>
+                        </div>
+                        <div class="data-item">
+                            <label>Sede / Ubicación</label>
+                            <div class="value">${exp.sede || exp.ubicacion || 'SEDE CENTRAL'}</div>
+                        </div>
+                    </div>
+                </div>`;
+
+            // 2. PARTES PROCESALES
+            if (partes.length > 0) {
+                htmlGen += `
+                <div class="section-card">
+                    <div class="section-title">
+                        <i class="fas fa-users"></i>
+                        Partes Procesales
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table style="width:100%; border-collapse:collapse; font-size:14px">
+                            <thead>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.1); text-align:left">
+                                    <th style="padding:12px; color:var(--text-muted)">Parte</th>
+                                    <th style="padding:12px; color:var(--text-muted)">Nombres / Razón Social</th>
+                                    <th style="padding:12px; color:var(--text-muted)">Documento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${partes.map(p => `
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.03)">
+                                    <td style="padding:12px; font-weight:600; text-transform:uppercase; font-size:11px; color:var(--primary)">${p.tipo_parte || 'PARTE'}</td>
+                                    <td style="padding:12px; font-weight:500">${p.nombre_completo || p.nombres || p.razon_social || p.nombre || '—'}</td>
+                                    <td style="padding:12px; font-family:monospace; color:var(--text-muted)">${p.documento_identidad || p.dni || p.ruc || '—'}</td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            }
+
+            // 3. DOCUMENTOS PRINCIPALES
+            if (docs.length > 0) {
+                htmlGen += `
+                <div class="section-card">
+                    <div class="section-title">
+                        <i class="fas fa-file-pdf"></i>
+                        Expediente Digital
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:12px">
+                        ${docs.map(d => `
+                        <a href="/api/download/archivo/${d.nombre_archivo}" target="_blank" class="btn-download">
+                            <i class="fas fa-cloud-download-alt"></i>
+                            ${d.nombre_original || 'Ver Documento'}
+                        </a>`).join('')}
+                    </div>
+                </div>`;
+            }
+
+            // 4. TIMELINE PRO MAX
+            if (timeline.length > 0) {
+                htmlGen += `
+                <div class="section-card">
+                    <div class="section-title">
+                        <i class="fas fa-history"></i>
+                        Seguimiento Procesal (Timeline)
+                    </div>
+                    <div class="cej-timeline">`;
+
+                timeline.forEach(mov => {
+                    const color = BADGE[mov.tipo_documento] || BADGE[mov.tipo_acto] || '#607D8B';
+                    htmlGen += `
+                    <div class="timeline-entry">
+                        <div class="timeline-marker" style="border-color:${color}"></div>
+                        <div class="entry-card" style="border-left-color:${color}">
+                            <div class="entry-header">
+                                <div class="entry-meta">
+                                    <i class="far fa-calendar-alt"></i>
+                                    <span>${fmtF(mov.fecha_documento || mov.fecha_ingreso)}</span>
+                                    ${mov.numero_documento ? `
+                                    <span style="opacity:0.3">|</span>
+                                    <i class="fas fa-hashtag"></i>
+                                    <span style="font-weight:700">${mov.numero_documento}</span>` : ''}
+                                </div>
+                                ${badge(mov.tipo_documento || mov.tipo_acto || 'ACTO', color)}
+                            </div>
+                            
+                            <div class="entry-title">${mov.asunto || mov.sumilla || 'MOVIMIENTO REGISTRADO'}</div>
+                            <div class="entry-sumilla">${mov.sumilla || mov.descripcion_usuario || 'Sin sumilla detallada.'}</div>
+                            
+                            <div class="entry-footer">
+                                ${mov.presentado_por || mov.tipo_parte ? `
+                                <div class="footer-item">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span>${mov.presentado_por || mov.tipo_parte}</span>
+                                </div>` : ''}
+                                
+                                ${mov.tiene_documento ? `
+                                <a href="/api/download/archivo/${mov.documento_archivo}" target="_blank" class="footer-item" style="text-decoration:none; font-weight:600">
+                                    <i class="fas fa-paperclip"></i>
+                                    <span>${mov.documento_nombre || 'Ver Adjunto'}</span>
+                                </a>` : ''}
+                            </div>
+
+                            ${(mov.fecha_notificacion_virtual || mov.forma_entrega) ? `
+                            <div class="notif-box">
+                                <label><i class="fas fa-bell"></i> Información de Notificación</label>
+                                <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:5px; opacity:0.8">
+                                    ${mov.fecha_notificacion_virtual ? `<span><b>Virtual:</b> ${fmtF(mov.fecha_notificacion_virtual)}</span>` : ''}
+                                    ${mov.fecha_notificacion_fisica ? `<span><b>Física:</b> ${fmtF(mov.fecha_notificacion_fisica)}</span>` : ''}
+                                    ${mov.forma_entrega ? `<span><b>Vía:</b> ${mov.forma_entrega}</span>` : ''}
+                                </div>
+                            </div>` : ''}
+                        </div>
+                    </div>`;
+                });
+                htmlGen += `</div></div>`;
+            }
+
+            htmlGen += `</div>`;
+            rs.innerHTML = htmlGen;
+        }
+
+        function mostrarMultiplesResultados(exps) {
+            const rs = document.getElementById('results-section');
+            rs.className = 'results-section show';
+            rs.innerHTML = `
+            <div class="section-card">
+                <div class="section-title">
+                    <i class="fas fa-search-plus"></i>
+                    Coincidencias Encontradas
+                </div>
+                <div style="display:grid; gap:12px">
+                    ${exps.map(e => `
+                    <div class="entry-card" style="cursor:pointer; padding: 15px 24px" onclick="buscarPorCodigo('${e.numero_registro}')">
+                        <div style="color:var(--primary); font-weight:800; font-size: 16px">${e.numero_registro}</div>
+                        <div style="font-size:13px; color:var(--text-muted); margin-top: 4px; font-weight: 600">${e.demandante?.nombre || e.razon_social || '—'}</div>
+                    </div>`).join('')}
+                </div>
+            </div>`;
+        }
+    </script>
+</body>
+</html>

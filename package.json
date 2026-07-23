@@ -1,0 +1,34 @@
+{
+  "name": "mesa-partes-virtual",
+  "version": "1.0.2",
+  "private": true,
+  "description": "Sistema de Mesa de Partes Virtual para gestión de expedientes judiciales",
+  "main": "app.js",
+  "scripts": {
+    "start": "node server.js",
+    "prod": "NODE_ENV=production node server.js",
+    "dev": "node server.js",
+    "init-db": "node -e \"require('dotenv').config(); require('./database-config').inicializarBaseDatos().then(()=>process.exit(0)).catch(err=>{console.error(err);process.exit(1)})\"",
+    "deps": "node run-npm-install.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcrypt": "npm:bcryptjs@^2.4.3",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.6.5",
+    "nodemailer": "^6.10.1",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

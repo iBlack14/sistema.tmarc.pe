@@ -1,0 +1,65 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/zyryrqst/sistema.tmarc.pe"
+PassengerBaseURI "/"
+PassengerNodejs "/home/zyryrqst/nodevenv/sistema.tmarc.pe/22/bin/node"
+PassengerAppType node
+PassengerStartupFile app.js
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+# ============================================
+# PROTECCIÓN DE ARCHIVOS SENSIBLES
+# ============================================
+# Proteger .env
+<FilesMatch "^\.env">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+# Proteger archivos de configuración
+<FilesMatch "\.(env|gitignore|htpasswd|ini|log|sh|sql|conf|config|bak|backup)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+# Proteger archivos JSON de configuración
+<FilesMatch "^(package\.json|package-lock\.json|composer\.json|composer\.lock)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+# Proteger directorios sensibles
+RedirectMatch 403 /\.git
+RedirectMatch 403 /node_modules
+RedirectMatch 403 /vendor
+RedirectMatch 403 /tmp
+RedirectMatch 403 /logs
+# Deshabilitar listado de directorios
+Options -Indexes
+# ============================================
+# CONFIGURACIÓN ORIGINAL DE CLOUDLINUX
+# ============================================
+# BEGIN LSCACHE
+# END LSCACHE
+# BEGIN NON_LSCACHE
+# END NON_LSCACHE
+# BEGIN WordPress - DESACTIVADO PARA NODE.JS
+# Las directivas de WordPress están comentadas porque interfieren con la aplicación Node.js
+# Si necesitas WordPress, instálalo en un subdirectorio separado
+# <IfModule mod_rewrite.c>
+# RewriteEngine On
+# RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+# RewriteBase /
+# RewriteRule ^index\.php$ - [L]
+# RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteCond %{REQUEST_FILENAME} !-d
+# RewriteRule . /index.php [L]
+# </IfModule>
+# END WordPress
+# BEGIN LiteSpeed
+<IfModule Litespeed>
+SetEnv noabort 1
+</IfModule>
+# END LiteSpeed
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php82” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php82___lsphp .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit

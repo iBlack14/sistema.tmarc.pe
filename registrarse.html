@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Crea tu cuenta en la Mesa de Partes Virtual TMARC">
+    <title>TMARC | Crear cuenta</title>
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --primary-dark: #B89222;
+            --success: #4CAF50;
+            --danger: #F44336;
+            --ink: #1A1A1A;
+            --muted: #666666;
+            --line: #DED9CA;
+            --field: #F8F9FA;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            font-family: "Inter", sans-serif;
+            color: var(--ink);
+            background: #1A1A1A;
+            display: grid;
+            place-items: center;
+            padding: 44px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background:
+                linear-gradient(rgba(13, 13, 13, .86), rgba(26, 26, 26, .92)),
+                url("assets/img/login.png") center / cover no-repeat;
+            z-index: -2;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(212,175,55,.14), transparent 24%),
+                radial-gradient(circle at 82% 82%, rgba(212,175,55,.10), transparent 25%);
+            z-index: -1;
+        }
+
+        .register-card {
+            width: min(100%, 720px);
+            min-height: 760px;
+            background: #fff;
+            border-radius: 48px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .48);
+            overflow: hidden;
+            animation: enter .55s ease both;
+        }
+
+        @keyframes enter {
+            from { opacity: 0; transform: translateY(18px) scale(.985); }
+        }
+
+        .card-main { padding: 38px 54px 36px; }
+
+        .brand {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 26px;
+        }
+
+        .brand img {
+            display: block;
+            width: min(220px, 52vw);
+            height: auto;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            position: relative;
+            margin: 0 4px 50px;
+        }
+
+        .steps::before, .progress-line {
+            content: "";
+            position: absolute;
+            height: 3px;
+            top: 27px;
+            left: 13%;
+            right: 13%;
+            background: #e8edf3;
+        }
+
+        .progress-line {
+            right: auto;
+            width: 0;
+            background: var(--primary);
+            transition: width .35s ease;
+        }
+
+        .step {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: #99a8bf;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .step-dot {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #f8fafc;
+            border: 3px solid #e1e8f0;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 14px;
+            font-size: 19px;
+            box-shadow: 0 3px 8px rgba(35, 59, 83, .08);
+            transition: .25s ease;
+        }
+
+        .step.active { color: var(--primary); }
+        .step.active .step-dot { color: white; background: var(--primary); border-color: var(--primary); }
+        .step.done { color: var(--primary); }
+        .step.done .step-dot { color: white; background: var(--success); border-color: var(--success); }
+
+        .panel { display: none; animation: panel .3s ease; }
+        .panel.active { display: block; }
+        @keyframes panel { from { opacity: 0; transform: translateX(10px); } }
+
+        .heading { text-align: center; margin-bottom: 34px; }
+        .heading h1 { font-size: 31px; line-height: 1.2; letter-spacing: -.8px; margin-bottom: 8px; }
+        .heading p { color: var(--muted); font-size: 17px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 22px; }
+        .field { min-width: 0; }
+        .field.full { grid-column: 1 / -1; }
+
+        label, .field-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 5px 9px;
+        }
+
+        .counter { color: #9aabc2; font-size: 12px; font-weight: 600; }
+        .input-wrap { position: relative; }
+
+        input, select {
+            width: 100%;
+            height: 58px;
+            border: 2px solid var(--line);
+            border-radius: 19px;
+            background: var(--field);
+            color: var(--ink);
+            font: 500 16px "Inter", sans-serif;
+            padding: 0 18px 0 52px;
+            outline: none;
+            transition: .2s ease;
+        }
+
+        select { appearance: none; cursor: pointer; }
+        input::placeholder { color: #a2adbd; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(212,175,55,.14); background: white; }
+        input.invalid, select.invalid { border-color: var(--danger); }
+
+        .icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9bacc2;
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+        }
+
+        .select-arrow {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            width: 8px;
+            height: 8px;
+            border-right: 2px solid #8996a7;
+            border-bottom: 2px solid #8996a7;
+            transform: translateY(-65%) rotate(45deg);
+            pointer-events: none;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            border: 0;
+            background: transparent;
+            color: #91a3ba;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .error { color: var(--danger); font-size: 12px; min-height: 16px; margin: 6px 5px 0; }
+
+        .password-rules {
+            border: 1px solid #e6ebf1;
+            border-radius: 22px;
+            padding: 18px 20px;
+            margin: 16px 0 20px;
+            background: #fcfdff;
+        }
+
+        .password-rules h3 { color: var(--muted); font-size: 14px; margin-bottom: 11px; }
+        .rule { display: flex; align-items: center; gap: 10px; color: #8794a7; font-size: 13px; margin: 8px 0; }
+        .rule::before {
+            content: "✓";
+            display: grid;
+            place-items: center;
+            width: 22px;
+            height: 22px;
+            border: 2px solid #dbe3ec;
+            border-radius: 50%;
+            font-weight: 800;
+        }
+        .rule.ok { color: #39853d; }
+        .rule.ok::before { color: var(--success); border-color: #a5d6a7; background: #f1fbf1; }
+
+        .check-row { display: flex; align-items: flex-start; gap: 11px; margin: 13px 3px; font-size: 14px; color: #536179; }
+        .check-row input { width: 20px; height: 20px; padding: 0; accent-color: var(--primary); flex: 0 0 auto; }
+        a { color: var(--primary); font-weight: 700; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .actions {
+            border-top: 1px solid #edf1f5;
+            margin-top: 30px;
+            padding-top: 18px;
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .btn {
+            min-height: 56px;
+            border: 0;
+            border-radius: 19px;
+            padding: 0 30px;
+            font: 700 16px "Inter", sans-serif;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+        .btn-back { color: var(--muted); background: transparent; }
+        .btn-back:hover { color: var(--ink); background: #f5f7fa; }
+        .btn-primary { flex: 1; color: #1A1A1A; background: var(--primary); box-shadow: 0 12px 22px rgba(212,175,55,.25); }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); }
+        .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+        .card-footer {
+            text-align: center;
+            color: var(--muted);
+            border-top: 1px solid #edf1f5;
+            background: #fcfdff;
+            padding: 25px;
+            font-size: 14px;
+        }
+
+        .notice {
+            display: none;
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+        .notice.show { display: block; }
+        .notice.error-notice { color: #b42318; background: #fff1f0; border: 1px solid #ffc9c5; }
+        .notice.success-notice { color: #286c2c; background: #f1fbf1; border: 1px solid #b9dfbb; }
+
+        .spinner {
+            width: 20px; height: 20px; display: inline-block; vertical-align: middle;
+            border: 3px solid rgba(26,26,26,.25); border-top-color: #1A1A1A; border-radius: 50%;
+            animation: spin .75s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 640px) {
+            body { padding: 0; display: block; background: white; }
+            body::before, body::after { display: none; }
+            .register-card { min-height: 100vh; width: 100%; border-radius: 0; box-shadow: none; }
+            .card-main { padding: 24px 20px 28px; }
+            .brand { margin-bottom: 22px; }
+            .brand img { width: 190px; }
+            .steps { margin-bottom: 34px; }
+            .step-dot { width: 46px; height: 46px; font-size: 16px; }
+            .steps::before, .progress-line { top: 22px; }
+            .step { font-size: 12px; }
+            .heading { margin-bottom: 26px; }
+            .heading h1 { font-size: 27px; }
+            .heading p { font-size: 15px; }
+            .form-grid { grid-template-columns: 1fr; gap: 14px; }
+            .field.full { grid-column: auto; }
+            input, select { height: 55px; }
+            .actions { gap: 8px; }
+            .btn { padding: 0 18px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="register-card" aria-labelledby="panelTitle">
+        <div class="card-main">
+            <a class="brand" href="index.html" aria-label="Ir al inicio de TMARC">
+                <img src="assets/img/logo.png" alt="TMARC - Arbitraje y Dispute Boards">
+            </a>
+            <nav class="steps" aria-label="Progreso del registro">
+                <div class="progress-line" id="progressLine"></div>
+                <div class="step active" data-step="1"><span class="step-dot">1</span><span>Identidad</span></div>
+                <div class="step" data-step="2"><span class="step-dot">2</span><span>Ubicación</span></div>
+                <div class="step" data-step="3"><span class="step-dot">3</span><span>Seguridad</span></div>
+            </nav>
+
+            <div id="notice" class="notice" role="alert"></div>
+
+            <form id="registerForm" novalidate>
+                <section class="panel active" data-panel="1">
+                    <header class="heading">
+                        <h1 id="panelTitle">Identidad</h1>
+                        <p>Empecemos con tu identificación</p>
+                    </header>
+                    <div class="form-grid">
+                        <div class="field full">
+                            <label for="documentType">Tipo de documento</label>
+                            <div class="input-wrap">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9h14M5 15h14M10 3 8 21M16 3l-2 18"/></svg>
+                                <select id="documentType">
+                                    <option value="DNI">DNI</option>
+                                    <option value="CE">Carné de extranjería</option>
+                                    <option value="PAS">Pasaporte</option>
+                                    <option value="RUC">RUC</option>
+                                </select>
+                                <span class="select-arrow"></span>
+                            </div>
+                            <p class="error" id="documentTypeError"></p>
+                        </div>
+                        <div class="field full">
+                            <label for="documentNumber">Número <span class="counter" id="documentCounter">8 dígitos · 0/8</span></label>
+                            <div class="input-wrap">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.7-1.5 1.7-2 3-2s2.3.5 3 2M14 9h4M14 13h4"/></svg>
+                                <input id="documentNumber" inputmode="numeric" autocomplete="username" placeholder="Ingresa tu número de documento">
+                            </div>
+                            <p class="error" id="documentNumberError"></p>
+                        </div>
+                        <div class="field">
+                            <label for="firstName">Nombres</label>
+                            <div class="input-wrap">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                                <input id="firstName" autocomplete="given-name" placeholder="Tus nombres">
+                            </div>
+                            <p class="error" id="firstNameError"></p>
+                        </div>
+                        <div class="field">
+                            <label for="lastName">Apellidos</label>
+                            <div class="input-wrap">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                                <input id="lastName" autocomplete="family-name" placeholder="Tus apellidos">
+                            </div>
+                            <p class="error" id="lastNameError"></p>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-primary" type="button" data-next>Continuar&nbsp; ›</button>
+                    </div>
+                </section>
+
+                <section class="panel" data-panel="2">
+                    <header class="heading">
+                        <h1>Ubicación</h1>
+                        <p>Dinos cómo contactarte</p>
+                    </header>
+                    <div class="form-grid">
+                        <div class="field full">
+                            <label for="address">Domicilio</label>
+                            <div class="input-wrap">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                                <input id="address" autocomplete="street-address" placeholder="Av., calle, número y referencia">
+                            </div>
+                            <p class="error" id="addressError"></p>
+                        </div>
+                        <div class="field">
+                            <label for="district">Distrito</label>
+                            <div class="input-wrap"><input id="district" style="padding-left:18px" autocomplete="address-level3" placeholder="Distrito"></div>
+                            <p class="error" id="districtError"></p>
+                        </div>
+                        <div class="field">
+                            <label for="province">Provincia</label>
+                            <div class="input-wrap"><input id="province" style="padding-left:18px" autocomplete="address-level2" placeholder="Provincia"></div>
+                            <p class="error" id="provinceError"></p>
+                        </div>
+                        <div class="field full">
+                            <label for="region">Región / Departamento</label>
+                            <div class="input-wrap">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>
+                                <input id="region" autocomplete="address-level1" placeholder="Ej. Lima">
+                            </div>
+                            <p class="error" id="regionError"></p>
+                        </div>
+                        <div class="field full">
+                            <label for="email">Correo electrónico</label>
+                            <div class="input-wrap">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+                                <input id="email" type="email" autocomplete="email" placeholder="correo@ejemplo.com">
+                            </div>
+                            <p class="error" id="emailError"></p>
+                        </div>
+                        <div class="field">
+                            <span class="field-label">País</span>
+                            <div class="input-wrap">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>
+                                <select id="country"><option value="+51">Perú (+51)</option></select>
+                                <span class="select-arrow"></span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="phone">Celular <span class="counter" id="phoneCounter">9 dígitos · 0/9</span></label>
+                            <div class="input-wrap">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-3 2c1.5 3 2.5 4 5 5l2-3 5 2v4c0 1-1 2-2 2C9 20 4 15 3 6c0-1 1-2 2-2Z"/></svg>
+                                <input id="phone" inputmode="numeric" autocomplete="tel-national" placeholder="987654321" maxlength="9">
+                            </div>
+                            <p class="error" id="phoneError"></p>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-back" type="button" data-back>‹&nbsp; Atrás</button>
+                        <button class="btn btn-primary" type="button" data-next>Continuar&nbsp; ›</button>
+                    </div>
+                </section>
+
+                <section class="panel" data-panel="3">
+                    <header class="heading">
+                        <h1>Seguridad</h1>
+                        <p>Protege tu nueva cuenta</p>
+                    </header>
+                    <div class="field">
+                        <label for="password">Contraseña</label>
+                        <div class="input-wrap">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                            <input id="password" type="password" autocomplete="new-password" placeholder="Crea una contraseña segura" style="padding-right:54px">
+                            <button class="password-toggle" type="button" data-toggle="password" aria-label="Mostrar contraseña">◉</button>
+                        </div>
+                        <p class="error" id="passwordError"></p>
+                    </div>
+                    <div class="password-rules">
+                        <h3>Tu contraseña debe incluir</h3>
+                        <div class="rule" data-rule="length">Entre 8 y 16 caracteres</div>
+                        <div class="rule" data-rule="upper">Una letra mayúscula</div>
+                        <div class="rule" data-rule="lower">Una letra minúscula</div>
+                        <div class="rule" data-rule="number">Un número</div>
+                        <div class="rule" data-rule="symbol">Un símbolo (ej. @ # $ %)</div>
+                    </div>
+                    <div class="field">
+                        <label for="confirmPassword">Confirmar contraseña <span class="counter" id="matchText"></span></label>
+                        <div class="input-wrap">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                            <input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Repite tu contraseña" style="padding-right:54px">
+                            <button class="password-toggle" type="button" data-toggle="confirmPassword" aria-label="Mostrar contraseña">◉</button>
+                        </div>
+                        <p class="error" id="confirmPasswordError"></p>
+                    </div>
+                    <label class="check-row"><input id="terms" type="checkbox"> <span>Acepto los <a href="#" onclick="return false">Términos y Condiciones</a></span></label>
+                    <label class="check-row"><input id="privacy" type="checkbox"> <span>Acepto la <a href="#" onclick="return false">Política de Privacidad</a></span></label>
+                    <p class="error" id="acceptanceError"></p>
+                    <div class="actions">
+                        <button class="btn btn-back" type="button" data-back>‹&nbsp; Atrás</button>
+                        <button class="btn btn-primary" id="submitButton" type="submit">Crear cuenta</button>
+                    </div>
+                </section>
+            </form>
+        </div>
+        <footer class="card-footer">¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></footer>
+    </main>
+
+    <script>
+        (() => {
+            const $ = (id) => document.getElementById(id);
+            let currentStep = 1;
+            const panels = [...document.querySelectorAll(".panel")];
+            const steps = [...document.querySelectorAll(".step")];
+            const requiredByStep = {
+                1: ["documentNumber", "firstName", "lastName"],
+                2: ["address", "district", "province", "region", "email", "phone"]
+            };
+
+            const messages = {
+                documentNumber: "Ingresa un número de documento válido.",
+                firstName: "Ingresa tus nombres.",
+                lastName: "Ingresa tus apellidos.",
+                address: "Ingresa tu domicilio completo.",
+                district: "Ingresa tu distrito.",
+                province: "Ingresa tu provincia.",
+                region: "Ingresa tu región o departamento.",
+                email: "Ingresa un correo electrónico válido.",
+                phone: "El celular debe tener 9 dígitos."
+            };
+
+            function documentConfig() {
+                return {
+                    DNI: { max: 8, label: "8 dígitos", pattern: /^\d{8}$/ },
+                    CE: { max: 12, label: "hasta 12 caracteres", pattern: /^[A-Za-z0-9]{6,12}$/ },
+                    PAS: { max: 12, label: "hasta 12 caracteres", pattern: /^[A-Za-z0-9]{6,12}$/ },
+                    RUC: { max: 11, label: "11 dígitos", pattern: /^\d{11}$/ }
+                }[$("documentType").value];
+            }
+
+            function updateProgress() {
+                panels.forEach((panel, index) => panel.classList.toggle("active", index + 1 === currentStep));
+                steps.forEach((step, index) => {
+                    const number = index + 1;
+                    step.classList.toggle("active", number === currentStep);
+                    step.classList.toggle("done", number < currentStep);
+                    step.querySelector(".step-dot").textContent = number < currentStep ? "✓" : number;
+                });
+                $("progressLine").style.width = currentStep === 1 ? "0" : currentStep === 2 ? "37%" : "74%";
+                $("notice").className = "notice";
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+
+            function setError(id, text = "") {
+                const input = $(id);
+                const error = $(id + "Error");
+                if (input) input.classList.toggle("invalid", Boolean(text));
+                if (error) error.textContent = text;
+                return !text;
+            }
+
+            function validField(id) {
+                const value = $(id).value.trim();
+                let valid = value.length >= 2;
+                if (id === "documentNumber") valid = documentConfig().pattern.test(value);
+                if (id === "email") valid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+                if (id === "phone") valid = /^9\d{8}$/.test(value);
+                if (id === "address") valid = value.length >= 5;
+                return setError(id, valid ? "" : messages[id]);
+            }
+
+            function validateStep(step) {
+                return requiredByStep[step].map(validField).every(Boolean);
+            }
+
+            function passwordStatus() {
+                const password = $("password").value;
+                const checks = {
+                    length: password.length >= 8 && password.length <= 16,
+                    upper: /[A-Z]/.test(password),
+                    lower: /[a-z]/.test(password),
+                    number: /\d/.test(password),
+                    symbol: /[^A-Za-z0-9]/.test(password)
+                };
+                Object.entries(checks).forEach(([name, ok]) =>
+                    document.querySelector(`[data-rule="${name}"]`).classList.toggle("ok", ok)
+                );
+                const confirm = $("confirmPassword").value;
+                const matches = Boolean(confirm) && confirm === password;
+                $("matchText").textContent = confirm ? (matches ? "Coincide" : "No coincide") : "";
+                $("matchText").style.color = matches ? "var(--success)" : "var(--danger)";
+                return Object.values(checks).every(Boolean);
+            }
+
+            function validateSecurity() {
+                const passwordOk = passwordStatus();
+                const match = $("confirmPassword").value === $("password").value && $("confirmPassword").value;
+                setError("password", passwordOk ? "" : "La contraseña aún no cumple todos los requisitos.");
+                setError("confirmPassword", match ? "" : "Las contraseñas no coinciden.");
+                const accepted = $("terms").checked && $("privacy").checked;
+                $("acceptanceError").textContent = accepted ? "" : "Debes aceptar los términos y la política de privacidad.";
+                return passwordOk && match && accepted;
+            }
+
+            document.querySelectorAll("[data-next]").forEach(button => button.addEventListener("click", () => {
+                if (!validateStep(currentStep)) return;
+                currentStep++;
+                updateProgress();
+            }));
+            document.querySelectorAll("[data-back]").forEach(button => button.addEventListener("click", () => {
+                currentStep--;
+                updateProgress();
+            }));
+
+            $("documentType").addEventListener("change", () => {
+                const config = documentConfig();
+                $("documentNumber").value = "";
+                $("documentNumber").maxLength = config.max;
+                $("documentNumber").inputMode = ["DNI", "RUC"].includes($("documentType").value) ? "numeric" : "text";
+                $("documentCounter").textContent = `${config.label} · 0/${config.max}`;
+                setError("documentNumber");
+            });
+
+            $("documentNumber").addEventListener("input", (event) => {
+                const config = documentConfig();
+                const numeric = ["DNI", "RUC"].includes($("documentType").value);
+                event.target.value = (numeric ? event.target.value.replace(/\D/g, "") : event.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase()).slice(0, config.max);
+                $("documentCounter").textContent = `${config.label} · ${event.target.value.length}/${config.max}`;
+            });
+            $("phone").addEventListener("input", (event) => {
+                event.target.value = event.target.value.replace(/\D/g, "").slice(0, 9);
+                $("phoneCounter").textContent = `9 dígitos · ${event.target.value.length}/9`;
+            });
+            ["password", "confirmPassword"].forEach(id => $(id).addEventListener("input", passwordStatus));
+            document.querySelectorAll("[data-toggle]").forEach(button => button.addEventListener("click", () => {
+                const input = $(button.dataset.toggle);
+                input.type = input.type === "password" ? "text" : "password";
+                button.textContent = input.type === "password" ? "◉" : "⊘";
+            }));
+            document.querySelectorAll("input, select").forEach(input => input.addEventListener("blur", () => {
+                if (requiredByStep[currentStep]?.includes(input.id)) validField(input.id);
+            }));
+
+            function showNotice(type, text) {
+                const notice = $("notice");
+                notice.className = `notice show ${type}-notice`;
+                notice.textContent = text;
+                notice.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+
+            $("registerForm").addEventListener("submit", async (event) => {
+                event.preventDefault();
+                if (!validateSecurity()) return;
+
+                const button = $("submitButton");
+                button.disabled = true;
+                button.innerHTML = '<span class="spinner"></span>&nbsp; Creando cuenta...';
+                const payload = {
+                    username: $("documentNumber").value.trim().toUpperCase(),
+                    email: $("email").value.trim().toLowerCase(),
+                    password: $("password").value,
+                    nombre: `${$("firstName").value.trim()} ${$("lastName").value.trim()}`,
+                    telefono: `${$("country").value}${$("phone").value}`,
+                    tipo: "usuario"
+                };
+
+                try {
+                    const response = await fetch("/api/usuarios", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.details || data.error || "No se pudo crear la cuenta.");
+
+                    sessionStorage.setItem("registroExitoso", "Tu cuenta fue creada. Ya puedes iniciar sesión con tu documento.");
+                    showNotice("success", "¡Cuenta creada correctamente! Te llevaremos al inicio de sesión.");
+                    setTimeout(() => { window.location.href = "login.html?registro=exitoso"; }, 1400);
+                } catch (error) {
+                    showNotice("error", error.message || "Ocurrió un error de conexión. Inténtalo nuevamente.");
+                    button.disabled = false;
+                    button.textContent = "Crear cuenta";
+                }
+            });
+
+            $("documentType").dispatchEvent(new Event("change"));
+        })();
+    </script>
+</body>
+</html>
