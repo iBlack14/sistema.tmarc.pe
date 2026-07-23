@@ -172,6 +172,42 @@
             color: #9CA3AF;
         }
 
+        .form-input.has-toggle {
+            padding-right: 52px;
+        }
+
+        .password-visibility {
+            position: absolute;
+            top: 50%;
+            right: 9px;
+            width: 40px;
+            height: 40px;
+            transform: translateY(-50%);
+            display: grid;
+            place-items: center;
+            border: 0;
+            border-radius: 10px;
+            color: #7B8493;
+            background: transparent;
+            cursor: pointer;
+            transition: color .2s ease, background .2s ease;
+        }
+
+        .password-visibility:hover {
+            color: #1A1A1A;
+            background: rgba(212, 175, 55, .12);
+        }
+
+        .password-visibility:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 1px;
+        }
+
+        .password-visibility svg {
+            width: 21px;
+            height: 21px;
+        }
+
         .login-btn {
             width: 100%;
             background: var(--primary);
@@ -441,8 +477,20 @@
             <div class="form-group">
                 <label class="form-label" for="password">Contraseña</label>
                 <div class="input-wrapper">
-                    <input type="password" id="password" class="form-input" placeholder="••••••••" required
+                    <input type="password" id="password" class="form-input has-toggle" placeholder="••••••••" required
                         autocomplete="current-password">
+                    <button type="button" id="toggleLoginPassword" class="password-visibility"
+                        aria-label="Mostrar contraseña" aria-pressed="false">
+                        <svg id="eyeOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg id="eyeClosed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                            <path d="m3 3 18 18"></path>
+                            <path d="M10.6 5.2A11.5 11.5 0 0 1 12 5c6.5 0 10 7 10 7a15.8 15.8 0 0 1-2.1 3.1M6.6 6.6C3.6 8.6 2 12 2 12s3.5 7 10 7a10.8 10.8 0 0 0 4.3-.9"></path>
+                            <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
@@ -670,6 +718,20 @@
 
         // Instancia global del sistema de autenticación
         const authSystem = new AuthSystem();
+        const loginPassword = document.getElementById('password');
+        const toggleLoginPassword = document.getElementById('toggleLoginPassword');
+
+        toggleLoginPassword.addEventListener('click', () => {
+            const showing = loginPassword.type === 'text';
+            loginPassword.type = showing ? 'password' : 'text';
+            toggleLoginPassword.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+            toggleLoginPassword.setAttribute('aria-pressed', String(!showing));
+            document.getElementById('eyeOpen').style.display = showing ? '' : 'none';
+            document.getElementById('eyeClosed').style.display = showing ? 'none' : '';
+            loginPassword.focus();
+            loginPassword.setSelectionRange(loginPassword.value.length, loginPassword.value.length);
+        });
+
         let activeChallengeId = null;
         const verificationOverlay = document.getElementById('verificationOverlay');
         const codeInputs = Array.from(document.querySelectorAll('.code-input'));

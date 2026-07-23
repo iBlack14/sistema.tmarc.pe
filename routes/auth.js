@@ -226,6 +226,7 @@ router.post('/verify-first-login', async (req, res) => {
 
         const rows = await query(
             `SELECT c.challenge_id, c.usuario_id, c.codigo_hash, c.intentos, c.expira_en,
+                    CASE WHEN c.expira_en < NOW() THEN 1 ELSE 0 END AS expirado,
                     u.id, u.username, u.email, u.nombre, u.tipo, u.activo
              FROM codigos_primer_ingreso c
              INNER JOIN usuarios u ON u.id = c.usuario_id
@@ -233,7 +234,9 @@ router.post('/verify-first-login', async (req, res) => {
             [challengeId]
         );
         const record = rows[0];
-        if (!record || new Date(record.expira_en).getTime() < Date.now()) {
+        // Comparar la expiración en MySQL evita falsos vencimientos por diferencias
+        // entre la zona horaria de Node.js, el driver y el servidor de base de datos.
+        if (!record || Number(record.expirado) === 1) {
             if (record) await query('DELETE FROM codigos_primer_ingreso WHERE challenge_id = ?', [challengeId]);
             return res.status(400).json({ success: false, error: 'El código venció. Solicita uno nuevo.' });
         }
