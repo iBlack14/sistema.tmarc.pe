@@ -4,6 +4,78 @@ const UsuarioModel = require('../models/usuario-model');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const smtpConfigManager = require('../smtp-config-manager');
+
+function escaparHtml(valor) {
+    return String(valor || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function plantillaBienvenida(usuario) {
+    const baseUrl = (process.env.APP_URL || process.env.BASE_URL || 'https://sistema.tmarc.pe').replace(/\/+$/, '');
+    const nombre = escaparHtml(usuario.nombre);
+    const username = escaparHtml(usuario.username);
+    const email = escaparHtml(usuario.email);
+
+    return `<!doctype html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f1f2f4;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f2f4;padding:30px 12px">
+<tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 14px 38px rgba(0,0,0,.12)">
+        <tr>
+            <td align="center" style="background:#1a1a1a;padding:30px 24px;border-bottom:5px solid #d4af37">
+                <img src="cid:logo@institucion" width="210" alt="TMARC" style="display:block;width:210px;max-width:70%;height:auto">
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:42px 42px 18px;text-align:center">
+                <div style="display:inline-block;width:56px;height:56px;line-height:56px;border-radius:16px;background:#d4af37;color:#1a1a1a;font-size:28px;font-weight:bold;margin-bottom:20px">✓</div>
+                <h1 style="margin:0 0 8px;font-size:28px;line-height:1.2;color:#1a1a1a">¡Bienvenido(a) a TMARC!</h1>
+                <p style="margin:0;color:#777;font-size:14px">Mesa de Partes Virtual · Arbitraje &amp; Dispute Boards</p>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:18px 42px 36px">
+                <p style="margin:0 0 18px;font-size:17px;line-height:1.6;text-align:center">Hola <strong>${nombre}</strong>,</p>
+                <p style="margin:0 0 26px;color:#555;font-size:15px;line-height:1.65;text-align:center">
+                    Tu cuenta fue creada correctamente. Ya puedes acceder a la plataforma y gestionar tus presentaciones y expedientes.
+                </p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8f9fa;border:1px solid #e6e1d2;border-left:5px solid #d4af37;border-radius:12px">
+                    <tr><td style="padding:23px">
+                        <p style="margin:0 0 17px;font-size:16px;font-weight:bold">Tus datos de acceso</p>
+                        <p style="margin:0 0 7px;color:#777;font-size:12px;text-transform:uppercase;letter-spacing:.7px">Usuario</p>
+                        <p style="margin:0 0 18px;font-family:monospace;font-size:17px;font-weight:bold;color:#b08b17">${username}</p>
+                        <p style="margin:0 0 7px;color:#777;font-size:12px;text-transform:uppercase;letter-spacing:.7px">Correo registrado</p>
+                        <p style="margin:0;font-size:15px;color:#1a1a1a">${email}</p>
+                    </td></tr>
+                </table>
+                <p style="margin:18px 0 26px;color:#666;font-size:13px;line-height:1.55;text-align:center">
+                    Usa la contraseña que creaste durante el registro. Por seguridad, nunca enviamos contraseñas por correo.
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0" align="center"><tr><td align="center" bgcolor="#d4af37" style="border-radius:12px">
+                    <a href="${baseUrl}/login.html" style="display:inline-block;padding:16px 38px;color:#1a1a1a;text-decoration:none;font-size:15px;font-weight:bold">Ingresar a mi cuenta</a>
+                </td></tr></table>
+                <div style="margin-top:28px;padding:17px;border-radius:10px;background:#fff8df;color:#66520f;font-size:13px;line-height:1.55;text-align:center">
+                    En tu primer ingreso te enviaremos un código temporal al correo para verificar tu identidad.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="background:#1a1a1a;border-top:4px solid #d4af37;padding:25px;text-align:center">
+                <p style="margin:0 0 6px;color:#d4af37;font-size:16px;font-weight:bold">TMARC</p>
+                <p style="margin:0;color:#aaa;font-size:12px">Arbitraje &amp; Dispute Boards · Gestión segura y transparente</p>
+            </td>
+        </tr>
+    </table>
+</td></tr></table>
+</body></html>`;
+}
 
 // Configuración de almacenamiento para avatars
 const storage = multer.diskStorage({
@@ -140,10 +212,38 @@ router.post('/', async (req, res) => {
 
         console.log('✅ Usuario creado con ID:', resultado.insertId);
 
+        let emailBienvenidaEnviado = false;
+        let emailBienvenidaError = null;
+        try {
+            console.log('📧 Enviando bienvenida TMARC a:', datosUsuario.email);
+            const envio = await smtpConfigManager.enviarEmail({
+                destinatario: datosUsuario.email,
+                asunto: 'Bienvenido(a) a TMARC - Tu cuenta fue creada',
+                contenido: plantillaBienvenida(datosUsuario),
+                tipo: 'bienvenida_usuario'
+            });
+            emailBienvenidaEnviado = Boolean(envio.success && envio.estado !== 'simulado' && envio.estado !== 'pendiente_smtp');
+            if (emailBienvenidaEnviado) {
+                console.log('✅ Correo de bienvenida TMARC enviado:', envio.messageId || envio.message);
+            } else {
+                emailBienvenidaError = envio.message || 'El servicio SMTP no confirmó el envío';
+                console.warn('⚠️ Cuenta creada, pero no se envió la bienvenida:', emailBienvenidaError);
+            }
+        } catch (emailError) {
+            emailBienvenidaError = emailError.message;
+            console.error('❌ Cuenta creada, pero falló el correo de bienvenida:', emailError);
+        }
+
         res.status(201).json({
             success: true,
-            message: 'Usuario creado exitosamente',
-            data: { id: resultado.insertId }
+            message: emailBienvenidaEnviado
+                ? 'Usuario creado y correo de bienvenida enviado'
+                : 'Usuario creado; el correo de bienvenida quedó pendiente',
+            data: {
+                id: resultado.insertId,
+                emailBienvenidaEnviado,
+                emailBienvenidaError
+            }
         });
     } catch (error) {
         console.error('❌ Error creando usuario:', error);
