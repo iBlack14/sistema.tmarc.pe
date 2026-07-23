@@ -7,8 +7,17 @@ const { verificarAuth } = require('../middleware/auth');
 const { query } = require('../database-config');
 const smtpConfigManager = require('../smtp-config-manager');
 
-const CODE_TTL_MINUTES = 10;
-const MAX_CODE_ATTEMPTS = 5;
+const CODE_TTL_MINUTES = Math.max(1, parseInt(process.env.FIRST_LOGIN_CODE_TTL_MINUTES || '', 10) || 10);
+const MAX_CODE_ATTEMPTS = Math.max(1, parseInt(process.env.FIRST_LOGIN_MAX_ATTEMPTS || '', 10) || 5);
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+
+function obtenerJwtSecret() {
+    const secret = process.env.JWT_SECRET;
+    if (!secret || secret.length < 32) {
+        throw new Error('JWT_SECRET debe estar configurado en el entorno y tener al menos 32 caracteres');
+    }
+    return secret;
+}
 
 function generarCodigo() {
     return crypto.randomInt(100000, 1000000).toString();
@@ -21,8 +30,8 @@ function hash(value) {
 function crearToken(usuario) {
     return jwt.sign(
         { id: usuario.id, username: usuario.username, tipo: usuario.tipo },
-        process.env.JWT_SECRET || 'secret-temporal-cambiar-urgente',
-        { expiresIn: '24h' }
+        obtenerJwtSecret(),
+        { expiresIn: JWT_EXPIRES_IN }
     );
 }
 
@@ -54,7 +63,7 @@ function emailCodigo(usuario, codigo) {
 <h1 style="font-size:25px;margin:0 0 12px">Código de acceso</h1>
 <p style="color:#666;line-height:1.55;margin:0 0 26px">Hola <strong>${String(usuario.nombre).replace(/[<>&"]/g, '')}</strong>, usa este código para verificar el primer ingreso a tu cuenta TMARC.</p>
 <div style="display:inline-block;background:#d4af37;color:#1a1a1a;border-radius:12px;padding:17px 24px;font:700 34px monospace;letter-spacing:9px">${codigo}</div>
-<p style="color:#666;font-size:14px;margin:26px 0 0">El código vence en <strong>10 minutos</strong> y solo puede usarse una vez.</p>
+<p style="color:#666;font-size:14px;margin:26px 0 0">El código vence en <strong>${CODE_TTL_MINUTES} minutos</strong> y solo puede usarse una vez.</p>
 <p style="color:#999;font-size:12px;margin:22px 0 0">Si no intentaste ingresar, no compartas este código y cambia tu contraseña.</p>
 </td></tr>
 <tr><td style="background:#f8f9fa;text-align:center;padding:20px;color:#777;font-size:12px">TMARC · Arbitraje &amp; Dispute Boards</td></tr>
@@ -342,64 +351,6 @@ router.post('/change-password', verificarAuth, async (req, res) => {
             success: false, 
             error: 'Error interno del servidor' 
         });
-    }
-});
-
-// Inicializar usuarios de prueba (para desarrollo)
-router.post('/init-test-users', async (req, res) => {
-    try {
-        const UsuarioModel = require('../models/usuario-model');
-        const bcrypt = require('bcrypt');
-
-        // Verificar si ya existe el usuario demo
-        const existingUser = await UsuarioModel.obtenerPorUsernameOEmail('demo');
-        if (existingUser) {
-            return res.json({
-                success: true,
-                message: 'Usuarios de prueba ya existen',
-                data: {
-                    admin: { username: 'admin', email: 'admin@sistema.gov' },
-                    demo: { username: 'demo', email: 'demo@ejemplo.com' }
-                }
-            });
-        }
-
-        // Crear usuario demo con contraseña conocida
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash('demo123', saltRounds);
-
-        const { query } = require('../database-config');
-        await query(`
-            INSERT INTO usuarios (username, email, password, nombre, tipo)
-            VALUES (?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE password = VALUES(password)
-        `, ['demo', 'demo@ejemplo.com', hashedPassword, 'Usuario Demo', 'usuario']);
-
-        console.log('✅ Usuarios de prueba inicializados');
-
-        res.json({
-            success: true,
-            message: 'Usuarios de prueba inicializados correctamente',
-            data: {
-                demo: {
-                    username: 'demo',
-                    email: 'demo@ejemplo.com',
-                    password: 'demo123',
-                    nombre: 'Usuario Demo',
-                    tipo: 'usuario'
-                },
-                admin: {
-                    username: 'admin',
-                    email: 'admin@sistema.gov',
-                    password: 'admin123',
-                    nombre: 'Administrador del Sistema',
-                    tipo: 'admin'
-                }
-            }
-        });
-    } catch (error) {
-        console.error('Error inicializando usuarios de prueba:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 

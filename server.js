@@ -1,6 +1,10 @@
 // server.js (versión corregida para cPanel/Passenger + SMTP)
 require('dotenv').config();
 
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET es obligatorio y debe tener al menos 32 caracteres');
+}
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -176,60 +180,6 @@ app.get('/api/init-db', async (_req, res) => {
   } catch (error) {
     console.error('Error init-db:', error);
     res.status(500).json({ error: 'Error inicializando base de datos', details: String(error.message || error) });
-  }
-});
-
-// Inicializar usuarios de prueba
-app.post('/api/init-test-users', async (_req, res) => {
-  try {
-    const UsuarioModel = require('./models/usuario-model');
-    const bcrypt = require('bcrypt');
-
-    // Verificar si ya existe el usuario demo
-    const existingUser = await UsuarioModel.obtenerPorUsernameOEmail('demo');
-    if (existingUser) {
-      return res.json({
-        success: true,
-        message: 'Usuarios de prueba ya existen',
-        data: {
-          admin: { username: 'admin', email: 'admin@sistema.gov' },
-          demo: { username: 'demo', email: 'demo@ejemplo.com' }
-        }
-      });
-    }
-
-    const adminUser = process.env.ADMIN_USER || 'admin';
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@sistema.gov';
-    const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
-    const hashedAdminPass = await bcrypt.hash(adminPass, saltRounds);
-
-    const { query } = require('./database-config');
-    
-    // Insertar/Actualizar Administrador Maestro
-    await query(`
-      INSERT INTO usuarios (username, email, password, nombre, tipo)
-      VALUES (?, ?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE email = VALUES(email), password = VALUES(password)
-    `, [adminUser, adminEmail, hashedAdminPass, 'Administrador del Sistema', 'admin']);
-
-    console.log('✅ Administrador inicializado desde entorno');
-
-    res.json({
-      success: true,
-      message: 'Administrador inicializado correctamente',
-      data: {
-        admin: {
-          username: adminUser,
-          email: adminEmail,
-          password: '***',
-          nombre: 'Administrador del Sistema',
-          tipo: 'admin'
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Error inicializando usuarios de prueba:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 

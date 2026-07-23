@@ -572,17 +572,18 @@ async function inicializarBaseDatos(reset = false) {
 
         console.log('✅ Todas las tablas verificadas/creadas');
 
-        // Insertar usuarios por defecto si no existen o actualizar si han cambiado en .env
-        const adminUser = process.env.ADMIN_USER || 'admin';
-        const adminEmail = process.env.ADMIN_EMAIL || 'admin@sblxkstudio.com';
-        const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
-        const hashedAdminPass = await bcrypt.hash(adminPass, 10);
-
         try {
             // Solo insertar el administrador si no existe ningún usuario admin
             const adminExistente = await query("SELECT id FROM usuarios WHERE tipo = 'admin' LIMIT 1");
 
             if (adminExistente.length === 0) {
+                const adminUser = process.env.ADMIN_USER;
+                const adminEmail = process.env.ADMIN_EMAIL;
+                const adminPass = process.env.ADMIN_PASSWORD;
+                if (!adminUser || !adminEmail || !adminPass) {
+                    throw new Error('Faltan ADMIN_USER, ADMIN_EMAIL o ADMIN_PASSWORD en el entorno');
+                }
+                const hashedAdminPass = await bcrypt.hash(adminPass, 10);
                 console.log('👤 Creando administrador inicial...');
                 await query(`
                     INSERT INTO usuarios (username, email, password, nombre, tipo) 

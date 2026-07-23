@@ -7,6 +7,10 @@
  */
 
 require('dotenv').config();
+
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET es obligatorio y debe tener al menos 32 caracteres');
+}
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -152,55 +156,6 @@ app.get('/api/init-db', async (_req, res) => {
   } catch (error) {
     console.error('Error init-db:', error);
     res.status(500).json({ error: 'Error inicializando base de datos', details: String(error.message || error) });
-  }
-});
-
-// Inicializar usuarios de prueba
-app.post('/api/init-test-users', async (_req, res) => {
-  try {
-    const UsuarioModel = require('./models/usuario-model');
-    const bcrypt = require('bcrypt');
-
-    const existingUser = await UsuarioModel.obtenerPorUsernameOEmail('demo');
-    if (existingUser) {
-      return res.json({
-        success: true,
-        message: 'Usuarios de prueba ya existen',
-        data: {
-          admin: { username: 'admin', email: 'admin@sistema.gov' },
-          demo: { username: 'demo', email: 'demo@ejemplo.com' }
-        }
-      });
-    }
-
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash('demo123', saltRounds);
-
-    const { query } = require('./database-config');
-    await query(`
-      INSERT INTO usuarios (username, email, password, nombre, tipo)
-      VALUES (?, ?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE password = VALUES(password)
-    `, ['demo', 'demo@ejemplo.com', hashedPassword, 'Usuario Demo', 'usuario']);
-
-    console.log('✅ Usuarios de prueba inicializados');
-
-    res.json({
-      success: true,
-      message: 'Usuarios de prueba inicializados correctamente',
-      data: {
-        demo: {
-          username: 'demo',
-          email: 'demo@ejemplo.com',
-          password: 'demo123',
-          nombre: 'Usuario Demo',
-          tipo: 'usuario'
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Error inicializando usuarios de prueba:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
