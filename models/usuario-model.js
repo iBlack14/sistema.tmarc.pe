@@ -20,8 +20,8 @@ class UsuarioModel {
             const password_hash = await bcrypt.hash(password, saltRounds);
 
             const sql = `
-                INSERT INTO usuarios (username, email, password, nombre, telefono, tipo)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO usuarios (username, email, password, nombre, telefono, tipo, primer_ingreso_verificado)
+                VALUES (?, ?, ?, ?, ?, ?, 0)
             `;
 
             const resultado = await query(sql, [username, email, password_hash, nombre, telefono, tipo]);

@@ -14,6 +14,7 @@ const multer = require('multer');
 // Rutas / servicios internos
 const { inicializarBaseDatos } = require('./database-config'); // MySQL
 const apiRoutes = require('./routes/api');
+const authRoutes = require('./routes/auth');
 const passwordRecovery = require('./routes/password-recovery');
 
 // === SMTP: manager + servicio ===
@@ -163,6 +164,7 @@ app.use('/api', (req, _res, next) => {
   next(); 
 });
 app.use('/api/auth', passwordRecovery);
+app.use('/api/auth', authRoutes);
 app.use('/api/download', downloadRoutes);
 app.use('/api', apiRoutes);
 

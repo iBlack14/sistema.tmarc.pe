@@ -185,6 +185,7 @@ async function inicializarBaseDatos(reset = false) {
                 telefono VARCHAR(20),
                 tipo ENUM('admin', 'usuario') DEFAULT 'usuario',
                 activo TINYINT(1) DEFAULT 1,
+                primer_ingreso_verificado TINYINT(1) DEFAULT 0,
                 fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 ultimo_acceso TIMESTAMP NULL,
                 updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -199,6 +200,27 @@ async function inicializarBaseDatos(reset = false) {
             console.log('➕ Agregando columna telefono a tabla usuarios...');
             await query(`ALTER TABLE usuarios ADD COLUMN telefono VARCHAR(20) AFTER nombre`);
         }
+
+        const tienePrimerIngresoVerificado = await columnaExiste('usuarios', 'primer_ingreso_verificado');
+        if (!tienePrimerIngresoVerificado) {
+            // Las cuentas que ya existían antes de esta función se consideran verificadas.
+            await query('ALTER TABLE usuarios ADD COLUMN primer_ingreso_verificado TINYINT(1) DEFAULT 1 AFTER activo');
+        }
+
+        await query(`
+            CREATE TABLE IF NOT EXISTS codigos_primer_ingreso (
+                challenge_id CHAR(64) PRIMARY KEY,
+                usuario_id INT NOT NULL,
+                codigo_hash CHAR(64) NOT NULL,
+                intentos TINYINT UNSIGNED DEFAULT 0,
+                expira_en DATETIME NOT NULL,
+                creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_codigo_usuario (usuario_id),
+                INDEX idx_codigo_expira (expira_en),
+                CONSTRAINT fk_codigo_primer_ingreso_usuario
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+            )
+        `);
 
         const tieneFotoPerfil = await columnaExiste('usuarios', 'foto_perfil');
         if (!tieneFotoPerfil) {

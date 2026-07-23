@@ -1,8 +1,92 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const UsuarioModel = require('../models/usuario-model');
 const { verificarAuth } = require('../middleware/auth');
+const { query } = require('../database-config');
+const smtpConfigManager = require('../smtp-config-manager');
+
+const CODE_TTL_MINUTES = 10;
+const MAX_CODE_ATTEMPTS = 5;
+
+function generarCodigo() {
+    return crypto.randomInt(100000, 1000000).toString();
+}
+
+function hash(value) {
+    return crypto.createHash('sha256').update(String(value)).digest('hex');
+}
+
+function crearToken(usuario) {
+    return jwt.sign(
+        { id: usuario.id, username: usuario.username, tipo: usuario.tipo },
+        process.env.JWT_SECRET || 'secret-temporal-cambiar-urgente',
+        { expiresIn: '24h' }
+    );
+}
+
+function usuarioPublico(usuario) {
+    return {
+        id: usuario.id,
+        username: usuario.username,
+        email: usuario.email,
+        nombre: usuario.nombre,
+        tipo: usuario.tipo
+    };
+}
+
+function ocultarCorreo(email) {
+    const [local, domain] = String(email).split('@');
+    if (!domain) return email;
+    return `${local.slice(0, 2)}${'*'.repeat(Math.max(2, local.length - 2))}@${domain}`;
+}
+
+function emailCodigo(usuario, codigo) {
+    return `<!doctype html>
+<html lang="es"><body style="margin:0;background:#f4f4f4;font-family:Arial,sans-serif;color:#1a1a1a">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 12px"><tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,.12)">
+<tr><td align="center" style="background:#1a1a1a;padding:28px;border-bottom:5px solid #d4af37">
+<img src="cid:logo@institucion" alt="TMARC" width="190" style="display:block;max-width:70%">
+</td></tr>
+<tr><td style="padding:38px 42px;text-align:center">
+<h1 style="font-size:25px;margin:0 0 12px">Código de acceso</h1>
+<p style="color:#666;line-height:1.55;margin:0 0 26px">Hola <strong>${String(usuario.nombre).replace(/[<>&"]/g, '')}</strong>, usa este código para verificar el primer ingreso a tu cuenta TMARC.</p>
+<div style="display:inline-block;background:#d4af37;color:#1a1a1a;border-radius:12px;padding:17px 24px;font:700 34px monospace;letter-spacing:9px">${codigo}</div>
+<p style="color:#666;font-size:14px;margin:26px 0 0">El código vence en <strong>10 minutos</strong> y solo puede usarse una vez.</p>
+<p style="color:#999;font-size:12px;margin:22px 0 0">Si no intentaste ingresar, no compartas este código y cambia tu contraseña.</p>
+</td></tr>
+<tr><td style="background:#f8f9fa;text-align:center;padding:20px;color:#777;font-size:12px">TMARC · Arbitraje &amp; Dispute Boards</td></tr>
+</table></td></tr></table></body></html>`;
+}
+
+async function emitirCodigo(usuario) {
+    const codigo = generarCodigo();
+    const challengeId = crypto.randomBytes(32).toString('hex');
+
+    await query('DELETE FROM codigos_primer_ingreso WHERE usuario_id = ? OR expira_en < NOW()', [usuario.id]);
+    await query(
+        `INSERT INTO codigos_primer_ingreso
+            (challenge_id, usuario_id, codigo_hash, expira_en)
+         VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL ? MINUTE))`,
+        [challengeId, usuario.id, hash(codigo), CODE_TTL_MINUTES]
+    );
+
+    const envio = await smtpConfigManager.enviarEmail({
+        destinatario: usuario.email,
+        asunto: 'Código de acceso a tu cuenta TMARC',
+        contenido: emailCodigo(usuario, codigo),
+        tipo: 'primer_ingreso'
+    });
+
+    if (!envio.success || envio.estado === 'simulado' || envio.estado === 'pendiente_smtp') {
+        await query('DELETE FROM codigos_primer_ingreso WHERE challenge_id = ?', [challengeId]);
+        throw new Error(envio.message || 'No fue posible enviar el código');
+    }
+
+    return { challengeId, maskedEmail: ocultarCorreo(usuario.email) };
+}
 
 // ========== ENDPOINTS DE AUTENTICACIÓN ==========
 
@@ -98,37 +182,103 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Actualizar último acceso
-        await UsuarioModel.actualizarUltimoAcceso(usuario.id);
+        if (usuario.tipo !== 'admin' && !Number(usuario.primer_ingreso_verificado)) {
+            try {
+                const challenge = await emitirCodigo(usuario);
+                return res.json({
+                    success: true,
+                    requiresVerification: true,
+                    message: 'Enviamos un código de acceso a tu correo',
+                    data: challenge
+                });
+            } catch (emailError) {
+                console.error('Error enviando código de primer ingreso:', emailError);
+                return res.status(503).json({
+                    success: false,
+                    error: 'Tus credenciales son correctas, pero no pudimos enviar el código. Verifica la configuración de correo o inténtalo nuevamente.'
+                });
+            }
+        }
 
-        // Crear token JWT seguro
-        const token = jwt.sign(
-            {
-                id: usuario.id,
-                username: usuario.username,
-                tipo: usuario.tipo
-            },
-            process.env.JWT_SECRET || 'secret-temporal-cambiar-urgente',
-            { expiresIn: '24h' }
-        );
+        await UsuarioModel.actualizarUltimoAcceso(usuario.id);
+        const token = crearToken(usuario);
 
         res.json({
             success: true,
             message: 'Login exitoso',
             data: {
-                usuario: {
-                    id: usuario.id,
-                    username: usuario.username,
-                    email: usuario.email,
-                    nombre: usuario.nombre,
-                    tipo: usuario.tipo
-                },
+                usuario: usuarioPublico(usuario),
                 token: token
             }
         });
     } catch (error) {
         console.error('Error en login:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+router.post('/verify-first-login', async (req, res) => {
+    try {
+        const { challengeId, code } = req.body;
+        if (!/^[a-f0-9]{64}$/.test(String(challengeId || '')) || !/^\d{6}$/.test(String(code || ''))) {
+            return res.status(400).json({ success: false, error: 'Código o solicitud inválidos' });
+        }
+
+        const rows = await query(
+            `SELECT c.challenge_id, c.usuario_id, c.codigo_hash, c.intentos, c.expira_en,
+                    u.id, u.username, u.email, u.nombre, u.tipo, u.activo
+             FROM codigos_primer_ingreso c
+             INNER JOIN usuarios u ON u.id = c.usuario_id
+             WHERE c.challenge_id = ? LIMIT 1`,
+            [challengeId]
+        );
+        const record = rows[0];
+        if (!record || new Date(record.expira_en).getTime() < Date.now()) {
+            if (record) await query('DELETE FROM codigos_primer_ingreso WHERE challenge_id = ?', [challengeId]);
+            return res.status(400).json({ success: false, error: 'El código venció. Solicita uno nuevo.' });
+        }
+        if (record.intentos >= MAX_CODE_ATTEMPTS) {
+            await query('DELETE FROM codigos_primer_ingreso WHERE challenge_id = ?', [challengeId]);
+            return res.status(429).json({ success: false, error: 'Superaste el límite de intentos. Inicia sesión nuevamente.' });
+        }
+        if (record.codigo_hash !== hash(code)) {
+            await query('UPDATE codigos_primer_ingreso SET intentos = intentos + 1 WHERE challenge_id = ?', [challengeId]);
+            return res.status(400).json({
+                success: false,
+                error: `Código incorrecto. Te quedan ${MAX_CODE_ATTEMPTS - record.intentos - 1} intentos.`
+            });
+        }
+
+        await query('UPDATE usuarios SET primer_ingreso_verificado = 1, ultimo_acceso = CURRENT_TIMESTAMP WHERE id = ?', [record.usuario_id]);
+        await query('DELETE FROM codigos_primer_ingreso WHERE usuario_id = ?', [record.usuario_id]);
+
+        const usuario = usuarioPublico(record);
+        return res.json({
+            success: true,
+            message: 'Correo verificado correctamente',
+            data: { usuario, token: crearToken(record) }
+        });
+    } catch (error) {
+        console.error('Error verificando primer ingreso:', error);
+        res.status(500).json({ success: false, error: 'No se pudo verificar el código' });
+    }
+});
+
+router.post('/resend-first-login', async (req, res) => {
+    try {
+        const { challengeId } = req.body;
+        const rows = await query(
+            `SELECT u.* FROM codigos_primer_ingreso c
+             INNER JOIN usuarios u ON u.id = c.usuario_id
+             WHERE c.challenge_id = ? LIMIT 1`,
+            [challengeId]
+        );
+        if (!rows[0]) return res.status(400).json({ success: false, error: 'La solicitud venció. Inicia sesión nuevamente.' });
+        const challenge = await emitirCodigo(rows[0]);
+        res.json({ success: true, message: 'Enviamos un código nuevo', data: challenge });
+    } catch (error) {
+        console.error('Error reenviando código:', error);
+        res.status(503).json({ success: false, error: 'No pudimos reenviar el código en este momento.' });
     }
 });
 

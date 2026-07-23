@@ -271,6 +271,124 @@
             }
         }
 
+        .verification-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: none;
+            place-items: center;
+            padding: 20px;
+            background: rgba(10, 10, 10, .78);
+            backdrop-filter: blur(10px);
+        }
+
+        .verification-overlay.show { display: grid; }
+
+        .verification-modal {
+            width: min(100%, 460px);
+            position: relative;
+            border-radius: 30px;
+            padding: 34px 32px 30px;
+            background: #fff;
+            color: #1a1a1a;
+            text-align: center;
+            box-shadow: 0 28px 80px rgba(0, 0, 0, .45);
+            animation: fadeInScale .35s ease both;
+        }
+
+        .verification-close {
+            position: absolute;
+            top: 18px;
+            right: 20px;
+            border: 0;
+            background: transparent;
+            color: #929baa;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .verification-icon {
+            width: 74px;
+            height: 74px;
+            margin: 0 auto 23px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: #1a1a1a;
+            background: var(--primary);
+            box-shadow: 0 10px 24px rgba(212, 175, 55, .3);
+        }
+
+        .verification-modal h2 {
+            color: #1a1a1a;
+            font: 800 27px "Outfit", sans-serif;
+            margin-bottom: 8px;
+        }
+
+        .verification-modal .description {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0 auto 28px;
+            max-width: 350px;
+        }
+
+        .verification-label {
+            display: block;
+            color: #303642;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .code-inputs {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 9px;
+            margin-bottom: 18px;
+        }
+
+        .code-input {
+            width: 100%;
+            min-width: 0;
+            height: 58px;
+            border: 2px solid #dfe3e8;
+            border-radius: 13px;
+            color: #1a1a1a;
+            background: #fff;
+            text-align: center;
+            font: 700 22px "Inter", sans-serif;
+            outline: none;
+        }
+
+        .code-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, .12);
+        }
+
+        .verification-error {
+            min-height: 18px;
+            color: var(--error);
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .verify-btn {
+            width: 100%;
+            min-height: 52px;
+            border: 0;
+            border-radius: 15px;
+            color: #1a1a1a;
+            background: var(--primary);
+            font: 700 14px "Inter", sans-serif;
+            cursor: pointer;
+        }
+
+        .verify-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .resend-row { color: #6b7280; font-size: 13px; margin-top: 17px; }
+        .resend-row button { border: 0; background: transparent; color: #b08b17; font-weight: 700; cursor: pointer; }
+        .verification-back { display: inline-block; margin-top: 24px; color: #8b94a3; font-size: 13px; cursor: pointer; }
+
         @media (max-width: 480px) {
             .login-container {
                 border-radius: 0;
@@ -279,6 +397,9 @@
                 flex-direction: column;
                 justify-content: center;
             }
+            .verification-modal { padding: 32px 20px 27px; }
+            .code-inputs { gap: 6px; }
+            .code-input { height: 52px; border-radius: 11px; }
         }
     </style>
 </head>
@@ -331,6 +452,32 @@
             </div>
         </form>
 
+    </div>
+
+    <div id="verificationOverlay" class="verification-overlay" role="dialog" aria-modal="true" aria-labelledby="verificationTitle">
+        <div class="verification-modal">
+            <button id="verificationClose" class="verification-close" type="button" aria-label="Cerrar">×</button>
+            <div class="verification-icon">
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="8" cy="15" r="4"></circle><path d="m11 12 8-8M15 4l2 2M13 8l2 2M5 18l-2 2"></path>
+                </svg>
+            </div>
+            <h2 id="verificationTitle">Código de acceso</h2>
+            <p class="description">Revisa el correo <strong id="maskedEmail"></strong> e ingresa el código temporal para verificar tu identidad.</p>
+            <span class="verification-label">Código de ingreso</span>
+            <div class="code-inputs" id="codeInputs">
+                <input class="code-input" inputmode="numeric" maxlength="1" aria-label="Dígito 1">
+                <input class="code-input" inputmode="numeric" maxlength="1" aria-label="Dígito 2">
+                <input class="code-input" inputmode="numeric" maxlength="1" aria-label="Dígito 3">
+                <input class="code-input" inputmode="numeric" maxlength="1" aria-label="Dígito 4">
+                <input class="code-input" inputmode="numeric" maxlength="1" aria-label="Dígito 5">
+                <input class="code-input" inputmode="numeric" maxlength="1" aria-label="Dígito 6">
+            </div>
+            <p id="verificationError" class="verification-error"></p>
+            <button id="verifyButton" class="verify-btn" type="button" disabled>Verificar e ingresar</button>
+            <p class="resend-row">¿No recibiste el código? <button id="resendButton" type="button">Reenviar</button></p>
+            <span id="verificationBack" class="verification-back">← Volver al inicio de sesión</span>
+        </div>
     </div>
 
     <!-- Script de conexión de datos -->
@@ -392,6 +539,16 @@
                     });
 
                     const data = await response.json();
+
+                    if (data.success && data.requiresVerification) {
+                        return {
+                            success: true,
+                            requiresVerification: true,
+                            message: data.message,
+                            challengeId: data.data.challengeId,
+                            maskedEmail: data.data.maskedEmail
+                        };
+                    }
 
                     if (data.success) {
                         const usuario = data.data.usuario;
@@ -507,6 +664,114 @@
 
         // Instancia global del sistema de autenticación
         const authSystem = new AuthSystem();
+        let activeChallengeId = null;
+        const verificationOverlay = document.getElementById('verificationOverlay');
+        const codeInputs = Array.from(document.querySelectorAll('.code-input'));
+        const verifyButton = document.getElementById('verifyButton');
+        const verificationError = document.getElementById('verificationError');
+
+        function openVerification(resultado) {
+            activeChallengeId = resultado.challengeId;
+            document.getElementById('maskedEmail').textContent = resultado.maskedEmail;
+            verificationError.textContent = '';
+            codeInputs.forEach(input => input.value = '');
+            verifyButton.disabled = true;
+            verificationOverlay.classList.add('show');
+            setTimeout(() => codeInputs[0].focus(), 50);
+        }
+
+        function closeVerification() {
+            activeChallengeId = null;
+            verificationOverlay.classList.remove('show');
+            document.getElementById('loginBtn').disabled = false;
+            document.getElementById('loginBtn').innerHTML = '<span>INICIAR SESIÓN</span>';
+        }
+
+        function saveSessionAndRedirect(data) {
+            const usuario = data.usuario;
+            sessionStorage.setItem('authToken', data.token);
+            sessionStorage.setItem('userId', usuario.id.toString());
+            sessionStorage.setItem('user', JSON.stringify(usuario));
+            sessionStorage.setItem('userData', JSON.stringify(usuario));
+            authSystem.usuarioActual = usuario;
+            authSystem.token = data.token;
+            verificationOverlay.classList.remove('show');
+            authSystem.redirigirDashboard(usuario);
+        }
+
+        codeInputs.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                input.value = input.value.replace(/\D/g, '').slice(-1);
+                if (input.value && index < codeInputs.length - 1) codeInputs[index + 1].focus();
+                verifyButton.disabled = codeInputs.some(item => !item.value);
+                verificationError.textContent = '';
+            });
+            input.addEventListener('keydown', event => {
+                if (event.key === 'Backspace' && !input.value && index > 0) codeInputs[index - 1].focus();
+            });
+            input.addEventListener('paste', event => {
+                const digits = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                if (digits.length === 6) {
+                    event.preventDefault();
+                    codeInputs.forEach((item, digitIndex) => item.value = digits[digitIndex]);
+                    verifyButton.disabled = false;
+                    codeInputs[5].focus();
+                }
+            });
+        });
+
+        verifyButton.addEventListener('click', async () => {
+            const code = codeInputs.map(input => input.value).join('');
+            if (code.length !== 6 || !activeChallengeId) return;
+            verifyButton.disabled = true;
+            verifyButton.innerHTML = '<div class="loading-spinner"></div> VERIFICANDO...';
+            try {
+                const response = await fetch('/api/auth/verify-first-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ challengeId: activeChallengeId, code })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || 'Código inválido');
+                saveSessionAndRedirect(data.data);
+            } catch (error) {
+                verificationError.textContent = error.message;
+                codeInputs.forEach(input => input.value = '');
+                codeInputs[0].focus();
+                verifyButton.disabled = true;
+            } finally {
+                verifyButton.textContent = 'Verificar e ingresar';
+            }
+        });
+
+        document.getElementById('resendButton').addEventListener('click', async event => {
+            const button = event.currentTarget;
+            if (!activeChallengeId) return;
+            button.disabled = true;
+            button.textContent = 'Enviando...';
+            try {
+                const response = await fetch('/api/auth/resend-first-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ challengeId: activeChallengeId })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || 'No se pudo reenviar');
+                activeChallengeId = data.data.challengeId;
+                document.getElementById('maskedEmail').textContent = data.data.maskedEmail;
+                verificationError.style.color = 'var(--success)';
+                verificationError.textContent = 'Código reenviado correctamente.';
+                setTimeout(() => { verificationError.style.color = ''; }, 2500);
+            } catch (error) {
+                verificationError.textContent = error.message;
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Reenviar';
+            }
+        });
+
+        document.getElementById('verificationClose').addEventListener('click', closeVerification);
+        document.getElementById('verificationBack').addEventListener('click', closeVerification);
 
         const registroExitoso = sessionStorage.getItem('registroExitoso');
         if (registroExitoso) {
@@ -535,7 +800,9 @@
             try {
                 const resultado = await authSystem.login(username, password);
 
-                if (resultado.success) {
+                if (resultado.success && resultado.requiresVerification) {
+                    openVerification(resultado);
+                } else if (resultado.success) {
                     authSystem.mostrarMensaje('success', resultado.message);
                     setTimeout(() => {
                         authSystem.redirigirDashboard(resultado.usuario);
