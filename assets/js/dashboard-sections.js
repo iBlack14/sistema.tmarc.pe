@@ -36,40 +36,102 @@ class DashboardSections {
                 <span class="nav-text">Cerrar sesión</span>
             </a>
         `;
+
+        const mobileNav = document.getElementById('mobile-bottom-nav');
+        if (mobileNav) {
+            const primaryMobileSections = ['inicio', 'solicitudes', 'casilla', 'expedientes'];
+            mobileNav.innerHTML = primaryMobileSections.map(sectionId => {
+                const section = sections[sectionId];
+                return `
+                    <a href="#${section.id}" class="mobile-nav-item ${section.default ? 'active' : ''}"
+                        data-section="${section.id}" onclick="showSection('${section.id}', event)">
+                        ${section.icon}
+                        <span>${section.title === 'Casilla electrónica' ? 'Casilla' : section.title}</span>
+                    </a>
+                `;
+            }).join('') + `
+                <button class="mobile-nav-item mobile-nav-more" id="mobile-nav-more" type="button"
+                    onclick="window.dashboardApp.toggleMobileSidebar()" aria-label="Abrir más opciones">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="5" cy="12" r="1.5"></circle>
+                        <circle cx="12" cy="12" r="1.5"></circle>
+                        <circle cx="19" cy="12" r="1.5"></circle>
+                    </svg>
+                    <span>Más</span>
+                </button>
+            `;
+        }
     }
 
     createInicioSection() {
         const section = document.getElementById('inicio') || this.createSection('inicio');
 
         section.innerHTML = `
-            <div class="header fade-in">
-                <h1 class="text-gold">Panel de Control Institutional</h1>
-                <p class="text-muted">Bienvenido, gestione sus trámites judiciales con seguridad y eficiencia.</p>
-            </div>
+            <div class="home-dashboard fade-in">
+                <section class="home-hero" aria-labelledby="home-title">
+                    <div class="home-hero-copy">
+                        <span class="home-eyebrow">Centro de gestión</span>
+                        <h1 id="home-title">Panel de control institucional</h1>
+                        <p>Administre sus trámites, expedientes y comunicaciones desde un solo lugar.</p>
+                    </div>
+                    <div class="home-hero-actions" aria-label="Acciones rápidas">
+                        <button class="home-action home-action-primary" type="button" onclick="showSection('solicitudes', event)">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                            Nueva solicitud
+                        </button>
+                        <button class="home-action" type="button" onclick="showSection('expedientes', event)">
+                            Ver expedientes
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                </section>
 
-            <div class="stats-grid fade-in">
-                <div class="card stat-card">
-                    <span class="stat-label">Solicitudes</span>
-                    <span class="stat-value" id="inicio-solicitudes">0</span>
-                    <div class="badge badge-success">En Línea</div>
-                </div>
-                <div class="card stat-card">
-                    <span class="stat-label">Expedientes</span>
-                    <span class="stat-value" id="inicio-expedientes">0</span>
-                    <div class="badge badge-warning">Activos</div>
-                </div>
-                <div class="card stat-card">
-                    <span class="stat-label">Notificaciones</span>
-                    <span class="stat-value" id="inicio-documentos">0</span>
-                    <div class="badge badge-error">Pendientes</div>
-                </div>
-            </div>
+                <section class="home-metrics" aria-label="Resumen general">
+                    <button class="home-metric home-metric-blue" type="button" onclick="showSection('solicitudes', event)">
+                        <span class="home-metric-icon">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h6M9 9h6M9 13h4M7 3h10a2 2 0 0 1 2 2v14H5V5a2 2 0 0 1 2-2Z"/></svg>
+                        </span>
+                        <span class="home-metric-copy">
+                            <span class="home-metric-label">Solicitudes</span>
+                            <strong id="inicio-solicitudes">0</strong>
+                            <span class="home-metric-detail">Trámites registrados</span>
+                        </span>
+                        <span class="home-metric-arrow" aria-hidden="true">→</span>
+                    </button>
+                    <button class="home-metric home-metric-gold" type="button" onclick="showSection('expedientes', event)">
+                        <span class="home-metric-icon">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3V7Zm0 0V5h7l2 2"/></svg>
+                        </span>
+                        <span class="home-metric-copy">
+                            <span class="home-metric-label">Expedientes</span>
+                            <strong id="inicio-expedientes">0</strong>
+                            <span class="home-metric-detail">Procesos en seguimiento</span>
+                        </span>
+                        <span class="home-metric-arrow" aria-hidden="true">→</span>
+                    </button>
+                    <button class="home-metric home-metric-red" type="button" onclick="showSection('casilla', event)">
+                        <span class="home-metric-icon">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/></svg>
+                        </span>
+                        <span class="home-metric-copy">
+                            <span class="home-metric-label">Notificaciones</span>
+                            <strong id="inicio-documentos">0</strong>
+                            <span class="home-metric-detail">Pendientes de lectura</span>
+                        </span>
+                        <span class="home-metric-arrow" aria-hidden="true">→</span>
+                    </button>
+                </section>
 
-            <div class="table-container fade-in" style="margin-top: var(--space-5);">
-                <div class="card">
-                    <h3 class="card-title text-gold">📅 Actividad Reciente</h3>
+                <section class="home-activity card">
+                    <div class="home-section-heading">
+                        <div>
+                            <span class="home-eyebrow">Últimos movimientos</span>
+                            <h2>Actividad reciente</h2>
+                        </div>
+                        <button type="button" class="home-text-action" onclick="showSection('expedientes', event)">Ver expedientes →</button>
+                    </div>
                     <div class="table-wrapper">
-                        <table class="table">
+                        <table class="table home-activity-table">
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
@@ -84,7 +146,7 @@ class DashboardSections {
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </section>
             </div>
         `;
     }
@@ -93,31 +155,45 @@ class DashboardSections {
         const section = document.getElementById('solicitudes') || this.createSection('solicitudes');
 
         section.innerHTML = `
-            <div class="header fade-in">
-                <h1 class="text-gold">Gestión de Solicitudes</h1>
-                <p class="text-muted">Administración centralizada de trámites y procesos.</p>
-            </div>
-
-            <div class="stats-grid fade-in">
-                <div class="card" style="grid-column: span 2;">
-                    <h3 class="card-title text-gold">🚀 Nueva Gestión</h3>
-                    <p class="text-muted" style="margin-bottom: var(--space-4);">Inicie una nueva solicitud procesal en el sistema virtual.</p>
-                    <button class="btn btn-primary" onclick="window.dashboardApp.modules.solicitudes?.crearNuevaSolicitud()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        Crear Nueva Solicitud
+            <div class="requests-dashboard fade-in">
+                <section class="requests-header" aria-labelledby="requests-title">
+                    <div>
+                        <span class="requests-eyebrow">Trámites institucionales</span>
+                        <h1 id="requests-title">Gestión de solicitudes</h1>
+                        <p>Presente nuevos trámites y consulte el avance de sus solicitudes registradas.</p>
+                    </div>
+                    <button class="requests-create-button" type="button" onclick="window.dashboardApp.modules.solicitudes?.crearNuevaSolicitud()">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                        Nueva solicitud
                     </button>
-                </div>
-                <div class="card stat-card">
-                    <span class="stat-label">Total Aprobadas</span>
-                    <span class="stat-value" id="solicitudes-aprobadas">0</span>
-                </div>
-            </div>
+                </section>
 
-            <div class="table-container fade-in" style="margin-top: var(--space-5);">
-                <div class="card">
-                    <h3 class="card-title text-gold">📋 Historial de Solicitudes</h3>
-                    <div class="table-wrapper">
-                        <table class="table" id="solicitudes-table">
+                <section class="requests-summary" aria-label="Resumen de solicitudes">
+                    <div class="requests-summary-copy">
+                        <span class="requests-summary-icon">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l2 2 4-4M7 3h10a2 2 0 0 1 2 2v14H5V5a2 2 0 0 1 2-2Z"/></svg>
+                        </span>
+                        <div>
+                            <span>Solicitudes aprobadas</span>
+                            <small>Trámites concluidos favorablemente</small>
+                        </div>
+                    </div>
+                    <strong id="solicitudes-aprobadas">0</strong>
+                </section>
+
+                <section class="requests-history card">
+                    <div class="requests-section-heading">
+                        <div>
+                            <span class="requests-eyebrow">Seguimiento</span>
+                            <h2>Historial de solicitudes</h2>
+                        </div>
+                        <span class="requests-secure-label">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8.2 7 10 4.1-1.8 7-5.4 7-10V6l-7-3Z"/></svg>
+                            Información protegida
+                        </span>
+                    </div>
+                    <div class="table-wrapper requests-table-wrapper">
+                        <table class="table requests-table" id="solicitudes-table">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -131,13 +207,16 @@ class DashboardSections {
                                 <tr><td colspan="5" class="text-center text-muted">Cargando datos...</td></tr>
                             </tbody>
                         </table>
-                        <div id="no-solicitudes" style="display: none; padding: 40px; text-align: center;">
-                            <div style="font-size: 48px; margin-bottom: 20px;">📂</div>
-                            <h4 class="text-gold">No hay solicitudes registradas</h4>
-                            <p class="text-muted">Inicie una nueva gestión utilizando el botón superior.</p>
+                        <div id="no-solicitudes" class="requests-empty" style="display: none;">
+                            <span class="requests-empty-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3V7Zm6 6h6M12 10v6"/></svg>
+                            </span>
+                            <h3>Aún no tiene solicitudes</h3>
+                            <p>Cuando registre un trámite podrá consultar aquí su estado y los últimos movimientos.</p>
+                            <button type="button" onclick="window.dashboardApp.modules.solicitudes?.crearNuevaSolicitud()">Registrar primera solicitud</button>
                         </div>
                     </div>
-                </div>
+                </section>
             </div>
         `;
     }
@@ -146,29 +225,33 @@ class DashboardSections {
         const section = document.getElementById('casilla') || this.createSection('casilla');
 
         section.innerHTML = `
-            <div class="header fade-in">
-                <h1 class="text-gold">Casilla Electrónica</h1>
+            <div class="header module-header fade-in">
+                <span class="module-eyebrow">Comunicaciones oficiales</span>
+                <h1>Casilla electrónica</h1>
                 <p class="text-muted">Sistema de notificaciones procesales garantizado.</p>
             </div>
 
-            <div class="stats-grid fade-in">
-                <div class="card stat-card">
+            <div class="stats-grid module-stats fade-in">
+                <div class="card stat-card module-stat-card">
                     <span class="stat-label">Mensajes Nuevos</span>
                     <span class="stat-value text-gold" id="casilla-no-leidos">0</span>
                 </div>
-                <div class="card stat-card">
+                <div class="card stat-card module-stat-card">
                     <span class="stat-label">No Leídos</span>
                     <span class="stat-value text-gold" id="casilla-no-leidos-2">0</span>
                 </div>
-                <div class="card stat-card">
+                <div class="card stat-card module-stat-card">
                     <span class="stat-label">Mensajes Leídos</span>
                     <span class="stat-value" id="casilla-total">0</span>
                 </div>
             </div>
 
-            <div class="table-container fade-in" style="margin-top: var(--space-5);">
-                <div class="card">
-                    <h3 class="card-title text-gold">📥 Buzón de Notificaciones</h3>
+            <div class="table-container module-table-container fade-in">
+                <div class="card module-table-card">
+                    <div class="module-card-heading">
+                        <div><span class="module-eyebrow">Centro de mensajes</span><h2>Buzón de notificaciones</h2></div>
+                        <span class="module-security">Contenido protegido</span>
+                    </div>
                     <div class="table-wrapper">
                         <table class="table" id="notificaciones-table">
                             <thead>
@@ -184,9 +267,9 @@ class DashboardSections {
                                 <tr><td colspan="5" class="text-center text-muted">Accediendo a la casilla...</td></tr>
                             </tbody>
                         </table>
-                        <div id="no-notificaciones" style="display: none; padding: 40px; text-align: center;">
-                            <div style="font-size: 48px; margin-bottom: 20px;">✉️</div>
-                            <h4 class="text-gold">Buzón de notificaciones vacío</h4>
+                        <div id="no-notificaciones" class="module-empty" style="display: none;">
+                            <div class="module-empty-icon">✉</div>
+                            <h4>Buzón de notificaciones vacío</h4>
                             <p class="text-muted">No tiene notificaciones procesales pendientes en este momento.</p>
                         </div>
                     </div>
@@ -199,26 +282,30 @@ class DashboardSections {
         const section = document.getElementById('expedientes') || this.createSection('expedientes');
 
         section.innerHTML = `
-            <div class="header fade-in">
-                <h1 class="text-gold">Expedientes Virtuales</h1>
+            <div class="header module-header fade-in">
+                <span class="module-eyebrow">Seguimiento procesal</span>
+                <h1>Expedientes virtuales</h1>
                 <p class="text-muted">Consulta y seguimiento de procesos en tiempo real.</p>
             </div>
 
-            <div class="stats-grid fade-in">
-                <div class="card" style="grid-column: span 2;">
-                    <h3 class="card-title text-gold">📂 Registro Procesal</h3>
+            <div class="stats-grid module-action-grid fade-in">
+                <div class="card module-action-card" style="grid-column: span 2;">
+                    <h3 class="card-title">Registro procesal</h3>
                     <p class="text-muted" style="margin-bottom: var(--space-4);">Incorpore un nuevo expediente para su seguimiento administrativo.</p>
                     <button class="btn btn-primary" onclick="window.dashboardApp.modules.expedientes?.crearNuevoExpediente()">Registrar Expediente</button>
                 </div>
-                <div class="card stat-card">
+                <div class="card stat-card module-stat-card">
                     <span class="stat-label">En Trámite</span>
                     <span class="stat-value" id="expedientes-activos">0</span>
                 </div>
             </div>
 
-            <div class="table-container fade-in" style="margin-top: var(--space-5);">
-                <div class="card">
-                    <h3 class="card-title text-gold">🔍 Listado de Expedientes</h3>
+            <div class="table-container module-table-container fade-in">
+                <div class="card module-table-card">
+                    <div class="module-card-heading">
+                        <div><span class="module-eyebrow">Archivo digital</span><h2>Listado de expedientes</h2></div>
+                        <span class="module-security">Actualización en tiempo real</span>
+                    </div>
                     <div class="table-wrapper">
                         <table class="table" id="expedientes-table">
                             <thead>
@@ -234,9 +321,9 @@ class DashboardSections {
                                 <tr><td colspan="5" class="text-center text-muted">Sincronizando expedientes...</td></tr>
                             </tbody>
                         </table>
-                        <div id="no-expedientes" style="display: none; padding: 40px; text-align: center;">
-                            <div style="font-size: 48px; margin-bottom: 20px;">🔍</div>
-                            <h4 class="text-gold">No se encontraron expedientes</h4>
+                        <div id="no-expedientes" class="module-empty" style="display: none;">
+                            <div class="module-empty-icon">⌕</div>
+                            <h4>No se encontraron expedientes</h4>
                             <p class="text-muted">Aún no tiene expedientes registrados en su historial institucional.</p>
                         </div>
                     </div>
@@ -249,26 +336,30 @@ class DashboardSections {
         const section = document.getElementById('mesa') || this.createSection('mesa');
 
         section.innerHTML = `
-            <div class="header fade-in">
-                <h1 class="text-gold">Mesa de Partes Virtual</h1>
+            <div class="header module-header fade-in">
+                <span class="module-eyebrow">Recepción digital</span>
+                <h1>Mesa de partes virtual</h1>
                 <p class="text-muted">Presentación de escritos y documentos con firma digital.</p>
             </div>
 
-            <div class="stats-grid fade-in">
-                <div class="card" style="grid-column: span 2;">
-                    <h3 class="card-title text-gold">📤 Ingreso de Documentos</h3>
+            <div class="stats-grid module-action-grid fade-in">
+                <div class="card module-action-card" style="grid-column: span 2;">
+                    <h3 class="card-title">Ingreso de documentos</h3>
                     <p class="text-muted" style="margin-bottom: var(--space-4);">Suba escritos, demandas o anexos de forma segura.</p>
                     <button class="btn btn-primary" onclick="window.dashboardApp.modules.mesaPartes?.presentarDocumento()">Nueva Presentación</button>
                 </div>
-                <div class="card stat-card">
+                <div class="card stat-card module-stat-card">
                     <span class="stat-label">Presentados</span>
                     <span class="stat-value" id="mesa-presentados">0</span>
                 </div>
             </div>
 
-            <div class="table-container fade-in" style="margin-top: var(--space-5);">
-                <div class="card">
-                    <h3 class="card-title text-gold">📜 Mis Presentaciones</h3>
+            <div class="table-container module-table-container fade-in">
+                <div class="card module-table-card">
+                    <div class="module-card-heading">
+                        <div><span class="module-eyebrow">Constancias y cargos</span><h2>Mis presentaciones</h2></div>
+                        <span class="module-security">Recepción segura</span>
+                    </div>
                     <div class="table-wrapper">
                         <table class="table">
                             <thead>
@@ -294,14 +385,15 @@ class DashboardSections {
         const section = document.getElementById('configuracion') || this.createSection('configuracion');
 
         section.innerHTML = `
-            <div class="header fade-in">
-                <h1 class="text-gold">Configuración del Sistema</h1>
+            <div class="header module-header fade-in">
+                <span class="module-eyebrow">Cuenta y seguridad</span>
+                <h1>Configuración del sistema</h1>
                 <p class="text-muted">Gestione su identidad digital y preferencias de seguridad institucional.</p>
             </div>
 
-            <div class="stats-grid fade-in" style="grid-template-columns: 1.2fr 0.8fr; gap: 24px; margin-top: 24px;">
+            <div class="stats-grid configuration-grid fade-in" style="grid-template-columns: 1.2fr 0.8fr; gap: 24px; margin-top: 24px;">
                 <!-- Card de Perfil -->
-                <div class="card" style="padding: 30px; border-radius: 20px; background: rgba(255,255,255,0.02); backdrop-filter: blur(10px);">
+                <div class="card configuration-card" style="padding: 30px; border-radius: 20px; background: rgba(255,255,255,0.02); backdrop-filter: blur(10px);">
                     <h3 class="card-title text-gold" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
                         <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                         Perfil Institucional
@@ -346,7 +438,7 @@ class DashboardSections {
                 </div>
 
                 <!-- Card de Seguridad -->
-                <div class="card" style="padding: 30px; border-radius: 20px; background: rgba(255,255,255,0.02); backdrop-filter: blur(10px);">
+                <div class="card configuration-card" style="padding: 30px; border-radius: 20px; background: rgba(255,255,255,0.02); backdrop-filter: blur(10px);">
                     <h3 class="card-title text-gold" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
                         <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
                         Seguridad

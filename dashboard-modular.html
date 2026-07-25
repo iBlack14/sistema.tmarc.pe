@@ -12,6 +12,11 @@
     <link rel="stylesheet" href="assets/css/components-premium.css?v=5.0">
     <link rel="stylesheet" href="assets/css/modal-premium.css?v=5.0">
     <link rel="stylesheet" href="assets/css/tables-premium.css?v=5.0">
+    <link rel="stylesheet" href="assets/css/dashboard-responsive.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/dashboard-home.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/dashboard-solicitudes.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/dashboard-sections-modern.css?v=1.1">
+    <link rel="stylesheet" href="assets/css/dashboard-forms-mobile.css?v=1.1">
 
     <!-- External Libs -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -60,11 +65,18 @@
             <!-- Dynamically generated items -->
         </nav>
     </aside>
+    <button class="sidebar-backdrop" id="sidebar-backdrop" type="button" aria-label="Cerrar menú"></button>
 
     <!-- Main Content Area -->
     <main class="main-content">
         <div class="content-container">
             <header class="top-bar glass-panel">
+                <button class="mobile-menu-btn" id="mobile-menu-toggle" type="button"
+                    aria-label="Abrir menú de navegación" aria-controls="sidebar" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 7h16M4 12h16M4 17h16"></path>
+                    </svg>
+                </button>
                 <div class="search-bar">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                         <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
@@ -101,6 +113,8 @@
         </div>
     </main>
 </div>
+
+<nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Navegación principal móvil"></nav>
 
 <!-- Modal System -->
     <div class="modal-overlay" id="modalGeneral">
@@ -266,7 +280,7 @@
 
     <!-- Scripts Architecture -->
     <script src="assets/js/config/dashboard-config.js?v=7.0"></script>
-    <script src="assets/js/dashboard-core.js?v=7.0"></script>
+    <script src="assets/js/dashboard-core.js?v=8.0"></script>
     <script>
         // Initialize Core Engine
         document.addEventListener('DOMContentLoaded', () => {
@@ -278,14 +292,14 @@
         function logout() { window.dashboardApp.logout(); }
         function closeAllModals() { window.dashboardApp.closeAllModals(); }
     </script>
-    <script src="assets/js/dashboard-sections.js?v=7.0"></script>
+    <script src="assets/js/dashboard-sections.js?v=8.0"></script>
 
     <!-- Modules -->
-    <script src="assets/js/modules/solicitudes.js?v=7.0"></script>
+    <script src="assets/js/modules/solicitudes.js?v=8.0"></script>
     <script src="assets/js/modules/notificaciones.js?v=7.0"></script>
-    <script src="assets/js/modules/expedientes.js?v=7.0"></script>
+    <script src="assets/js/modules/expedientes.js?v=8.0"></script>
     <script src="assets/js/modules/configuracion.js?v=7.0"></script>
-    <script src="assets/js/modules/mesa-partes.js?v=7.0"></script>
+    <script src="assets/js/modules/mesa-partes.js?v=8.0"></script>
 
     <!-- Toast Notifications Container -->
     <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>

@@ -113,11 +113,11 @@ class MesaPartesModule {
                 <tr style="transition: background 0.2s;" 
                     onmouseover="this.style.background='rgba(192,192,192,0.05)'" 
                     onmouseout="this.style.background='transparent'">
-                    <td>${doc.numero_registro || 'N/A'}</td>
-                    <td>${doc.materia || doc.tipo_presentacion || 'Documento'}</td>
-                    <td>${fecha}</td>
-                    <td><span class="status-badge ${estadoClass}">${doc.estado || 'Pendiente'}</span></td>
-                    <td>
+                    <td data-label="Registro">${doc.numero_registro || 'N/A'}</td>
+                    <td data-label="Materia">${doc.materia || doc.tipo_presentacion || 'Documento'}</td>
+                    <td data-label="Fecha">${fecha}</td>
+                    <td data-label="Estado"><span class="status-badge ${estadoClass}">${doc.estado || 'Pendiente'}</span></td>
+                    <td data-label="Cargo">
                         <button class="btn btn-primary btn-sm" onclick="mesaPartesModule.verDetalle('${doc.id}')" title="Ver detalles">
                             👁️ Ver Detalle
                         </button>

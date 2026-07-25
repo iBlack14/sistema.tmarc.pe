@@ -1,0 +1,236 @@
+/* TMARC — formularios y modales adaptables */
+.modal-content {
+    overscroll-behavior: contain;
+}
+
+.modal-content .form-group {
+    min-width: 0;
+}
+
+.modal-content .form-input,
+.modal-content .form-select,
+.modal-content textarea {
+    max-width: 100%;
+}
+
+.modal-content img,
+.modal-content svg {
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .modal-content,
+    #modalSolicitud .modal-content,
+    #modalPresentarDocumento .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 94dvh !important;
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        overflow: hidden !important;
+        border-radius: 22px 22px 0 0 !important;
+    }
+
+    .modal-header,
+    #modalSolicitud .modal-header,
+    #modalPresentarDocumento .modal-header {
+        min-height: 68px;
+        flex: 0 0 auto;
+        gap: 12px;
+        padding: 14px 16px !important;
+        border-bottom: 1px solid #e8ebef;
+        background: #fff !important;
+    }
+
+    .modal-header > div {
+        min-width: 0;
+    }
+
+    .modal-header h2,
+    .modal-header > span,
+    #modalSolicitud .modal-header h2,
+    #modalPresentarDocumento .modal-header h2 {
+        overflow: hidden;
+        color: #12233f !important;
+        font-size: 17px !important;
+        line-height: 1.25;
+        text-overflow: ellipsis;
+    }
+
+    .modal-header p {
+        display: none;
+    }
+
+    .modal-close {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+    }
+
+    .modal-body,
+    #modalSolicitud .modal-body,
+    #modalGeneral .modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 18px 16px calc(22px + env(safe-area-inset-bottom)) !important;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    #formSolicitud,
+    #formMesaPartes,
+    #formNuevoExpediente,
+    #profileForm,
+    #securityForm {
+        width: 100%;
+        min-width: 0;
+    }
+
+    #formMesaPartes,
+    #formNuevoExpediente {
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 18px 16px calc(24px + env(safe-area-inset-bottom)) !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+    }
+
+    .modal-content div[style*="grid-template-columns"],
+    .modal-content form div[style*="grid-template-columns"],
+    #formMesaPartes div[style*="grid-template-columns"],
+    #formNuevoExpediente div[style*="grid-template-columns"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .modal-content div[style*="grid-column: span"],
+    .modal-content [style*="grid-column:span"] {
+        grid-column: 1 !important;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea,
+    .modal-content input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+    .modal-content select,
+    .modal-content textarea {
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        font-size: 16px;
+    }
+
+    .modal-content textarea {
+        min-height: 110px !important;
+        resize: vertical !important;
+    }
+
+    .modal-content .form-group {
+        width: 100%;
+    }
+
+    .modal-content .stat-label,
+    .modal-content label {
+        overflow-wrap: anywhere;
+        line-height: 1.35;
+    }
+
+    #formSolicitud > div[style*="display: grid"],
+    #formMesaPartes > div[style*="display: grid"] {
+        gap: 20px !important;
+    }
+
+    #formMesaPartes > div:first-child,
+    #formSolicitud > div:first-child {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    #formSolicitud div[style*="align-items: center"][style*="gap: 10px"],
+    #formMesaPartes div[style*="align-items: center"][style*="gap: 10px"] {
+        align-items: stretch !important;
+        flex-direction: column;
+    }
+
+    #formSolicitud div[style*="justify-content: flex-end"],
+    #formMesaPartes div[style*="justify-content: flex-end"],
+    #formNuevoExpediente div[style*="justify-content: flex-end"],
+    .modal-actions {
+        align-items: stretch !important;
+        flex-direction: column-reverse !important;
+        gap: 10px !important;
+    }
+
+    .modal-content form .btn,
+    #formMesaPartes .btn,
+    #formNuevoExpediente .btn {
+        width: 100% !important;
+        min-height: 48px;
+        margin: 0 !important;
+        padding: 12px 14px !important;
+        white-space: normal;
+    }
+
+    #fileNamePrincipal,
+    #fileNameAnexos,
+    #mesaFileName,
+    #foto-filename {
+        display: block;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    #anexosList {
+        grid-template-columns: 1fr !important;
+    }
+
+    #anexosList .anexo-item {
+        min-width: 0;
+    }
+
+    #anexosList .anexo-item span {
+        max-width: calc(100vw - 100px) !important;
+    }
+
+    .swal2-popup {
+        width: calc(100vw - 24px) !important;
+        max-height: 90dvh;
+        padding: 18px !important;
+        border-radius: 18px !important;
+        overflow-y: auto;
+    }
+
+    .swal2-actions {
+        width: 100%;
+        gap: 8px;
+    }
+
+    .swal2-actions button {
+        min-height: 44px;
+        flex: 1 1 140px;
+        margin: 0 !important;
+    }
+}
+
+@media (max-width: 390px) {
+    .modal-header,
+    #modalSolicitud .modal-header,
+    #modalPresentarDocumento .modal-header {
+        padding-inline: 12px !important;
+    }
+
+    .modal-body,
+    #modalSolicitud .modal-body,
+    #formMesaPartes,
+    #formNuevoExpediente {
+        padding-inline: 12px !important;
+    }
+}

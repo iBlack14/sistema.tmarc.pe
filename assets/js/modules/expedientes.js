@@ -40,11 +40,11 @@ class ExpedientesModule {
 
         container.innerHTML = this.expedientes.map(exp => `
             <tr class="fade-in">
-                <td class="font-bold text-gold">${exp.numero || exp.id}</td>
-                <td>${exp.sumilla || 'Sin sumilla registrada'}</td>
-                <td>${exp.fecha_creacion ? new Date(exp.fecha_creacion).toLocaleDateString() : 'N/A'}</td>
-                <td><span class="badge ${this.getBadgeClass(exp.estado)}">${exp.estado}</span></td>
-                <td>
+                <td data-label="Expediente" class="font-bold text-gold">${exp.numero || exp.id}</td>
+                <td data-label="Asunto">${exp.sumilla || 'Sin sumilla registrada'}</td>
+                <td data-label="Apertura">${exp.fecha_creacion ? new Date(exp.fecha_creacion).toLocaleDateString() : 'N/A'}</td>
+                <td data-label="Estado"><span class="badge ${this.getBadgeClass(exp.estado)}">${exp.estado}</span></td>
+                <td data-label="Acciones">
                     <button class="btn btn-secondary btn-sm" onclick="window.expedientesModule.verDetalle('${exp.id}')">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="margin-right: 4px;"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                         Ver Detalle

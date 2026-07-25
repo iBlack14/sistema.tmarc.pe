@@ -71,6 +71,15 @@ class DashboardApp {
             toggleBtn.addEventListener('click', () => this.toggleSidebar());
         }
 
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+        if (mobileToggle) {
+            mobileToggle.addEventListener('click', () => this.toggleMobileSidebar());
+        }
+        if (sidebarBackdrop) {
+            sidebarBackdrop.addEventListener('click', () => this.closeMobileSidebar());
+        }
+
         // Browser Routing Support
         window.addEventListener('popstate', () => this.handleRouting());
 
@@ -99,15 +108,49 @@ class DashboardApp {
             if (e.key === 'Escape') {
                 this.closeAllModals();
                 this.closeNotificationDropdown();
+                this.closeMobileSidebar();
             }
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024) this.closeMobileSidebar();
         });
     }
 
     toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         if (sidebar) {
+            if (window.innerWidth <= 1024) {
+                this.toggleMobileSidebar();
+                return;
+            }
             sidebar.classList.toggle('collapsed');
             localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        }
+    }
+
+    toggleMobileSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const button = document.getElementById('mobile-menu-toggle');
+        if (!sidebar) return;
+
+        const opening = !sidebar.classList.contains('active');
+        sidebar.classList.toggle('active', opening);
+        document.body.classList.toggle('sidebar-open', opening);
+        if (button) {
+            button.setAttribute('aria-expanded', String(opening));
+            button.setAttribute('aria-label', opening ? 'Cerrar menú de navegación' : 'Abrir menú de navegación');
+        }
+    }
+
+    closeMobileSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const button = document.getElementById('mobile-menu-toggle');
+        if (sidebar) sidebar.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
+        if (button) {
+            button.setAttribute('aria-expanded', 'false');
+            button.setAttribute('aria-label', 'Abrir menú de navegación');
         }
     }
 
@@ -133,9 +176,16 @@ class DashboardApp {
         document.title = `TMARC | ${titles[sectionId] || 'Dashboard'}`;
 
         // Update Nav UI
-        document.querySelectorAll('.nav-item').forEach(item => {
+        document.querySelectorAll('.nav-item, .mobile-nav-item[data-section]').forEach(item => {
             item.classList.toggle('active', item.getAttribute('data-section') === sectionId);
+            if (item.getAttribute('data-section') === sectionId) {
+                item.setAttribute('aria-current', 'page');
+            } else {
+                item.removeAttribute('aria-current');
+            }
         });
+        const mobileMore = document.getElementById('mobile-nav-more');
+        if (mobileMore) mobileMore.classList.toggle('active', ['mesa', 'configuracion'].includes(sectionId));
 
         // Hide/Show Sections
         document.querySelectorAll('.content-section').forEach(section => {
@@ -143,6 +193,7 @@ class DashboardApp {
         });
 
         this.loadSectionData(sectionId);
+        if (window.innerWidth <= 1024) this.closeMobileSidebar();
     }
 
     handleRouting() {
@@ -278,8 +329,8 @@ class DashboardApp {
 
                     return `
                         <tr>
-                            <td>${date}</td>
-                            <td>
+                            <td data-label="Fecha">${date}</td>
+                            <td data-label="Actividad">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <div class="activity-icon" style="background: rgba(212,175,55,0.1); color: var(--color-primary); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px;">
                                         ${this.getActivityIcon(act.tipo)}
@@ -287,7 +338,7 @@ class DashboardApp {
                                     <span style="font-weight: 500;">${act.actividad || act.accion}</span>
                                 </div>
                             </td>
-                            <td><span class="badge ${badgeClass}">${act.estado || 'Procesado'}</span></td>
+                            <td data-label="Estado"><span class="badge ${badgeClass}">${act.estado || 'Procesado'}</span></td>
                         </tr>
                     `;
                 }).join('');

@@ -130,11 +130,11 @@ class SolicitudesModule {
 
                 return `
                     <tr class="solicitud-row">
-                        <td>${solicitud.id}</td>
-                        <td>${fecha}</td>
-                        <td>${solicitud.tipo || 'No especificado'}</td>
-                        <td><span class="status-badge ${estadoClass}">${solicitud.estado}</span></td>
-                        <td>
+                        <td data-label="ID">${solicitud.id}</td>
+                        <td data-label="Fecha">${fecha}</td>
+                        <td data-label="Tipo">${solicitud.tipo || 'No especificado'}</td>
+                        <td data-label="Estado"><span class="status-badge ${estadoClass}">${solicitud.estado}</span></td>
+                        <td data-label="Acciones">
                             <button class="btn btn-secondary" onclick="event.stopPropagation(); verDetalleSolicitud('${solicitud.id}')" style="padding: 4px 8px; font-size: 12px;">
                                 Ver Detalle
                             </button>
