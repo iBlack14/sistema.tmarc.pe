@@ -59,13 +59,18 @@ const DashboardConfig = {
         },
         expedientes: {
             id: 'expedientes',
-            title: 'Expedientes',
+            title: 'Seguimiento',
             icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>'
         },
         mesa: {
             id: 'mesa',
             title: 'Mesa de partes',
             icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 6h18V4H4c-1.1 0-2 .9-2 2v11H0v3h14v-3H4V6zm19 2h-6c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V9c0-.55-.45-1-1-1zm-1 9h-4v-7h4v7z"/></svg>'
+        },
+        soporte: {
+            id: 'soporte',
+            title: 'Soporte tecnológico',
+            icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a9 9 0 0 0-9 9v4a3 3 0 0 0 3 3h2v-7H5a7 7 0 0 1 14 0h-3v7h3a2 2 0 0 1-2 2h-3v2h3a4 4 0 0 0 4-4v-7a9 9 0 0 0-9-9z"/></svg>'
         },
         configuracion: {
             id: 'configuracion',

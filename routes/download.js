@@ -196,8 +196,10 @@ router.get('/archivo/:filename', async (req, res) => {
             path.join(uploadsBase, filename), // Desde .env
             path.join(__dirname, '../uploads', filename), // Relativa al proyecto
             path.join(__dirname, '../uploads/mesa-partes', filename),
+            path.join(__dirname, '../uploads/timeline', filename),
             path.join(process.cwd(), 'uploads', filename), // Desde directorio actual
-            path.join(process.cwd(), 'uploads/mesa-partes', filename)
+            path.join(process.cwd(), 'uploads/mesa-partes', filename),
+            path.join(process.cwd(), 'uploads/timeline', filename)
         ].filter(p => p); // Eliminar nulls/undefined
 
         let filePath = null;
@@ -278,6 +280,7 @@ router.head('/archivo/:filename', async (req, res) => {
             doc.ruta,
             path.join(__dirname, '../uploads', filename),
             path.join(__dirname, '../uploads/mesa-partes', filename),
+            path.join(__dirname, '../uploads/timeline', filename),
             path.join(process.cwd(), 'uploads', filename)
         ].filter(p => p);
 

@@ -110,11 +110,11 @@ const DashboardModule = {
             const tipoIcon = this.getTipoIcon(act.tipo);
 
             return `
-                <tr>
-                    <td>${tipoIcon} ${act.usuario || 'Sistema'}</td>
-                    <td>${act.accion}</td>
-                    <td>${fecha}</td>
-                    <td><span class="status-badge ${estadoClass}">${act.estado}</span></td>
+                <tr class="activity-row">
+                    <td data-label="Usuario">${tipoIcon} ${act.usuario || 'Sistema'}</td>
+                    <td data-label="Acción">${act.accion}</td>
+                    <td data-label="Fecha y hora">${fecha}</td>
+                    <td data-label="Estado"><span class="status-badge ${estadoClass}">${act.estado}</span></td>
                 </tr>
             `;
         }).join('');

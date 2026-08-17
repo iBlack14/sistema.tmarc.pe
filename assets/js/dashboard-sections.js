@@ -16,6 +16,7 @@ class DashboardSections {
         this.createCasillaSection();
         this.createExpedientesSection();
         this.createMesaPartesSection();
+        this.createSoporteSection();
         this.createConfiguracionSection();
     }
 
@@ -80,7 +81,7 @@ class DashboardSections {
                             Nueva solicitud
                         </button>
                         <button class="home-action" type="button" onclick="showSection('expedientes', event)">
-                            Ver expedientes
+                            Ver seguimiento
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                         </button>
                     </div>
@@ -128,7 +129,7 @@ class DashboardSections {
                             <span class="home-eyebrow">Últimos movimientos</span>
                             <h2>Actividad reciente</h2>
                         </div>
-                        <button type="button" class="home-text-action" onclick="showSection('expedientes', event)">Ver expedientes →</button>
+                        <button type="button" class="home-text-action" onclick="showSection('expedientes', event)">Ver seguimiento →</button>
                     </div>
                     <div class="table-wrapper">
                         <table class="table home-activity-table">
@@ -158,30 +159,29 @@ class DashboardSections {
             <div class="requests-dashboard fade-in">
                 <section class="requests-header" aria-labelledby="requests-title">
                     <div>
-                        <span class="requests-eyebrow">Trámites institucionales</span>
-                        <h1 id="requests-title">Gestión de solicitudes</h1>
-                        <p>Presente nuevos trámites y consulte el avance de sus solicitudes registradas.</p>
+                        <span class="requests-eyebrow">Tipos de solicitud</span>
+                        <h1 id="requests-title">Genere una nueva solicitud</h1>
+                        <p>Seleccione el tipo de solicitud que desea presentar en SISTMARC.</p>
                     </div>
-                    <button class="requests-create-button" type="button" onclick="window.dashboardApp.modules.solicitudes?.crearNuevaSolicitud()">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                        Nueva solicitud
-                    </button>
                 </section>
 
-                <section class="requests-summary" aria-label="Resumen de solicitudes">
-                    <div class="requests-summary-copy">
-                        <span class="requests-summary-icon">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l2 2 4-4M7 3h10a2 2 0 0 1 2 2v14H5V5a2 2 0 0 1 2-2Z"/></svg>
-                        </span>
-                        <div>
-                            <span>Solicitudes aprobadas</span>
-                            <small>Trámites concluidos favorablemente</small>
-                        </div>
+                <section id="solicitudesServicesView" class="requests-service-panel card">
+                    <div class="service-selector">
+                        <div><span class="service-selector-label">Seleccione una solicitud</span><div class="service-grid">
+                            ${this.servicePageButton('arbitraje','Arbitraje','<path d="M12 3v18M5 7h14M7 7l-4 7h8L7 7zm10 0-4 7h8l-4-7z"/>',true)}
+                            ${this.servicePageButton('arbitraje-express','Arbitraje Express','<path d="m13 2-9 12h8l-1 8 9-12h-8z"/>')}
+                            ${this.servicePageButton('arbitraje-emergencia','Arbitraje de Emergencia','<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.7 2.4 17.4A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.6L13.7 3.7a2 2 0 0 0-3.4 0z"/>')}
+                            ${this.servicePageButton('jprd','Junta de Prevención y Resolución de Disputas','<path d="M3 21h18M6 21V8l6-5 6 5v13M9 21v-6h6v6"/>')}
+                            ${this.servicePageButton('conciliacion','Conciliación Extrajudicial','<circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/>')}
+                            ${this.servicePageButton('recusacion','Recusación','<path d="M12 3 4 6v5c0 4.8 3.1 8.6 8 10 4.9-1.4 8-5.2 8-10V6l-8-3z"/><path d="m9 12 2 2 4-5"/>')}
+                        </div></div>
+                        <aside class="service-detail"><div class="service-detail-visual" id="pageServiceDetailVisual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v18M5 7h14M7 7l-4 7h8L7 7zm10 0-4 7h8l-4-7z"/></svg></div><div class="service-detail-body"><h3 id="pageServiceDetailTitle">Arbitraje</h3><p id="pageServiceDetailDescription">Procedimiento para resolver controversias mediante un tribunal arbitral o árbitro único.</p><div class="service-requirements"><div class="service-requirement"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l4 4v16H6zM14 2v5h5"/></svg> Revise y prepare la documentación</div><div class="service-requirement"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m9 12 2 2 4-4"/></svg> Complete todos los datos requeridos</div></div><button type="button" class="service-start" onclick="window.solicitudesModule?.startSelectedPageService()">Comenzar solicitud <span>→</span></button></div></aside>
                     </div>
-                    <strong id="solicitudes-aprobadas">0</strong>
                 </section>
 
-                <section class="requests-history card">
+                <section class="requests-summary" id="requestsSummary" aria-label="Resumen de solicitudes" style="display:none"><div class="requests-summary-copy"><span class="requests-summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l2 2 4-4M7 3h10a2 2 0 0 1 2 2v14H5V5a2 2 0 0 1 2-2Z"/></svg></span><div><span>Solicitudes aprobadas</span><small>Trámites concluidos favorablemente</small></div></div><strong id="solicitudes-aprobadas">0</strong></section>
+
+                <section class="requests-history card" id="solicitudesHistoryView" style="display:none">
                     <div class="requests-section-heading">
                         <div>
                             <span class="requests-eyebrow">Seguimiento</span>
@@ -219,6 +219,10 @@ class DashboardSections {
                 </section>
             </div>
         `;
+    }
+
+    servicePageButton(id, title, icon, active = false) {
+        return `<button type="button" class="service-choice${active ? ' active' : ''}" data-page-service="${id}" onclick="window.solicitudesModule?.selectPageService('${id}', this)"><span class="service-choice-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icon}</svg></span><span>${title}</span></button>`;
     }
 
     createCasillaSection() {
@@ -283,52 +287,26 @@ class DashboardSections {
 
         section.innerHTML = `
             <div class="header module-header fade-in">
-                <span class="module-eyebrow">Seguimiento procesal</span>
-                <h1>Expedientes virtuales</h1>
-                <p class="text-muted">Consulta y seguimiento de procesos en tiempo real.</p>
-            </div>
-
-            <div class="stats-grid module-action-grid fade-in">
-                <div class="card module-action-card" style="grid-column: span 2;">
-                    <h3 class="card-title">Registro procesal</h3>
-                    <p class="text-muted" style="margin-bottom: var(--space-4);">Incorpore un nuevo expediente para su seguimiento administrativo.</p>
-                    <button class="btn btn-primary" onclick="window.dashboardApp.modules.expedientes?.crearNuevoExpediente()">Registrar Expediente</button>
-                </div>
-                <div class="card stat-card module-stat-card">
-                    <span class="stat-label">En Trámite</span>
-                    <span class="stat-value" id="expedientes-activos">0</span>
-                </div>
+                <span class="module-eyebrow">Expedientes</span>
+                <h1>Seguimiento procesal</h1>
+                <p class="text-muted">Consulte el estado, las actuaciones y el historial de sus procesos en tiempo real.</p>
             </div>
 
             <div class="table-container module-table-container fade-in">
                 <div class="card module-table-card">
                     <div class="module-card-heading">
-                        <div><span class="module-eyebrow">Archivo digital</span><h2>Listado de expedientes</h2></div>
-                        <span class="module-security">Actualización en tiempo real</span>
+                        <div><span class="module-eyebrow">Constancias y cargos</span><h2>Mis presentaciones</h2></div>
+                        <span class="module-security">Recepción segura</span>
                     </div>
                     <div class="table-wrapper">
-                        <table class="table" id="expedientes-table">
-                            <thead>
-                                <tr>
-                                    <th>Expediente Nº</th>
-                                    <th>Asunto</th>
-                                    <th>Apertura</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="expedientes-tbody">
-                                <tr><td colspan="5" class="text-center text-muted">Sincronizando expedientes...</td></tr>
-                            </tbody>
+                        <table class="table">
+                            <thead><tr><th>Registro</th><th>Materia</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
+                            <tbody id="mesa-tbody"><tr><td colspan="5" class="text-center text-muted">Cargando presentaciones...</td></tr></tbody>
                         </table>
-                        <div id="no-expedientes" class="module-empty" style="display: none;">
-                            <div class="module-empty-icon">⌕</div>
-                            <h4>No se encontraron expedientes</h4>
-                            <p class="text-muted">Aún no tiene expedientes registrados en su historial institucional.</p>
-                        </div>
                     </div>
                 </div>
             </div>
+
         `;
     }
 
@@ -342,43 +320,27 @@ class DashboardSections {
                 <p class="text-muted">Presentación de escritos y documentos con firma digital.</p>
             </div>
 
-            <div class="stats-grid module-action-grid fade-in">
-                <div class="card module-action-card" style="grid-column: span 2;">
-                    <h3 class="card-title">Ingreso de documentos</h3>
-                    <p class="text-muted" style="margin-bottom: var(--space-4);">Suba escritos, demandas o anexos de forma segura.</p>
-                    <button class="btn btn-primary" onclick="window.dashboardApp.modules.mesaPartes?.presentarDocumento()">Nueva Presentación</button>
-                </div>
-                <div class="card stat-card module-stat-card">
-                    <span class="stat-label">Presentados</span>
-                    <span class="stat-value" id="mesa-presentados">0</span>
-                </div>
-            </div>
+            <div id="mesa-formulario-inline" class="fade-in"></div>
 
-            <div class="table-container module-table-container fade-in">
-                <div class="card module-table-card">
-                    <div class="module-card-heading">
-                        <div><span class="module-eyebrow">Constancias y cargos</span><h2>Mis presentaciones</h2></div>
-                        <span class="module-security">Recepción segura</span>
-                    </div>
-                    <div class="table-wrapper">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Registro</th>
-                                    <th>Materia</th>
-                                    <th>Fecha</th>
-                                    <th>Estado</th>
-                                    <th>Cargo</th>
-                                </tr>
-                            </thead>
-                            <tbody id="mesa-tbody">
-                                <tr><td colspan="5" class="text-center text-muted">Cargando registros...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
         `;
+        setTimeout(() => window.mesaPartesModule?.mostrarFormularioInline(), 0);
+    }
+
+    createSoporteSection() {
+        const section = document.getElementById('soporte') || this.createSection('soporte');
+        const manual = '/output/pdf/instructivo-uso-sistmarc.pdf';
+        const iconoLibro = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg>';
+        const descarga = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m-5-5 5 5 5-5M5 21h14"/></svg>';
+        const manuales = [
+            { titulo: 'Acceso y uso de la cuenta', texto: 'Guía para ingresar, administrar su perfil y utilizar de manera segura su cuenta institucional.', pagina: 4 },
+            { titulo: 'Uso de la mesa de partes virtual', texto: 'Procedimiento para presentar solicitudes, escritos, documentos principales y anexos.', pagina: 6 },
+            { titulo: 'Seguimiento y trazabilidad', texto: 'Consulta de cargos, confirmaciones de recepción e información agregada a sus presentaciones.', pagina: 7 }
+        ];
+        section.innerHTML = `<div class="support-module fade-in">
+            <header class="support-header"><span class="module-eyebrow">Centro de ayuda</span><h1>Módulo de soporte tecnológico</h1><p>Consulte manuales y canales de asistencia para utilizar correctamente las herramientas digitales de SISTMARC.</p></header>
+            <div class="support-manual-grid">${manuales.map((item, i) => `<article class="support-manual-card"><div class="support-card-top"><span class="support-book">${iconoLibro}</span><div class="support-badges"><b>IMPORTANTE</b><span>PARTE ${i + 1}</span></div></div><h2>${item.titulo}</h2><p>${item.texto}</p><dl><div><dt>VERSIÓN</dt><dd>v1.0</dd></div><div><dt>ACTUALIZADO</dt><dd>17-08-2026</dd></div><div><dt>FORMATO</dt><dd>PDF</dd></div></dl><a class="support-download" href="${manual}#page=${item.pagina}" target="_blank" rel="noopener">${descarga} Descargar manual</a></article>`).join('')}</div>
+            <section class="support-assistance"><div class="support-channels"><div class="support-info-icon">i</div><div><h2>Canales de asistencia</h2><div class="support-channel"><span></span><div><b>Centro de ayuda para las partes</b><p>Orientación sobre presentación de documentos, constancias y seguimiento de sus procesos.</p></div></div><div class="support-channel"><span></span><div><b>Soporte técnico especializado</b><p>Ayuda ante dificultades de acceso, carga de archivos o uso de la casilla electrónica.</p></div></div></div></div><div class="support-contact"><small>SOPORTE TÉCNICO SISTMARC</small><h3>Consultas o dudas llamar al:</h3><div class="support-phone-list"><a href="https://wa.me/51967735960?text=Hola%20SISTMARC%2C%20necesito%20asistencia%20t%C3%A9cnica" target="_blank" rel="noopener">Cel. (+51) 967 735 960</a><a href="https://wa.me/51968183889?text=Hola%20SISTMARC%2C%20necesito%20asistencia%20t%C3%A9cnica" target="_blank" rel="noopener">Cel. (+51) 968 183 889</a></div><p>También puede escribir a <a href="mailto:sistema@tmarc.pe">sistema@tmarc.pe</a></p></div></section>
+        </div>`;
     }
 
     createConfiguracionSection() {

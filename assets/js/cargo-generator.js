@@ -10,7 +10,9 @@ const CargoGenerator = {
             folios = '',
             tipo_servicio = 'Arbitraje',
             asunto = '',
-            token = '' // Token temporal para QR
+            token = '', // Token temporal para QR
+            numero_constancia = '',
+            titulo = 'CARGO DE RECEPCIÓN DE SOLICITUD'
         } = datos;
 
         const html = `<!DOCTYPE html>
@@ -239,7 +241,7 @@ const CargoGenerator = {
         </div>
 
         <div class="titulo-cargo">
-            CARGO DE RECEPCIÓN DE SOLICITUD
+            ${titulo}
         </div>
         
         <div class="subtitulo-cargo">
@@ -251,6 +253,7 @@ const CargoGenerator = {
                 <div class="info-label">Expediente:</div>
                 <div class="info-value">${expediente}</div>
             </div>
+            ${numero_constancia ? `<div class="info-item"><div class="info-label">Constancia:</div><div class="info-value">${numero_constancia}</div></div>` : ''}
             <div class="info-item">
                 <div class="info-label">Solicitante:</div>
                 <div class="info-value">${solicitante || 'No especificado'}</div>
@@ -393,7 +396,7 @@ const CargoGenerator = {
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = `Cargo-${datos.expediente || 'Solicitud'}.png`;
+                link.download = `Cargo-${datos.numero_constancia || datos.expediente || 'Solicitud'}.png`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);

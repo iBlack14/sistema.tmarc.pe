@@ -253,7 +253,7 @@ async function inicializarBaseDatos(reset = false) {
                 documentos JSON,
                 cuantia DECIMAL(15,2),
                 sumilla TEXT,
-                estado ENUM('Pendiente', 'En Revisión', 'Aprobado', 'Rechazado') DEFAULT 'Pendiente',
+                estado ENUM('Pendiente', 'Recibido', 'En Revisión', 'Aprobado', 'Rechazado') DEFAULT 'Pendiente',
                 fecha_presentacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 observaciones TEXT,
@@ -268,6 +268,14 @@ async function inicializarBaseDatos(reset = false) {
             )
         `);
         console.log('✅ Tabla mesa_partes verificada');
+
+        // Mantener sincronizado el ENUM en instalaciones creadas antes de incorporar
+        // la confirmación administrativa de recepción.
+        const columnasEstadoMesa = await query("SHOW COLUMNS FROM mesa_partes LIKE 'estado'");
+        if (!String(columnasEstadoMesa[0]?.Type || '').includes("'Recibido'")) {
+            await query("ALTER TABLE mesa_partes MODIFY COLUMN estado ENUM('Pendiente', 'Recibido', 'En Revisión', 'Aprobado', 'Rechazado') DEFAULT 'Pendiente'");
+            console.log('✅ Estado Recibido habilitado en mesa_partes');
+        }
 
         // Asegurar columnas extra en mesa_partes si ya existía
         if (!(await columnaExiste('mesa_partes', 'cuantia'))) {
@@ -554,6 +562,9 @@ async function inicializarBaseDatos(reset = false) {
                 fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 actualizado_por INT,
                 fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                recepcion_confirmada TINYINT(1) DEFAULT 0,
+                fecha_recepcion TIMESTAMP NULL,
+                confirmado_por INT NULL,
                 
                 INDEX idx_st_expediente (expediente_id),
                 INDEX idx_st_mesa_partes (mesa_partes_id),
@@ -566,6 +577,15 @@ async function inicializarBaseDatos(reset = false) {
                 FOREIGN KEY (creado_por) REFERENCES usuarios(id) ON DELETE SET NULL
             )
         `);
+        if (!(await columnaExiste('seguimiento_timeline', 'recepcion_confirmada'))) {
+            await query('ALTER TABLE seguimiento_timeline ADD COLUMN recepcion_confirmada TINYINT(1) DEFAULT 0');
+        }
+        if (!(await columnaExiste('seguimiento_timeline', 'fecha_recepcion'))) {
+            await query('ALTER TABLE seguimiento_timeline ADD COLUMN fecha_recepcion TIMESTAMP NULL');
+        }
+        if (!(await columnaExiste('seguimiento_timeline', 'confirmado_por'))) {
+            await query('ALTER TABLE seguimiento_timeline ADD COLUMN confirmado_por INT NULL');
+        }
         console.log('✅ Tabla seguimiento_timeline verificada');
 
         // Las configuraciones iniciales ahora se gestionan vía .env para mayor seguridad y flexibilidad
@@ -760,6 +780,10 @@ async function inicializarBaseDatos(reset = false) {
             if (!(await indiceExiste('solicitudes', 'idx_solicitudes_fecha'))) {
                 await query('CREATE INDEX idx_solicitudes_fecha ON solicitudes(fecha)');
                 console.log('✅ Índice idx_solicitudes_fecha creado');
+            }
+            if (!(await indiceExiste('solicitudes', 'idx_solicitudes_usuario_fecha'))) {
+                await query('CREATE INDEX idx_solicitudes_usuario_fecha ON solicitudes(usuario_id, fecha)');
+                console.log('✅ Índice idx_solicitudes_usuario_fecha creado');
             }
 
             // Índices para expedientes

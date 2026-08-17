@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TMARC | Portal Judicial</title>
@@ -179,6 +179,170 @@
             min-height: 72px;
         }
 
+        .manual-access {
+            position: fixed;
+            right: 24px;
+            top: 24px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .manual-button {
+            width: 52px;
+            height: 52px;
+            border: 0;
+            border-radius: 15px;
+            background: #fff;
+            color: #B08A16;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .28);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+
+        .manual-button:hover,
+        .manual-button:focus-visible {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(212, 175, 55, .32);
+            outline: 2px solid var(--primary);
+            outline-offset: 3px;
+        }
+
+        .manual-button svg {
+            width: 25px;
+            height: 25px;
+        }
+
+        .manual-label {
+            padding: 7px 11px;
+            border-radius: 8px;
+            background: rgba(13, 13, 13, .86);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity .2s ease, transform .2s ease;
+            pointer-events: none;
+        }
+
+        .manual-access:hover .manual-label,
+        .manual-access:focus-within .manual-label {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .manual-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, .72);
+            backdrop-filter: blur(8px);
+        }
+
+        .manual-modal.is-open { display: flex; }
+
+        .manual-dialog {
+            width: min(940px, 100%);
+            max-height: min(760px, calc(100vh - 40px));
+            overflow-y: auto;
+            border: 1px solid rgba(212, 175, 55, .35);
+            border-radius: 18px;
+            background: #fff;
+            color: #263246;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, .5);
+        }
+
+        .manual-dialog-header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 22px 26px 18px;
+            border-bottom: 1px solid #e5eaf0;
+            background: rgba(255, 255, 255, .96);
+        }
+
+        .manual-dialog-title { display: flex; gap: 12px; align-items: flex-start; }
+        .manual-dialog-title > svg { flex: 0 0 auto; color: #199fc0; margin-top: 2px; }
+        .manual-dialog h2 { margin: 0 0 5px; color: #253146; font: 700 20px 'Outfit', sans-serif; }
+        .manual-dialog-header p { margin: 0; color: #7a8594; font-size: 12px; }
+
+        .manual-close {
+            width: 34px;
+            height: 34px;
+            flex: 0 0 auto;
+            border: 0;
+            border-radius: 9px;
+            background: #f2f5f7;
+            color: #526071;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .manual-content { padding: 22px 26px 26px; }
+        .manual-section + .manual-section { margin-top: 24px; }
+        .manual-section-heading { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+        .manual-section-icon {
+            width: 31px;
+            height: 31px;
+            display: grid;
+            place-items: center;
+            border-radius: 9px;
+            background: #e9f8fc;
+            color: #1599bb;
+            font-size: 16px;
+        }
+        .manual-section-heading h3 { margin: 0 0 2px; font-size: 13px; color: #263246; }
+        .manual-section-heading p { margin: 0; color: #8190a2; font-size: 11px; }
+
+        .manual-options {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 11px;
+        }
+
+        .manual-option {
+            min-height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 14px 15px;
+            border: 1px solid #d7e0e8;
+            border-radius: 13px;
+            color: #314059;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(35, 57, 80, .08);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.35;
+            transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+        }
+
+        .manual-option:hover,
+        .manual-option:focus-visible {
+            border-color: #25a7c5;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 15px rgba(25, 159, 192, .14);
+            outline: none;
+        }
+        .manual-option svg { flex: 0 0 auto; color: #199fc0; }
+        .manual-note { margin: 24px 0 0; padding-top: 15px; border-top: 1px solid #dfe5eb; color: #758294; font-size: 10px; }
+
         .btn-action {
             width: 100%;
             background: transparent;
@@ -223,8 +387,15 @@
         @media (max-width: 768px) {
             .container { padding: 80px 20px 40px; }
             .services-grid { grid-template-columns: 1fr; }
+            .manual-access { right: 16px; top: 16px; }
+            .manual-button { width: 48px; height: 48px; border-radius: 14px; }
+            .manual-modal { padding: 10px; }
+            .manual-dialog { max-height: calc(100vh - 20px); border-radius: 14px; }
+            .manual-dialog-header, .manual-content { padding-left: 16px; padding-right: 16px; }
+            .manual-options { grid-template-columns: 1fr; }
         }
     </style>
+    <link rel="stylesheet" href="assets/css/manuals.css?v=1.2">
 </head>
 <body>
     <!-- Background Elements -->
@@ -267,6 +438,48 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </button>
             </div>
+
+        </div>
+    </div>
+
+    <div class="manual-access">
+        <button class="manual-button" type="button" onclick="abrirManuales()" aria-label="Abrir opciones de manuales" aria-describedby="manual-label" title="Manuales de usuario">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 2h9l4 4v16H6z"></path>
+                <path d="M14 2v5h5"></path>
+                <path d="M9 12h7M9 16h7"></path>
+            </svg>
+        </button>
+        <span class="manual-label" id="manual-label">Manual de usuario</span>
+    </div>
+
+    <div class="manual-modal" id="manual-modal" role="dialog" aria-modal="true" aria-labelledby="manual-modal-title" onclick="cerrarManualesDesdeFondo(event)">
+        <div class="manual-dialog">
+            <header class="manual-dialog-header">
+                <div class="manual-dialog-title">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <div><h2 id="manual-modal-title">Manuales de SISTMARC</h2><p>Material público de apoyo para registrarse, presentar solicitudes y utilizar el sistema.</p></div>
+                </div>
+                <button class="manual-close" type="button" onclick="cerrarManuales()" aria-label="Cerrar manuales">×</button>
+            </header>
+            <div class="manual-content">
+                <section class="manual-section">
+                    <div class="manual-section-heading"><span class="manual-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M19 8v6M22 11h-6"></path></svg></span><div><h3>Registro</h3><p>Creación y habilitación de una cuenta en SISTMARC.</p></div></div>
+                    <div class="manual-options">
+                        <a class="manual-option" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=3" target="_blank" rel="noopener"><span>Manual para el registro de usuarios</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
+                    </div>
+                </section>
+
+                <section class="manual-section">
+                    <div class="manual-section-heading"><span class="manual-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="13" rx="2"></rect><path d="M8 21h8M12 16v5"></path><path d="m16 7-2.5 2.5L12 8l-3 3"></path></svg></span><div><h3>Uso del sistema</h3><p>Consulta, acceso, notificaciones y trazabilidad.</p></div></div>
+                    <div class="manual-options">
+                        <a class="manual-option" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=4" target="_blank" rel="noopener"><span>Acceso y uso de la cuenta</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
+                        <a class="manual-option" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=6" target="_blank" rel="noopener"><span>Uso de la mesa de partes virtual</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
+                        <a class="manual-option" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=7" target="_blank" rel="noopener"><span>Seguimiento y trazabilidad de la información</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
+                    </div>
+                </section>
+                <p class="manual-note">Revise el instructivo antes de registrar información o adjuntar documentos.</p>
+            </div>
         </div>
     </div>
 
@@ -289,7 +502,27 @@
             // Permitir acceso directo al portal público
             window.location.href = '/seguimiento';
         }
+
+        function abrirManuales() {
+            document.getElementById('manual-modal').classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+            document.querySelector('.manual-close').focus();
+        }
+
+        function cerrarManuales() {
+            document.getElementById('manual-modal').classList.remove('is-open');
+            document.body.style.overflow = '';
+            document.querySelector('.manual-button').focus();
+        }
+
+        function cerrarManualesDesdeFondo(event) {
+            if (event.target.id === 'manual-modal') cerrarManuales();
+        }
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && document.getElementById('manual-modal').classList.contains('is-open')) cerrarManuales();
+        });
     </script>
+    <script src="assets/js/manuals.js?v=1.4"></script>
 </body>
 </html>
-

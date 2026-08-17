@@ -77,6 +77,16 @@ function plantillaBienvenida(usuario) {
 </body></html>`;
 }
 
+function plantillaNuevoUsuarioAdmin(usuario, usuarioId) {
+    const baseUrl = (process.env.APP_URL || process.env.BASE_URL || 'https://sistema.tmarc.pe').replace(/\/+$/, '');
+    const nombre = escaparHtml(usuario.nombre);
+    const username = escaparHtml(usuario.username);
+    const email = escaparHtml(usuario.email);
+    const telefono = escaparHtml(usuario.telefono || 'No registrado');
+    const fecha = new Date().toLocaleString('es-PE', { timeZone: 'America/Lima', dateStyle: 'long', timeStyle: 'short' });
+    return `<!doctype html><html lang="es"><body style="margin:0;padding:0;background:#f1f2f4;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px;background:#f1f2f4"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:18px;overflow:hidden;border:1px solid #ded8c5;box-shadow:0 12px 35px rgba(0,0,0,.1)"><tr><td style="background:#111;padding:26px 30px;border-bottom:4px solid #d4af37"><div style="font-family:Georgia,serif;color:#fff;font-size:28px;font-weight:bold">Tmarc</div><div style="color:#d4af37;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;margin-top:4px">Notificación administrativa</div></td></tr><tr><td style="padding:32px"><div style="color:#9b7413;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.2px">Nuevo registro</div><h1 style="font-size:23px;margin:8px 0 10px;color:#171717">Se registró un nuevo usuario</h1><p style="margin:0 0 22px;color:#666;font-size:14px;line-height:1.6">Una nueva cuenta fue creada correctamente en SISTEMA TMARC.</p><div style="background:#fff9e8;border:1px solid #ead486;border-radius:11px;padding:15px;text-align:center;margin-bottom:20px"><div style="font-size:10px;color:#8a721e;text-transform:uppercase;font-weight:bold">Usuario N.°</div><div style="font-size:20px;font-weight:800;margin-top:5px">${usuarioId}</div></div><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #ece7d8;border-radius:10px;border-collapse:separate;overflow:hidden"><tr><td style="padding:11px 14px;border-bottom:1px solid #ece7d8;color:#806b20;font-size:11px;font-weight:bold;width:32%">NOMBRE</td><td style="padding:11px 14px;border-bottom:1px solid #ece7d8;font-size:13px;font-weight:600">${nombre}</td></tr><tr><td style="padding:11px 14px;border-bottom:1px solid #ece7d8;color:#806b20;font-size:11px;font-weight:bold">USUARIO</td><td style="padding:11px 14px;border-bottom:1px solid #ece7d8;font-size:13px">${username}</td></tr><tr><td style="padding:11px 14px;border-bottom:1px solid #ece7d8;color:#806b20;font-size:11px;font-weight:bold">CORREO</td><td style="padding:11px 14px;border-bottom:1px solid #ece7d8;font-size:13px">${email}</td></tr><tr><td style="padding:11px 14px;border-bottom:1px solid #ece7d8;color:#806b20;font-size:11px;font-weight:bold">TELÉFONO</td><td style="padding:11px 14px;border-bottom:1px solid #ece7d8;font-size:13px">${telefono}</td></tr><tr><td style="padding:11px 14px;color:#806b20;font-size:11px;font-weight:bold">FECHA</td><td style="padding:11px 14px;font-size:13px">${fecha}</td></tr></table><div style="text-align:center;margin:26px 0 8px"><a href="${baseUrl}/public/admin/index.html#usuarios" style="display:inline-block;padding:13px 25px;border-radius:9px;background:#d4af37;color:#111;text-decoration:none;font-size:13px;font-weight:bold">Revisar usuario en administración →</a></div><p style="margin:22px 0 0;padding:13px 15px;background:#f7f7f7;border-left:4px solid #d4af37;color:#666;font-size:11px;line-height:1.5">Mensaje automático de seguridad. La contraseña del usuario no se incluye ni se almacena en este correo.</p></td></tr><tr><td style="background:#111;padding:19px;text-align:center;color:#aaa;font-size:10px"><strong style="color:#d4af37">SISTEMA TMARC</strong><br>Centro de Arbitraje &amp; Dispute Boards</td></tr></table></td></tr></table></body></html>`;
+}
+
 // Configuración de almacenamiento para avatars
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -234,6 +244,28 @@ router.post('/', async (req, res) => {
             console.error('❌ Cuenta creada, pero falló el correo de bienvenida:', emailError);
         }
 
+        let notificacionAdminEnviada = false;
+        let notificacionAdminError = null;
+        const correoAdmin = process.env.ADMIN_EMAIL;
+        if (correoAdmin) {
+            try {
+                const envioAdmin = await smtpConfigManager.enviarEmail({
+                    destinatario: correoAdmin,
+                    asunto: `Nuevo usuario registrado: ${datosUsuario.nombre}`,
+                    contenido: plantillaNuevoUsuarioAdmin(datosUsuario, resultado.insertId),
+                    tipo: 'notificacion_nuevo_usuario_admin'
+                });
+                notificacionAdminEnviada = Boolean(envioAdmin.success && envioAdmin.estado !== 'simulado' && envioAdmin.estado !== 'pendiente_smtp');
+                if (!notificacionAdminEnviada) notificacionAdminError = envioAdmin.message || 'El SMTP no confirmó el envío administrativo';
+            } catch (adminEmailError) {
+                notificacionAdminError = adminEmailError.message;
+                console.error('❌ Usuario creado, pero falló la notificación al administrador:', adminEmailError);
+            }
+        } else {
+            notificacionAdminError = 'ADMIN_EMAIL no está configurado';
+            console.warn('⚠️ No se notificó el registro: falta ADMIN_EMAIL');
+        }
+
         res.status(201).json({
             success: true,
             message: emailBienvenidaEnviado
@@ -242,7 +274,9 @@ router.post('/', async (req, res) => {
             data: {
                 id: resultado.insertId,
                 emailBienvenidaEnviado,
-                emailBienvenidaError
+                emailBienvenidaError,
+                notificacionAdminEnviada,
+                notificacionAdminError
             }
         });
     } catch (error) {

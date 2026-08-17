@@ -1,0 +1,428 @@
+#usuarios {
+    --users-navy: #12233f;
+    --users-blue: #244b78;
+    --users-gold: #c99d32;
+    --users-border: #e4e9ef;
+    --users-muted: #748091;
+}
+
+#usuarios .users-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    padding: 30px 34px;
+    border: 0;
+    border-radius: 22px;
+    color: #fff;
+    background:
+        radial-gradient(circle at 92% 8%, rgba(216, 174, 72, .25), transparent 35%),
+        linear-gradient(125deg, #10213b, #1e426f);
+    box-shadow: 0 18px 42px rgba(18, 35, 63, .18);
+}
+
+#usuarios .users-header h1,
+#usuarios .users-header .subtitle {
+    color: #fff;
+}
+
+#usuarios .users-header h1 {
+    margin: 0;
+    font-size: clamp(28px, 3vw, 38px);
+    letter-spacing: -.035em;
+}
+
+#usuarios .users-header .subtitle {
+    margin-top: 8px;
+    opacity: .72;
+}
+
+#usuarios .users-header .header-icon {
+    display: none;
+}
+
+.users-eyebrow {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--users-gold);
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.users-primary-action {
+    min-height: 46px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 13px;
+    color: #17233a;
+    background: #dbb34e;
+    box-shadow: none;
+    text-transform: none;
+}
+
+.users-stats {
+    gap: 16px;
+    margin-top: 20px;
+}
+
+#usuarios .users-stat {
+    min-height: 118px;
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    border: 1px solid var(--users-border);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 31, 56, .055);
+}
+
+#usuarios .users-stat:hover {
+    transform: translateY(-2px);
+    border-color: #d7dde5;
+    background: #fff;
+}
+
+.users-stat-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.users-stat-active .users-stat-icon { color: #287458; background: #eaf8f1; }
+.users-stat-inactive .users-stat-icon { color: #ad4c4c; background: #fff0f0; }
+.users-stat-new .users-stat-icon { color: #8c6715; background: #fff6dc; }
+
+#usuarios .users-stat .stat-label {
+    margin: 0;
+    color: #687587;
+    font-size: 11px;
+}
+
+#usuarios .users-stat .stat-value {
+    margin: 2px 0;
+    color: var(--users-navy);
+    font-size: 30px;
+    line-height: 1;
+}
+
+.users-stat small {
+    color: #98a1ad;
+    font-size: 10px;
+}
+
+#usuarios .users-table-card {
+    margin-top: 20px !important;
+    padding: 26px 28px;
+    border: 1px solid var(--users-border);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 8px 25px rgba(15, 31, 56, .05);
+}
+
+.users-table-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.users-table-heading h2 {
+    margin: 0;
+    color: var(--users-navy);
+    font-size: 21px;
+}
+
+.users-utility-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.users-icon-button,
+.users-notify-button {
+    min-height: 40px;
+    border: 1px solid #dfe4ea;
+    border-radius: 11px;
+    color: var(--users-navy);
+    background: #f8fafc;
+    font: 700 12px var(--font-main);
+    cursor: pointer;
+}
+
+.users-icon-button {
+    width: 40px;
+}
+
+.users-notify-button {
+    padding: 0 14px;
+}
+
+.users-filters {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) 190px;
+    gap: 12px;
+    margin: 20px 0 16px;
+}
+
+.users-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid #dfe4ea;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.users-search input,
+#admin-user-status {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    color: var(--users-navy);
+    background: transparent;
+    font: 500 13px var(--font-main);
+}
+
+#admin-user-status {
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid #dfe4ea;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.users-table-scroll {
+    overflow-x: auto;
+}
+
+#usuarios .users-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+}
+
+#usuarios .users-table th {
+    padding: 12px 14px;
+    color: #7b8796;
+    background: #f7f9fb;
+    font-size: 10px;
+    letter-spacing: .08em;
+}
+
+#usuarios .users-table td {
+    padding: 14px;
+    border-bottom: 1px solid #edf0f3;
+    color: #445065;
+    font-size: 13px;
+}
+
+.users-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--users-navy);
+}
+
+.users-avatar {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    flex: 0 0 34px;
+    place-items: center;
+    border-radius: 10px;
+    color: #214c78;
+    background: #eaf2fb;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.users-id { color: #8b96a4; font-size: 11px; font-weight: 700; }
+.users-email { overflow-wrap: anywhere; }
+.users-role { text-transform: capitalize; }
+
+.users-row-actions {
+    display: flex;
+    gap: 7px;
+}
+
+.users-action-button {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #dfe4ea;
+    border-radius: 9px;
+    background: #fff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.users-edit { color: #2b628f; }
+.users-delete { color: #b84c4c; }
+
+#usuarios-filter-empty td {
+    padding: 36px !important;
+    color: #7b8796 !important;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    #usuarios .users-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 24px 20px;
+        border-radius: 18px;
+    }
+
+    #usuarios .users-header h1 {
+        font-size: 29px;
+    }
+
+    .users-header-actions,
+    .users-primary-action {
+        width: 100%;
+    }
+
+    #usuarios .users-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    #usuarios .users-stat {
+        min-height: auto;
+        grid-template-columns: 44px 1fr;
+        padding: 15px;
+    }
+
+    .users-stat-icon {
+        width: 44px;
+        height: 44px;
+    }
+
+    #usuarios .users-table-card {
+        padding: 20px 14px;
+        border-radius: 18px;
+    }
+
+    .users-table-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .users-utility-actions {
+        width: 100%;
+    }
+
+    .users-notify-button {
+        flex: 1;
+    }
+
+    .users-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .users-table-scroll {
+        overflow: visible;
+    }
+
+    #usuarios .users-table {
+        min-width: 0;
+    }
+
+    #usuarios .users-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+    }
+
+    #usuarios .users-table,
+    #usuarios .users-table tbody,
+    #usuarios .users-table tr,
+    #usuarios .users-table td {
+        display: block;
+        width: 100%;
+    }
+
+    #usuarios .users-table tbody {
+        display: grid;
+        gap: 10px;
+    }
+
+    #usuarios .users-table tr {
+        padding: 14px;
+        border: 1px solid #e8ecf1;
+        border-radius: 14px;
+        background: #fafbfc;
+    }
+
+    #usuarios .users-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 7px 0;
+        border: 0;
+        text-align: right;
+    }
+
+    #usuarios .users-table td::before {
+        content: attr(data-label);
+        color: #8a95a4;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+    }
+
+    .users-identity {
+        justify-content: flex-end;
+    }
+
+    .users-row-actions {
+        justify-content: flex-end;
+    }
+
+    #agregarUsuarioModal .modal-content,
+    #editarUsuarioModal .modal-content {
+        width: 100%;
+        max-width: 100% !important;
+        max-height: 94dvh;
+        margin: 0;
+        border-radius: 22px 22px 0 0;
+        overflow: hidden;
+    }
+
+    #agregarUsuarioModal .modal-body,
+    #editarUsuarioModal .modal-body {
+        padding: 20px 16px !important;
+        overflow-y: auto;
+    }
+
+    #formAgregarUsuario .form-input,
+    #formEditarUsuario .form-input {
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    #formAgregarUsuario div[style*="display: flex"],
+    #formEditarUsuario div[style*="display: flex"] {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #formAgregarUsuario .btn,
+    #formEditarUsuario .btn {
+        width: 100%;
+        min-height: 48px;
+    }
+}

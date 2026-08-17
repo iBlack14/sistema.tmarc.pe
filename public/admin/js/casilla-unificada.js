@@ -184,8 +184,8 @@ const CasillaUnificada = {
             <tr style="transition: background 0.2s;" 
                 onmouseover="this.style.background='rgba(192,192,192,0.05)'" 
                 onmouseout="this.style.background='transparent'">
-                <td style="text-align: center;">${index + 1}</td>
-                <td>
+                <td data-label="N.º" style="text-align: center;">${index + 1}</td>
+                <td data-label="Tipo">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span style="font-size: 24px;">${tipo.icon}</span>
                         <div>
@@ -193,29 +193,39 @@ const CasillaUnificada = {
                         </div>
                     </div>
                 </td>
-                <td>
+                <td data-label="Asunto">
                     <div>
                         <strong>${this.escaparHTML(item.titulo || 'N/A')}</strong>
                         ${item.subtitulo ? `<br><small style="color: #666;">${this.escaparHTML(item.subtitulo)}</small>` : ''}
                     </div>
                 </td>
-                <td>${fecha}</td>
-                <td>
+                <td data-label="Fecha">${fecha}</td>
+                <td data-label="Estado">
                     <span class="status-badge ${estadoClass}">${item.estado || 'Nuevo'}</span>
                 </td>
-                <td style="text-align: center;">
-                    <button class="btn btn-primary" 
-                            style="padding: 6px 12px; font-size: 12px; margin-right: 4px;" 
-                            onclick="CasillaUnificada.verDetalle('${item.tipo}', '${item.referencia_id}')"
-                            title="Ver detalles">
-                        👁️ Ver
-                    </button>
-                    <button class="btn btn-primary" 
-                            style="padding: 6px 12px; font-size: 12px; background:linear-gradient(135deg,#d4af37,#f1d582);color:#1a1a1a;" 
-                            onclick="TimelineManager.abrir('${item.tipo === 'mesa_partes' ? 'mesa-partes' : item.tipo === 'expediente' ? 'expedientes' : 'solicitudes'}', '${item.referencia_id}', '${tipo.nombre}: ${item.referencia_id}')"
-                            title="Ver Timeline">
-                        📋
-                    </button>
+                <td data-label="Acciones" style="text-align: center;">
+                    <div class="casilla-row-actions">
+                        <button class="btn btn-primary"
+                                style="padding: 6px 12px; font-size: 12px; margin-right: 4px;"
+                                onclick="CasillaUnificada.verDetalle('${item.tipo}', '${item.referencia_id}')"
+                                title="Ver detalles">
+                            👁️ Ver
+                        </button>
+                        <button class="btn btn-primary"
+                                style="padding: 6px 12px; font-size: 12px; background:linear-gradient(135deg,#d4af37,#f1d582);color:#1a1a1a;"
+                                onclick="TimelineManager.abrir('${item.tipo === 'mesa_partes' ? 'mesa-partes' : item.tipo === 'expediente' ? 'expedientes' : 'solicitudes'}', '${item.referencia_id}', '${tipo.nombre}: ${item.referencia_id}')"
+                                title="Ver Timeline">
+                            📋
+                        </button>
+                        ${item.tipo === 'mesa_partes' && item.estado !== 'Recibido' ? `
+                        <button class="btn btn-primary"
+                                style="padding:6px 12px;font-size:12px;background:#16794c;color:#fff;"
+                                onclick="CasillaUnificada.confirmarCambioEstado('mesa_partes','${item.referencia_id}','Recibido')"
+                                title="Confirmar recepción y notificar al usuario">
+                            📥 Confirmar recepción
+                        </button>` : item.tipo === 'mesa_partes' ? `
+                        <span style="display:inline-flex;align-items:center;padding:6px 10px;border-radius:8px;background:#e6f7ed;color:#16794c;font-size:11px;font-weight:800;">✓ Recepción confirmada</span>` : ''}
+                    </div>
                 </td>
             </tr>
         `;
@@ -365,6 +375,7 @@ const CasillaUnificada = {
         }
 
         this.insertarModal(contenido);
+        if (tipo === 'mesa_partes') this.cargarTimelineMesaPartes(datos.id || datos.numero_registro);
     },
 
     /**
@@ -437,6 +448,30 @@ const CasillaUnificada = {
     /**
      * Modal para Mesa de Partes
      */
+    async cargarTimelineMesaPartes(id) {
+        const container = document.getElementById('mesa-info-agregada-admin');
+        if (!container) return;
+        try {
+            const response = await fetch(`/api/mesa-partes/${encodeURIComponent(id)}/timeline`);
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.error || 'Error cargando historial');
+            const movimientos = Array.isArray(result.data) ? result.data.slice().reverse() : [];
+            if (!movimientos.length) {
+                container.innerHTML = '<div style="padding:14px;text-align:center;color:#888;border:1px dashed #ddd;border-radius:10px;">El usuario todavía no agregó información adicional.</div>';
+                return;
+            }
+            container.innerHTML = movimientos.map(m => {
+                const fecha = m.fecha_documento ? new Date(`${m.fecha_documento}`.slice(0,10)+'T12:00:00').toLocaleDateString('es-PE') : 'Sin fecha';
+                const hora = m.fecha_creacion ? new Date(m.fecha_creacion).toLocaleTimeString('es-PE', { hour:'2-digit', minute:'2-digit', hour12:true }) : '';
+                const adjunto = m.tiene_documento && m.documento_archivo ? `<a href="${this.escaparHTML(m.documento_ruta || `/uploads/timeline/${m.documento_archivo}`)}" target="_blank" rel="noopener" style="padding:6px 10px;background:#111;color:#fff;border-radius:7px;text-decoration:none;font-size:10px;font-weight:700;">📎 ${this.escaparHTML(m.documento_nombre || 'Ver archivo')}</a>` : '<span style="font-size:10px;color:#999;">Sin adjunto</span>';
+                return `<div style="padding:13px;border:1px solid rgba(212,175,55,.3);border-left:3px solid var(--color-gold);border-radius:10px;background:#fff;"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;"><div><strong style="display:block;font-size:11px;color:#111;">${this.escaparHTML(m.tipo_documento || 'INFORMACIÓN')}</strong><span style="font-size:10px;color:#888;">${fecha}${hora ? ` · ${hora}` : ''}${m.numero_documento ? ` · N.° ${this.escaparHTML(m.numero_documento)}` : ''}</span></div>${adjunto}</div>${m.asunto ? `<div style="margin-top:8px;font-size:12px;font-weight:700;color:#333;">${this.escaparHTML(m.asunto)}</div>` : ''}${m.sumilla ? `<p style="margin:5px 0 0;font-size:11px;line-height:1.5;color:#666;white-space:pre-wrap;">${this.escaparHTML(m.sumilla)}</p>` : ''}${m.presentado_por ? `<div style="margin-top:7px;font-size:10px;color:#888;"><b>Presentado por:</b> ${this.escaparHTML(m.presentado_por)}</div>` : ''}</div>`;
+            }).join('');
+        } catch (error) {
+            console.error('Error cargando información de Mesa de Partes:', error);
+            container.innerHTML = '<div style="padding:14px;color:#c62828;background:#fff5f5;border-radius:10px;">No se pudo cargar la información agregada.</div>';
+        }
+    },
+
     modalMesaPartes(presentacion) {
         const demandante = typeof presentacion.demandante === 'string' ? JSON.parse(presentacion.demandante) : (presentacion.demandante || {});
         const demandado = typeof presentacion.demandado === 'string' ? JSON.parse(presentacion.demandado) : (presentacion.demandado || {});
@@ -492,6 +527,11 @@ const CasillaUnificada = {
                                     </div>
                                 </div>
                             </div>
+                            <div style="display:flex;flex-direction:column;gap:12px;">
+                            <div style="background:#fffdf5; border-radius:12px; padding:14px; border:1px solid rgba(212,175,55,.28);">
+                                <h3 style="color:#111;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;margin:0 0 10px;">🕘 Información agregada</h3>
+                                <div id="mesa-info-agregada-admin" style="display:grid;gap:8px;"><div style="padding:12px;text-align:center;color:#888;">Cargando...</div></div>
+                            </div>
                             <div style="background:#f8f9fa; border-radius:12px; padding:14px; border:1px solid rgba(0,0,0,0.06);">
                                 <h3 style="color:#111; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; margin:0 0 10px 0; display:flex; align-items:center; gap:6px;">📎 Archivos <span style="background:#d4af37; color:#000; font-size:10px; padding:1px 7px; border-radius:8px; margin-left:4px;">${documentos.length}</span></h3>
                                 <div style="display:flex; flex-direction:column; gap:8px;">
@@ -508,7 +548,7 @@ const CasillaUnificada = {
                                         </div>
                                     `).join('') : '<p style="text-align:center; color:#bbb; font-size:12px; padding:16px 0; margin:0;">Sin adjuntos</p>'}
                                 </div>
-                            </div>
+                            </div></div>
                         </div>
                         <div style="background:#f9f9f9; border:1px solid rgba(0,0,0,0.06); border-radius:12px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                             <span style="color:#888; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">Acciones</span>
@@ -516,6 +556,7 @@ const CasillaUnificada = {
                                 <button style="background:#1a1a1a; color:#fff; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; border:none; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#000';" onmouseout="this.style.background='#1a1a1a';" onclick="CasillaUnificada.cerrarModal(); TimelineManager.abrir('mesa-partes','${presentacion.id}','Mesa de Partes: ${presentacion.numero_registro}')">📋 Seguimiento</button>
                                 <button style="background:#34495e; color:#fff; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; border:none; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#2c3e50';" onmouseout="this.style.background='#34495e';" onclick="CasillaUnificada.editarMesaPartes('${presentacion.id}')">✏️ Editar</button>
                                 <button style="background:#27ae60; color:#fff; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; border:none; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#219150';" onmouseout="this.style.background='#27ae60';" onclick="CasillaUnificada.responderMesaPartes('${presentacion.id}','${presentacion.usuario_id}','${presentacion.numero_registro}')">💬 Responder</button>
+                                ${presentacion.estado !== 'Recibido' ? `<button style="background:#16794c;color:#fff;padding:6px 12px;border-radius:8px;font-weight:700;font-size:11px;border:none;cursor:pointer;" onclick="CasillaUnificada.confirmarCambioEstado('mesa_partes','${presentacion.id}','Recibido')">📥 Confirmar recepción</button>` : ''}
                                 <button style="background:var(--color-gold); color:#000; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; border:none; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.opacity='0.85';" onmouseout="this.style.opacity='1';" onclick="CasillaUnificada.confirmarCambioEstado('mesa_partes','${presentacion.id}','Aprobado')">✅ Aprobar</button>
                                 <button style="background:#e74c3c; color:#fff; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; border:none; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#c0392b';" onmouseout="this.style.background='#e74c3c';" onclick="CasillaUnificada.confirmarCambioEstado('mesa_partes','${presentacion.id}','Rechazado')">❌ Rechazar</button>
                             </div>
@@ -755,8 +796,8 @@ const CasillaUnificada = {
      */
     confirmarCambioEstado(tipo, id, nuevoEstado) {
         const modalId = 'modalConfirmarEstado';
-        const color = nuevoEstado === 'Aprobado' ? '#27ae60' : '#e74c3c';
-        const icono = nuevoEstado === 'Aprobado' ? '✅' : '❌';
+        const color = nuevoEstado === 'Aprobado' ? '#27ae60' : nuevoEstado === 'Recibido' ? '#16794c' : '#e74c3c';
+        const icono = nuevoEstado === 'Aprobado' ? '✅' : nuevoEstado === 'Recibido' ? '📥' : '❌';
 
         const modalHTML = `
             <div id="${modalId}" style="display:flex; position:fixed; z-index:100000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter: blur(10px); align-items:center; justify-content:center; animation: fadeIn 0.3s ease-out;">
@@ -827,9 +868,12 @@ const CasillaUnificada = {
             const data = await response.json();
 
             if (data.success) {
-                this.mostrarExito(`Documento ${nuevoEstado} correctamente`);
+                const detalleEnvio = nuevoEstado === 'Recibido' ? ` Casilla: ${data.notificacion_sistema ? 'enviada' : 'no enviada'}. Correo: ${data.correo_enviado ? 'enviado' : 'pendiente'}.` : '';
+                this.mostrarExito(`Documento ${nuevoEstado} correctamente.${detalleEnvio}`);
                 this.cerrarModal();
                 await this.cargar();
+                if (typeof window.cargarExpedientesTabla === 'function') await window.cargarExpedientesTabla();
+                if (typeof window.cargarTablaSolicitudes === 'function') await window.cargarTablaSolicitudes();
             } else {
                 throw new Error(data.error || 'Error cambiando estado');
             }

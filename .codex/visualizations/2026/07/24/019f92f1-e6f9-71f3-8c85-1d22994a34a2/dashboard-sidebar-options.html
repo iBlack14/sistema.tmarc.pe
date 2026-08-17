@@ -1,0 +1,122 @@
+<div id="tmarc-nav-options">
+  <style>
+    #tmarc-nav-options { color: var(--foreground); }
+    #tmarc-nav-options .options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    #tmarc-nav-options .option { min-width: 0; padding: 0; overflow: hidden; text-align: left; }
+    #tmarc-nav-options .option.is-selected { outline: 2px solid var(--ring); outline-offset: 2px; }
+    #tmarc-nav-options .mock { display: grid; min-height: 280px; background: var(--muted); color: var(--foreground); }
+    #tmarc-nav-options .mock-a { grid-template-columns: 56px 1fr; }
+    #tmarc-nav-options .mock-b { grid-template-rows: 48px 1fr; }
+    #tmarc-nav-options .mock-c { grid-template-columns: 76px 1fr; grid-template-rows: 48px 1fr; }
+    #tmarc-nav-options .rail { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 14px 8px; background: var(--primary); color: var(--primary-foreground); }
+    #tmarc-nav-options .wide-rail { align-items: stretch; }
+    #tmarc-nav-options .wide-rail .nav-line { justify-content: flex-start; }
+    #tmarc-nav-options .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; background: var(--card); color: var(--card-foreground); border-bottom: 1px solid var(--border); }
+    #tmarc-nav-options .mock-c .top { grid-column: 1 / -1; }
+    #tmarc-nav-options .brand { font-weight: 500; white-space: nowrap; }
+    #tmarc-nav-options .nav-line { display: flex; align-items: center; justify-content: center; gap: 6px; color: inherit; }
+    #tmarc-nav-options .nav-line.active { color: var(--accent-foreground); background: var(--accent); }
+    #tmarc-nav-options .nav-line span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #tmarc-nav-options .body { min-width: 0; padding: 14px; }
+    #tmarc-nav-options .body-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+    #tmarc-nav-options .title-line { width: 55%; height: 12px; background: var(--foreground); opacity: .75; }
+    #tmarc-nav-options .action-line { width: 26%; height: 28px; background: var(--primary); }
+    #tmarc-nav-options .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    #tmarc-nav-options .metric { height: 54px; background: var(--card); border: 1px solid var(--border); }
+    #tmarc-nav-options .content-line { height: 90px; margin-top: 8px; background: var(--card); border: 1px solid var(--border); }
+    #tmarc-nav-options .option-label { display: block; padding: 10px 12px 2px; font-weight: 500; }
+    #tmarc-nav-options .option-note { display: block; padding: 0 12px 12px; color: var(--muted-foreground); }
+    #tmarc-nav-options .selection { margin-top: 12px; }
+    #tmarc-nav-options i { flex: 0 0 auto; }
+    @media (max-width: 620px) {
+      #tmarc-nav-options .options { grid-template-columns: 1fr; }
+      #tmarc-nav-options .mock { min-height: 230px; }
+    }
+  </style>
+
+  <div class="options" role="group" aria-label="Opciones de navegación para TMARC">
+    <button class="card option is-selected" type="button" data-choice="A" aria-pressed="true">
+      <span class="mock mock-a">
+        <span class="rail">
+          <i data-lucide="scale" aria-hidden="true"></i>
+          <span class="nav-line active"><i data-lucide="layout-dashboard" aria-hidden="true"></i></span>
+          <span class="nav-line"><i data-lucide="users" aria-hidden="true"></i></span>
+          <span class="nav-line"><i data-lucide="inbox" aria-hidden="true"></i></span>
+          <span class="nav-line"><i data-lucide="folder" aria-hidden="true"></i></span>
+        </span>
+        <span class="body">
+          <span class="body-head"><span class="title-line"></span><span class="action-line"></span></span>
+          <span class="metrics"><span class="metric"></span><span class="metric"></span><span class="metric"></span></span>
+          <span class="content-line"></span>
+        </span>
+      </span>
+      <span class="option-label">A · Sidebar compacto</span>
+      <span class="option-note text-small">Más espacio para tablas; iconos siempre visibles.</span>
+    </button>
+
+    <button class="card option" type="button" data-choice="B" aria-pressed="false">
+      <span class="mock mock-b">
+        <span class="top">
+          <span class="brand">TMARC Admin</span>
+          <span class="viz-row">
+            <span class="nav-line active"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Inicio</span></span>
+            <span class="nav-line"><i data-lucide="users" aria-hidden="true"></i><span>Usuarios</span></span>
+            <i data-lucide="circle-user" aria-hidden="true"></i>
+          </span>
+        </span>
+        <span class="body">
+          <span class="body-head"><span class="title-line"></span><span class="action-line"></span></span>
+          <span class="metrics"><span class="metric"></span><span class="metric"></span><span class="metric"></span></span>
+          <span class="content-line"></span>
+        </span>
+      </span>
+      <span class="option-label">B · Barra superior limpia</span>
+      <span class="option-note text-small">Cambio menor; conserva navegación horizontal.</span>
+    </button>
+
+    <button class="card option" type="button" data-choice="C" aria-pressed="false">
+      <span class="mock mock-c">
+        <span class="top"><span class="brand">TMARC</span><span><i data-lucide="search" aria-hidden="true"></i></span></span>
+        <span class="rail wide-rail">
+          <span class="nav-line active"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Inicio</span></span>
+          <span class="nav-line"><i data-lucide="users" aria-hidden="true"></i><span>Usuarios</span></span>
+          <span class="nav-line"><i data-lucide="inbox" aria-hidden="true"></i><span>Casilla</span></span>
+        </span>
+        <span class="body">
+          <span class="body-head"><span class="title-line"></span><span class="action-line"></span></span>
+          <span class="metrics"><span class="metric"></span><span class="metric"></span><span class="metric"></span></span>
+          <span class="content-line"></span>
+        </span>
+      </span>
+      <span class="option-label">C · Híbrido institucional</span>
+      <span class="option-note text-small">Marca arriba y navegación estable a la izquierda.</span>
+    </button>
+  </div>
+
+  <div class="card selection" aria-live="polite">
+    <span class="text-muted">Selección actual</span>
+    <div id="tmarc-choice">A · Sidebar compacto — recomendado para el panel administrativo.</div>
+  </div>
+
+  <script>
+    (() => {
+      const root = document.getElementById('tmarc-nav-options');
+      const output = document.getElementById('tmarc-choice');
+      const descriptions = {
+        A: 'A · Sidebar compacto — recomendado para el panel administrativo.',
+        B: 'B · Barra superior limpia — la opción más conservadora.',
+        C: 'C · Híbrido institucional — mayor presencia de marca y navegación.'
+      };
+      root.querySelectorAll('[data-choice]').forEach((button) => {
+        button.addEventListener('click', () => {
+          root.querySelectorAll('[data-choice]').forEach((item) => {
+            const selected = item === button;
+            item.classList.toggle('is-selected', selected);
+            item.setAttribute('aria-pressed', String(selected));
+          });
+          output.textContent = descriptions[button.dataset.choice];
+        });
+      });
+    })();
+  </script>
+</div>

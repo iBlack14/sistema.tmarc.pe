@@ -5,6 +5,19 @@ const path = require('path');
 const fs = require('fs');
 const MesaPartesModel = require('../models/mesa-partes-model');
 const { query } = require('../database-config');
+const smtpConfigManager = require('../smtp-config-manager');
+
+function escaparHtml(valor) {
+    return String(valor || '').replace(/[&<>"']/g, caracter => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[caracter]);
+}
+
+function plantillaRecepcion(presentacion, observaciones) {
+    const baseUrl = (process.env.APP_URL || process.env.BASE_URL || 'https://sistema.tmarc.pe').replace(/\/+$/, '');
+    const codigo = escaparHtml(presentacion.numero_registro);
+    const nombre = escaparHtml(presentacion.nombre_usuario || 'Usuario TMARC');
+    const detalle = escaparHtml(observaciones || 'Su presentación fue recibida correctamente y será revisada por el equipo administrativo.');
+    return `<!doctype html><html lang="es"><body style="margin:0;background:#f1f2f4;font-family:Arial,Helvetica,sans-serif;color:#222"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px;background:#f1f2f4"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:18px;overflow:hidden;border:1px solid #dfd8c2"><tr><td style="background:#111;padding:26px 30px;border-bottom:4px solid #d4af37"><div style="font-family:Georgia,serif;color:#fff;font-size:28px;font-weight:bold">Tmarc</div><div style="color:#d4af37;font-size:10px;letter-spacing:1.5px;text-transform:uppercase">Centro de Arbitraje &amp; Dispute Boards</div></td></tr><tr><td style="padding:32px"><div style="color:#218c55;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.2px">Confirmación institucional</div><h1 style="font-size:24px;margin:8px 0 12px">Presentación recibida</h1><p style="font-size:14px;line-height:1.6;color:#666">Estimado(a) <strong>${nombre}</strong>, confirmamos que su presentación fue recibida por SISTEMA TMARC.</p><div style="margin:22px 0;background:#fff9e8;border:1px solid #ead486;border-radius:12px;padding:18px;text-align:center"><div style="font-size:10px;color:#826b1b;text-transform:uppercase;font-weight:bold">Código de presentación</div><div style="font-size:20px;font-weight:800;margin-top:6px">${codigo}</div><div style="display:inline-block;margin-top:10px;padding:5px 12px;border-radius:20px;background:#e6f7ed;color:#187844;font-size:11px;font-weight:bold">RECIBIDO</div></div><div style="padding:16px;background:#f7f7f7;border-left:4px solid #d4af37;border-radius:6px;color:#555;font-size:13px;line-height:1.6">${detalle}</div><div style="text-align:center;margin-top:26px"><a href="${baseUrl}/dashboard-modular.html#expedientes" style="display:inline-block;background:#d4af37;color:#111;text-decoration:none;padding:13px 25px;border-radius:9px;font-size:13px;font-weight:bold">Ver seguimiento →</a></div><p style="font-size:11px;color:#888;line-height:1.5;margin:24px 0 0">Este mensaje confirma únicamente la recepción. La admisión o evaluación de la documentación se comunicará posteriormente.</p></td></tr><tr><td style="background:#111;padding:19px;text-align:center;color:#aaa;font-size:10px"><strong style="color:#d4af37">SISTEMA TMARC</strong><br>Notificación automática institucional</td></tr></table></td></tr></table></body></html>`;
+}
 
 // Middleware de depuración para este router
 router.use((req, res, next) => {
@@ -78,16 +91,26 @@ router.post('/', upload.array('documentos', 20), async (req, res) => {
 
         // Procesar archivos adjuntos
         const documentos = [];
+        let documentosMetadata = [];
+        try {
+            documentosMetadata = req.body.documentos_metadata ? JSON.parse(req.body.documentos_metadata) : [];
+        } catch (errorMetadata) {
+            console.warn('Metadatos de documentos inválidos:', errorMetadata.message);
+        }
         if (req.files && req.files.length > 0) {
-            req.files.forEach(file => {
+            req.files.forEach((file, indice) => {
                 console.log('📄 Archivo:', file.originalname);
+                const metadata = documentosMetadata[indice] || {};
                 documentos.push({
                     nombre_original: file.originalname,
                     nombre_archivo: file.filename,
                     ruta: file.path,
                     tamano: file.size,
                     mimetype: file.mimetype,
-                    fecha_subida: new Date().toISOString()
+                    fecha_subida: new Date().toISOString(),
+                    pagina_fin: Number(metadata.pagina_fin) || 0,
+                    descripcion: metadata.descripcion || '',
+                    folios: Number(metadata.folios) || 0
                 });
             });
         }
@@ -282,7 +305,7 @@ router.put('/:id/estado', async (req, res) => {
         console.log(`🔄 Actualizando estado de presentación ${id} a: ${estado}`);
 
         // Validar estado
-        const estadosValidos = ['Pendiente', 'En Revisión', 'Aprobado', 'Rechazado'];
+        const estadosValidos = ['Pendiente', 'Recibido', 'En Revisión', 'Aprobado', 'Rechazado'];
         if (!estadosValidos.includes(estado)) {
             return res.status(400).json({
                 success: false,
@@ -306,9 +329,34 @@ router.put('/:id/estado', async (req, res) => {
 
         console.log('✅ Estado actualizado correctamente');
 
+        let notificacionSistema = false;
+        let correoEnviado = false;
+        let correoError = null;
+        if (estado === 'Recibido') {
+            const [presentacion] = await query(`SELECT mp.id, mp.numero_registro, mp.usuario_id, u.nombre AS nombre_usuario, u.email FROM mesa_partes mp LEFT JOIN usuarios u ON u.id = mp.usuario_id WHERE mp.id = ?`, [id]);
+            if (presentacion?.usuario_id) {
+                const notificacionId = `NOTIF-REC-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+                await query(`INSERT INTO notificaciones (id, usuario_id, tipo, titulo, mensaje, leida, fecha) VALUES (?, ?, 'sistema', ?, ?, 0, NOW())`, [notificacionId, presentacion.usuario_id, 'Presentación recibida', `Confirmamos la recepción de su presentación ${presentacion.numero_registro}.${observaciones ? ` ${observaciones}` : ''}`]);
+                notificacionSistema = true;
+                if (presentacion.email) {
+                    try {
+                        const envio = await smtpConfigManager.enviarEmail({ destinatario: presentacion.email, asunto: `TMARC | Presentación recibida ${presentacion.numero_registro}`, contenido: plantillaRecepcion(presentacion, observaciones), tipo: 'confirmacion_recepcion' });
+                        correoEnviado = Boolean(envio.success && envio.estado !== 'simulado' && envio.estado !== 'pendiente_smtp');
+                        if (!correoEnviado) correoError = envio.message || 'El SMTP no confirmó el envío';
+                    } catch (emailError) {
+                        correoError = emailError.message;
+                        console.error('Error enviando confirmación de recepción:', emailError);
+                    }
+                }
+            }
+        }
+
         res.json({
             success: true,
-            message: 'Estado actualizado correctamente'
+            message: 'Estado actualizado correctamente',
+            notificacion_sistema: notificacionSistema,
+            correo_enviado: correoEnviado,
+            correo_error: correoError
         });
 
     } catch (error) {

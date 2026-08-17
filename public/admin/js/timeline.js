@@ -6,13 +6,15 @@
 const TimelineManager = {
     currentFuente: null,
     currentId: null,
+    parentRecepcionConfirmada: false,
     movimientos: [],
 
     // ── Abrir panel de timeline para cualquier fuente ──
-    async abrir(fuente, id, titulo) {
+    async abrir(fuente, id, titulo, parentRecepcionConfirmada = false) {
         showLoader('ESTABLECIENDO CONEXIÓN CRONOLÓGICA');
         this.currentFuente = fuente;
         this.currentId = id;
+        this.parentRecepcionConfirmada = Boolean(parentRecepcionConfirmada);
         await this.cargar();
         hideLoader();
         this.renderModal(titulo || `Timeline — ${id}`);
@@ -149,6 +151,7 @@ const TimelineManager = {
                             </div>
 
                             <div style="display: flex; gap: 8px;">
+                                ${m.recepcion_confirmada ? `<span style="display:inline-flex;align-items:center;padding:6px 10px;border-radius:8px;background:#e6f7ed;color:#16794c;font-size:10px;font-weight:800;white-space:nowrap;">✓ Recibido${m.fecha_recepcion ? ` · ${new Date(m.fecha_recepcion).toLocaleDateString('es-PE')}` : ''}</span>` : !this.parentRecepcionConfirmada ? `<button onclick="TimelineManager.confirmarRecepcion(${m.id})" style="border:0;background:#16794c;color:#fff;padding:7px 11px;border-radius:8px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap;">📥 Confirmar recepción</button>` : ''}
                                 <button onclick="TimelineManager.mostrarFormulario(${m.id})" style="background:none; border:none; color:#777; cursor:pointer; font-size:14px; padding:5px; transition:color 0.2s;" onmouseover="this.style.color='#d4af37'" onmouseout="this.style.color='#777'">✏️</button>
                                 <button onclick="TimelineManager.eliminar(${m.id})" style="background:none; border:none; color:#777; cursor:pointer; font-size:14px; padding:5px; transition:color 0.2s;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='#777'">🗑️</button>
                                 ${m.tiene_documento || m.documento_archivo ? `
@@ -162,6 +165,40 @@ const TimelineManager = {
                 </div>`;
             }).join('')}
         </div>`;
+    },
+
+    async confirmarRecepcion(movimientoId) {
+        const decision = await Swal.fire({
+            title: 'Confirmar recepción',
+            text: 'Se notificará al usuario por su casilla y correo electrónico.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, confirmar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#16794c'
+        });
+        if (!decision.isConfirmed) return;
+        try {
+            Swal.fire({ title:'Confirmando recepción...', allowOutsideClick:false, didOpen:() => Swal.showLoading() });
+            const response = await fetch(`/api/timeline/${movimientoId}/confirmar-recepcion`, {
+                method:'POST',
+                headers:{ 'Content-Type':'application/json' },
+                body:JSON.stringify({ confirmado_por:sessionStorage.getItem('adminId') || sessionStorage.getItem('userId') || null })
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.error || 'No se pudo confirmar la recepción');
+            if (this.currentFuente && this.currentId && document.getElementById('timeline-overlay')) {
+                await this.cargar();
+            }
+            const body = document.getElementById('timeline-body');
+            if (body) body.innerHTML = this.renderMovimientos();
+            if (typeof window.cargarExpedientesTabla === 'function') {
+                await window.cargarExpedientesTabla();
+            }
+            await Swal.fire({ icon:'success', title:'Recepción confirmada', html:`Casilla: <b>${result.notificacion_sistema ? 'enviada' : 'no enviada'}</b><br>Correo: <b>${result.correo_enviado ? 'enviado' : 'pendiente'}</b>`, confirmButtonColor:'#d4af37' });
+        } catch (error) {
+            Swal.fire({ icon:'error', title:'No se pudo confirmar', text:error.message, confirmButtonColor:'#d4af37' });
+        }
     },
 
 

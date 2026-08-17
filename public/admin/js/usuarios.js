@@ -19,27 +19,70 @@ async function cargarUsuariosDesdeMySQL() {
             }
 
             tbody.innerHTML = data.data.map(usuario => `
-                <tr>
-                    <td>${usuario.id}</td>
-                    <td>${usuario.nombre}</td>
-                    <td>${usuario.email}</td>
-                    <td>${usuario.tipo || 'usuario'}</td>
-                    <td><span class="status-badge ${usuario.activo ? 'status-active' : 'status-inactive'}">${usuario.activo ? 'Activo' : 'Inactivo'}</span></td>
-                    <td>
-                        <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px; margin-right: 5px;" onclick="editarUsuario('${usuario.id}')" title="Editar">✏️</button>
-                        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="eliminarUsuario('${usuario.id}')" title="Eliminar">🗑️</button>
+                <tr data-user-status="${usuario.activo ? 'activo' : 'inactivo'}">
+                    <td data-label="ID"><span class="users-id">#${usuario.id}</span></td>
+                    <td data-label="Usuario">
+                        <div class="users-identity">
+                            <span class="users-avatar">${obtenerInicialesUsuario(usuario.nombre)}</span>
+                            <strong>${usuario.nombre}</strong>
+                        </div>
+                    </td>
+                    <td data-label="Correo"><span class="users-email">${usuario.email}</span></td>
+                    <td data-label="Rol"><span class="users-role">${usuario.tipo || 'usuario'}</span></td>
+                    <td data-label="Estado"><span class="status-badge ${usuario.activo ? 'status-active' : 'status-inactive'}">${usuario.activo ? 'Activo' : 'Inactivo'}</span></td>
+                    <td data-label="Acciones">
+                        <div class="users-row-actions">
+                            <button class="users-action-button users-edit" onclick="editarUsuario('${usuario.id}')" title="Editar usuario" aria-label="Editar usuario">✎</button>
+                            <button class="users-action-button users-delete" onclick="eliminarUsuario('${usuario.id}')" title="Eliminar usuario" aria-label="Eliminar usuario">⌫</button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
 
             // Actualizar estadísticas
             actualizarEstadisticasUsuarios(data.data);
+            filtrarUsuariosAdmin();
         } else {
             console.error('Error cargando usuarios:', data.error);
         }
     } catch (error) {
         console.error('Error cargando usuarios:', error);
     }
+}
+
+function obtenerInicialesUsuario(nombre) {
+    return String(nombre || 'U')
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map(parte => parte.charAt(0))
+        .join('')
+        .toUpperCase();
+}
+
+function filtrarUsuariosAdmin() {
+    const texto = (document.getElementById('admin-user-search')?.value || '').trim().toLowerCase();
+    const estado = document.getElementById('admin-user-status')?.value || 'todos';
+    const filas = document.querySelectorAll('#usuarios-tbody tr[data-user-status]');
+    let visibles = 0;
+
+    filas.forEach(fila => {
+        const coincideTexto = !texto || fila.textContent.toLowerCase().includes(texto);
+        const coincideEstado = estado === 'todos' || fila.dataset.userStatus === estado;
+        const visible = coincideTexto && coincideEstado;
+        fila.hidden = !visible;
+        if (visible) visibles += 1;
+    });
+
+    const tbody = document.getElementById('usuarios-tbody');
+    let vacio = document.getElementById('usuarios-filter-empty');
+    if (!vacio && tbody) {
+        vacio = document.createElement('tr');
+        vacio.id = 'usuarios-filter-empty';
+        vacio.innerHTML = '<td colspan="6">No se encontraron usuarios con esos filtros.</td>';
+        tbody.appendChild(vacio);
+    }
+    if (vacio) vacio.hidden = visibles > 0 || filas.length === 0;
 }
 
 // Función para actualizar estadísticas de usuarios

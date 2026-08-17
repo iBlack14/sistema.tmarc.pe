@@ -3,7 +3,36 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const { query } = require('../database-config');
+
+function obtenerPaginacion(queryParams) {
+    if (queryParams.limit === undefined && queryParams.offset === undefined) {
+        return { sql: '', params: [] };
+    }
+
+    const limit = Number.parseInt(queryParams.limit || '100', 10);
+    const offset = Number.parseInt(queryParams.offset || '0', 10);
+
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+        const error = new Error('limit debe ser un entero entre 1 y 100');
+        error.statusCode = 400;
+        throw error;
+    }
+    if (!Number.isInteger(offset) || offset < 0) {
+        const error = new Error('offset debe ser un entero mayor o igual a 0');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    return { sql: ' LIMIT ? OFFSET ?', params: [limit, offset] };
+}
+
+function generarIdSolicitud() {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const aleatorio = crypto.randomBytes(3).toString('hex').toUpperCase();
+    return `SOL-${timestamp}-${aleatorio}`;
+}
 
 // Fix encoding de nombres de archivo (multer recibe Latin-1, necesitamos UTF-8)
 function fixNombre(originalname) {
@@ -71,6 +100,7 @@ router.get('/', async (req, res) => {
         let where = '1=1';
         if (req.query.estado) { where += ' AND LOWER(estado) = LOWER(?)'; params.push(req.query.estado); }
         if (req.query.usuario_id) { where += ' AND usuario_id = ?'; params.push(req.query.usuario_id); }
+        const paginacion = obtenerPaginacion(req.query);
 
         const rows = await query(
             `
@@ -84,13 +114,17 @@ router.get('/', async (req, res) => {
             FROM solicitudes
             WHERE ${where}
             ORDER BY fecha DESC
+            ${paginacion.sql}
             `,
-            params
+            [...params, ...paginacion.params]
         );
 
         // Devuelve ambas claves por compatibilidad con el front
         res.json({ success: true, data: rows, solicitudes: rows });
     } catch (e) {
+        if (e.statusCode === 400) {
+            return res.status(400).json({ error: e.message });
+        }
         console.error('Error obteniendo solicitudes:', e);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
@@ -104,16 +138,21 @@ router.get('/usuario/:usuario_id', async (req, res) => {
         if (!usuario_id) {
             return res.status(400).json({ error: 'Usuario ID requerido' });
         }
+        const paginacion = obtenerPaginacion(req.query);
 
         const solicitudes = await query(`
             SELECT id, tipo, asunto, estado, fecha, fecha_actualizacion
             FROM solicitudes
             WHERE usuario_id = ?
             ORDER BY fecha DESC
-        `, [usuario_id]);
+            ${paginacion.sql}
+        `, [usuario_id, ...paginacion.params]);
 
         res.json({ success: true, data: solicitudes });
     } catch (error) {
+        if (error.statusCode === 400) {
+            return res.status(400).json({ error: error.message });
+        }
         console.error('Error obteniendo solicitudes del usuario:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
@@ -152,7 +191,6 @@ router.get('/:id/archivos', async (req, res) => {
         }
 
         const documentosRaw = solicitudes[0].documentos;
-        console.log('📄 Campo documentos (raw):', documentosRaw);
         console.log('📄 Tipo de documentos:', typeof documentosRaw);
 
         // Parsear los documentos
@@ -219,7 +257,7 @@ router.post('/', upload.fields([
         }
 
         // Generar ID único
-        const id = 'SOL-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+        const id = generarIdSolicitud();
 
         // Procesar archivos subidos
         const documentos = [];
@@ -330,17 +368,16 @@ router.post('/', upload.fields([
 
         // Si hay error, eliminar archivos subidos
         if (req.files) {
-            Object.values(req.files).forEach(fileArray => {
-                fileArray.forEach(file => {
-                    try {
-                        if (fs.existsSync(file.path)) {
-                            fs.unlinkSync(file.path);
-                        }
-                    } catch (unlinkError) {
+            const archivosSubidos = Object.values(req.files).flat();
+            await Promise.all(archivosSubidos.map(async (file) => {
+                try {
+                    await fs.promises.unlink(file.path);
+                } catch (unlinkError) {
+                    if (unlinkError.code !== 'ENOENT') {
                         console.error('Error eliminando archivo:', unlinkError);
                     }
-                });
-            });
+                }
+            }));
         }
 
         res.status(500).json({ error: 'Error interno del servidor', details: error.message });

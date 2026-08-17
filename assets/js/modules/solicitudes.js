@@ -8,6 +8,8 @@ class SolicitudesModule {
         this.dashboard = dashboardApp;
         this.solicitudes = [];
         this.currentFilters = {};
+        this.selectedService = 'arbitraje';
+        this.selectedPageService = 'arbitraje';
 
         this.init();
     }
@@ -135,6 +137,9 @@ class SolicitudesModule {
                         <td data-label="Tipo">${solicitud.tipo || 'No especificado'}</td>
                         <td data-label="Estado"><span class="status-badge ${estadoClass}">${solicitud.estado}</span></td>
                         <td data-label="Acciones">
+                            <button class="btn btn-primary" onclick="event.stopPropagation(); window.solicitudesModule.descargarCargoSolicitud('${solicitud.id}')" style="padding:4px 8px;font-size:12px;margin-right:5px;">
+                                📥 Cargo
+                            </button>
                             <button class="btn btn-secondary" onclick="event.stopPropagation(); verDetalleSolicitud('${solicitud.id}')" style="padding: 4px 8px; font-size: 12px;">
                                 Ver Detalle
                             </button>
@@ -148,17 +153,137 @@ class SolicitudesModule {
     /**
      * Create new solicitud modal
      */
+    getServiceCatalog() {
+        return {
+            'arbitraje': { title: 'Arbitraje', description: 'Administración de procesos arbitrales sometidos a la competencia de SISTMARC, conforme al reglamento y al acuerdo de las partes.', icon: '<path d="M12 3v18M5 7h14M7 7l-4 7h8L7 7zm10 0-4 7h8l-4-7z"></path>' },
+            'arbitraje-express': { title: 'Arbitraje Express', description: 'Mecanismo alternativo de solución de controversias que permite resolver el conflicto en un plazo más ágil y eficiente.', icon: '<path d="m13 2-9 12h8l-1 8 9-12h-8z"></path>' },
+            'arbitraje-emergencia': { title: 'Arbitraje de Emergencia', description: 'Atención urgente cuando existe peligro inminente o perjuicio irreparable antes de constituirse el tribunal arbitral.', icon: '<path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.7 2.4 17.4A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.6L13.7 3.7a2 2 0 0 0-3.4 0z"></path>' },
+            'jprd': { title: 'Junta de Prevención y Resolución de Disputas', description: 'Prevención y resolución eficiente de controversias surgidas durante la ejecución de contratos y proyectos.', icon: '<path d="M3 21h18M6 21V8l6-5 6 5v13M9 21v-6h6v6"></path>' },
+            'conciliacion': { title: 'Conciliación Extrajudicial', description: 'Mecanismo de resolución de conflictos que facilita una solución justa, rápida y consensuada entre las partes.', icon: '<circle cx="12" cy="12" r="9"></circle><path d="M8 12h8M12 8v8"></path>' },
+            'recusacion': { title: 'Recusación', description: 'Solicitud de apartamiento de un árbitro o adjudicador cuando existen dudas justificadas sobre su imparcialidad o independencia.', icon: '<path d="M12 3 4 6v5c0 4.8 3.1 8.6 8 10 4.9-1.4 8-5.2 8-10V6l-8-3z"></path><path d="m9 12 2 2 4-5"></path>' },
+            'arbitraje-privados': { title: 'Arbitraje entre Privados', description: 'Atención de controversias surgidas entre personas naturales o jurídicas del sector privado.', icon: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8M19 8v6M22 11h-6"></path>' },
+            'formacion-capacitacion': { title: 'Formación y Capacitación', description: 'Programas académicos, cursos y actividades de especialización ofrecidos por TMARC.', icon: '<path d="m2 10 10-5 10 5-10 5z"></path><path d="M6 12v5c3 2 9 2 12 0v-5"></path>' },
+            'otro': { title: 'Otro servicio', description: 'Seleccione esta opción cuando su presentación no corresponda a los servicios anteriores.', icon: '<circle cx="12" cy="12" r="9"></circle><path d="M8 12h8"></path>' }
+        };
+    }
+
+    crearDatosCargoSolicitud(solicitud) {
+        let documentos = solicitud.documentos || [];
+        if (typeof documentos === 'string') {
+            try { documentos = JSON.parse(documentos); } catch (_) { documentos = []; }
+        }
+        return {
+            expediente: solicitud.id,
+            solicitante: solicitud.nombre || 'No especificado',
+            fecha: new Date(solicitud.fecha || solicitud.fecha_creacion || Date.now()).toLocaleString('es-PE'),
+            folios: Array.isArray(documentos) ? `${documentos.length} archivo(s)` : '0 archivos',
+            tipo_servicio: solicitud.tipo || 'Solicitud TMARC',
+            asunto: solicitud.asunto || '',
+            token: solicitud.token_seguimiento || ''
+        };
+    }
+
+    async descargarCargoSolicitud(id) {
+        try {
+            if (!window.CargoGenerator) throw new Error('El generador de cargos no está disponible');
+            const response = await fetch(`/api/solicitudes/${encodeURIComponent(id)}`);
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.error || 'Solicitud no encontrada');
+            await window.CargoGenerator.descargar(this.crearDatosCargoSolicitud(result.data));
+        } catch (error) {
+            console.error('Error generando cargo de solicitud:', error);
+            this.dashboard.showError('No se pudo generar el cargo: ' + error.message);
+        }
+    }
+
+    async mostrarCargoSolicitud(solicitud) {
+        const datos = this.crearDatosCargoSolicitud(solicitud);
+        const respuesta = await Swal.fire({
+            icon: 'success',
+            title: 'Solicitud registrada',
+            html: `Su cargo está listo.<br><strong style="color:#b38600;">${datos.expediente}</strong>`,
+            confirmButtonText: '📥 Descargar cargo',
+            denyButtonText: '🖨️ Imprimir',
+            showDenyButton: true,
+            cancelButtonText: 'Cerrar',
+            showCancelButton: true,
+            confirmButtonColor: '#d4af37',
+            denyButtonColor: '#111827'
+        });
+        if (respuesta.isConfirmed) await window.CargoGenerator.descargar(datos);
+        if (respuesta.isDenied) window.CargoGenerator.imprimir(datos);
+    }
+
+    selectService(serviceId, button) {
+        const service = this.getServiceCatalog()[serviceId];
+        if (!service) return;
+        this.selectedService = serviceId;
+        document.querySelectorAll('.service-choice').forEach(item => item.classList.toggle('active', item === button));
+        const title = document.getElementById('serviceDetailTitle');
+        const description = document.getElementById('serviceDetailDescription');
+        const visual = document.getElementById('serviceDetailVisual');
+        if (title) title.textContent = service.title;
+        if (description) description.textContent = service.description;
+        if (visual) visual.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${service.icon}</svg>`;
+    }
+
+    selectPageService(serviceId, button) {
+        const service = this.getServiceCatalog()[serviceId];
+        if (!service) return;
+        this.selectedPageService = serviceId;
+        document.querySelectorAll('[data-page-service]').forEach(item => item.classList.toggle('active', item === button));
+        const title = document.getElementById('pageServiceDetailTitle');
+        const description = document.getElementById('pageServiceDetailDescription');
+        const visual = document.getElementById('pageServiceDetailVisual');
+        if (title) title.textContent = service.title;
+        if (description) description.textContent = service.description;
+        if (visual) visual.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${service.icon}</svg>`;
+    }
+
+    startSelectedPageService() {
+        this.crearNuevaSolicitud();
+        this.selectedService = this.selectedPageService;
+        this.continueToSolicitudForm();
+    }
+
+    toggleSolicitudesHistory() {
+        const services = document.getElementById('solicitudesServicesView');
+        const history = document.getElementById('solicitudesHistoryView');
+        const summary = document.getElementById('requestsSummary');
+        const button = document.getElementById('requestsHistoryButton');
+        const showingHistory = history?.style.display !== 'none';
+        if (services) services.style.display = showingHistory ? 'block' : 'none';
+        if (history) history.style.display = showingHistory ? 'none' : 'block';
+        if (summary) summary.style.display = showingHistory ? 'none' : 'flex';
+        if (button) button.innerHTML = showingHistory
+            ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg> Ver seguimiento'
+            : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg> Volver a servicios';
+    }
+
+    continueToSolicitudForm() {
+        document.getElementById('modalSolicitud')?.classList.remove('active');
+        window.mesaPartesModule?.presentarDocumento({ modo:'mesa_servicio', servicio:this.selectedService });
+    }
+
+    backToServiceSelector() {
+        const selector = document.getElementById('solicitudServiceSelector');
+        const form = document.getElementById('formSolicitud');
+        if (form) form.style.display = 'none';
+        if (selector) selector.style.display = 'grid';
+        document.querySelector('#modalSolicitud .modal-body')?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     crearNuevaSolicitud() {
         const modal = document.getElementById('modalSolicitud');
         if (modal) {
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
             this.resetFormSolicitud();
-
-            setTimeout(() => {
-                const firstField = document.getElementById('solicitanteNombre');
-                if (firstField) firstField.focus();
-            }, 100);
+            this.selectedService = 'arbitraje';
+            const defaultButton = document.querySelector('.service-choice[data-service="arbitraje"]');
+            this.selectService('arbitraje', defaultButton);
+            this.backToServiceSelector();
+            setTimeout(() => defaultButton?.focus(), 100);
         }
     }
 
@@ -239,7 +364,10 @@ class SolicitudesModule {
     validateSolicitudData(data) {
         const errors = [];
         if (!data.nombre || data.nombre.trim().length < 3) errors.push('• Nombre Completo o Razón Social es obligatorio.');
-        if (!data.dni || data.dni.trim().length < 8) errors.push('• DNI o RUC es obligatorio.');
+        if (!data.dni) errors.push('• DNI o RUC es obligatorio.');
+        else if (!/^(?:\d{8}|\d{11})$/.test(data.dni.trim())) errors.push('• El DNI debe tener 8 dígitos o el RUC 11 dígitos.');
+        if (data.demandado_dni && !/^(?:\d{8}|\d{11})$/.test(data.demandado_dni.trim())) errors.push('• El DNI del demandado debe tener 8 dígitos o el RUC 11 dígitos.');
+        if (data.telefono && !/^\d{9}$/.test(data.telefono.trim())) errors.push('• El teléfono debe tener 9 dígitos.');
         if (!data.email || data.email.trim() === '') errors.push('• El correo electrónico es obligatorio.');
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errors.push('• El correo electrónico no tiene un formato válido.');
         if (!data.asunto || data.asunto.trim() === '') errors.push('• El asunto es obligatorio.');
@@ -250,9 +378,27 @@ class SolicitudesModule {
      * Enhanced form validation with real-time feedback
      */
     setupRealTimeValidation() {
+        ['solicitanteDni', 'demandadoDni'].forEach(id => {
+            const documentField = document.getElementById(id);
+            if (documentField) {
+                documentField.addEventListener('input', event => {
+                    event.target.value = event.target.value.replace(/\D/g, '').slice(0, 11);
+                });
+            }
+        });
+
+        const phoneField = document.getElementById('solicitanteTelefono');
+        if (phoneField) {
+            phoneField.addEventListener('input', event => {
+                event.target.value = event.target.value.replace(/\D/g, '').slice(0, 9);
+            });
+        }
+
         const fieldsToValidate = [
             { id: 'solicitanteNombre', minLength: 3, required: true },
-            { id: 'solicitanteDni', minLength: 8, required: true },
+            { id: 'solicitanteDni', documentNumber: true, required: true },
+            { id: 'demandadoDni', documentNumber: true, required: false },
+            { id: 'solicitanteTelefono', phone: true, required: false },
             { id: 'solicitanteEmail', email: true, required: false },
             { id: 'asuntoSolicitud', required: false },
             { id: 'descripcionSolicitud', required: false }
@@ -277,6 +423,12 @@ class SolicitudesModule {
         if (fieldConfig.required && !value) {
             isValid = false;
             errorMessage = 'Este campo es obligatorio';
+        } else if (fieldConfig.documentNumber && value && !/^(?:\d{8}|\d{11})$/.test(value)) {
+            isValid = false;
+            errorMessage = 'Ingrese 8 dígitos para DNI o 11 para RUC';
+        } else if (fieldConfig.phone && value && !/^\d{9}$/.test(value)) {
+            isValid = false;
+            errorMessage = 'Ingrese un teléfono de 9 dígitos';
         } else if (fieldConfig.email && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
             isValid = false;
             errorMessage = 'Formato de correo inválido';

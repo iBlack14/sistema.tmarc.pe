@@ -1013,12 +1013,26 @@
             color: var(--color-dark) !important;
         }
     </style>
+    <link rel="stylesheet" href="styles/users-modern.css?v=1.0">
+    <link rel="stylesheet" href="styles/admin-shell-compact.css?v=1.4">
+    <link rel="stylesheet" href="styles/admin-mobile.css?v=2.0">
 </head>
 
 <body>
+    <div id="mobileAppPreloader" class="mobile-app-preloader" aria-label="Cargando panel administrativo"
+        role="status">
+        <div class="mobile-preloader-brand">
+            <div class="mobile-preloader-logo">
+                <img src="/assets/img/logo.png" alt="TMARC Arbitraje & Dispute Boards">
+            </div>
+            <div class="mobile-preloader-caption">Panel administrativo</div>
+            <div class="mobile-preloader-progress" aria-hidden="true"><span></span></div>
+        </div>
+    </div>
+
     <div class="navbar">
 
-        <div class="logo-section">
+        <div class="logo-section" title="TMARC Sistema Administrativo">
             <div class="logo-icon">
                 <img src="/assets/img/logo2.png" alt="TMARC">
             </div>
@@ -1026,64 +1040,64 @@
         </div>
 
         <div class="nav-menu">
-            <div class="nav-item active" onclick="showSection('dashboard', this)">
+            <div class="nav-item active" onclick="showSection('dashboard', this)" title="Dashboard" aria-label="Dashboard">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
                     </svg>
                 </div>
-                DASHBOARD
+                <span class="nav-label">DASHBOARD</span>
             </div>
-            <div class="nav-item" onclick="showSection('usuarios', this)">
+            <div class="nav-item" onclick="showSection('usuarios', this)" title="Usuarios" aria-label="Usuarios">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path
                             d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
                 </div>
-                USUARIOS
+                <span class="nav-label">USUARIOS</span>
             </div>
-            <div class="nav-item" onclick="showSection('casilla', this)">
+            <div class="nav-item" onclick="showSection('casilla', this)" title="Casilla" aria-label="Casilla">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path
                             d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                     </svg>
                 </div>
-                CASILLA
+                <span class="nav-label">CASILLA</span>
             </div>
-            <div class="nav-item" onclick="showSection('expedientes', this)">
+            <div class="nav-item" onclick="showSection('expedientes', this)" title="Expedientes" aria-label="Expedientes">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path
                             d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z" />
                     </svg>
                 </div>
-                EXPEDIENTES
+                <span class="nav-label">EXPEDIENTES</span>
             </div>
-            <div class="nav-item" onclick="showSection('solicitudes', this)">
+            <div class="nav-item" onclick="showSection('solicitudes', this)" title="Solicitudes" aria-label="Solicitudes">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path
                             d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
                     </svg>
                 </div>
-                SOLICITUDES
+                <span class="nav-label">SOLICITUDES</span>
             </div>
-            <div class="nav-item" onclick="showSection('configuracion', this)">
+            <div class="nav-item" onclick="showSection('configuracion', this)" title="Ajustes" aria-label="Ajustes">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path
                             d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
                     </svg>
                 </div>
-                AJUSTES
+                <span class="nav-label">AJUSTES</span>
             </div>
         </div>
 
         <div class="right-section">
 
-            <div class="user-profile" onclick="toggleUserMenu()">
+            <div class="user-profile" onclick="toggleUserMenu()" title="Perfil del administrador">
                 <div class="user-avatar">
                     <svg viewBox="0 0 24 24">
                         <path
@@ -1096,7 +1110,7 @@
                 </div>
             </div>
 
-            <button class="btn-logout" onclick="logout()" title="Cerrar Sesión">
+            <button class="btn-logout" onclick="logout()" title="Cerrar sesión" aria-label="Cerrar sesión">
                 <svg viewBox="0 0 24 24" width="20" height="20">
                     <path
                         d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
@@ -1168,9 +1182,10 @@
         </div>
 
         <!-- USUARIOS -->
-        <div class="content-section" id="usuarios">
-            <div class="header">
+        <div class="content-section users-section" id="usuarios">
+            <div class="header users-header">
                 <div>
+                    <span class="users-eyebrow">Administración de accesos</span>
                     <h1>
                         <span class="header-icon">
                             <svg viewBox="0 0 24 24">
@@ -1178,61 +1193,91 @@
                                     d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                             </svg>
                         </span>
-                        Gestión de Usuarios
+                        Gestión de usuarios
                     </h1>
-                    <p class="subtitle">Administración centralizada de identidades y privilegios del sistema.</p>
+                    <p class="subtitle">Controle identidades, roles y disponibilidad de acceso al sistema.</p>
                 </div>
-                <div class="btn-group">
-                </div>
-            </div>
-
-            <div class="cards-container three-cards">
-                <div class="stat-card">
-                    <div class="stat-label">Usuarios Activos</div>
-                    <div class="stat-value">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Usuarios Inactivos</div>
-                    <div class="stat-value">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Nuevos Esta Semana</div>
-                    <div class="stat-value">0</div>
+                <div class="btn-group users-header-actions">
+                    <button class="btn btn-primary users-primary-action" onclick="mostrarModalAgregarUsuario()">
+                        <span aria-hidden="true">＋</span> Nuevo usuario
+                    </button>
                 </div>
             </div>
 
-            <div class="table-container" style="margin-top: 40px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 style="color: #000000;">Lista de Usuarios</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-secondary" onclick="mostrarEstadisticasSincronizacion()"
-                            title="Ver estadísticas de sincronización">
-                            📊
-                        </button>
-                        <button class="btn btn-secondary" onclick="forzarSincronizacionUsuarios()"
-                            title="Forzar sincronización de usuarios">
-                            🔄
-                        </button>
-                        <button class="btn btn-primary" onclick="mostrarModalAgregarUsuario()">Agregar Usuario</button>
-                        <button class="btn btn-secondary" onclick="mostrarModalEnviarNotificacion()"
-                            style="margin-left: 10px;">📧 Enviar Notificación</button>
+            <div class="cards-container three-cards users-stats">
+                <div class="stat-card users-stat users-stat-active">
+                    <div class="users-stat-icon" aria-hidden="true">✓</div>
+                    <div>
+                        <div class="stat-label">Usuarios activos</div>
+                        <div class="stat-value">0</div>
+                        <small>Con acceso habilitado</small>
                     </div>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Email</th>
-                            <th>Rol</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usuarios-tbody">
-                        <!-- Los usuarios se cargarán dinámicamente aquí -->
-                    </tbody>
-                </table>
+                <div class="stat-card users-stat users-stat-inactive">
+                    <div class="users-stat-icon" aria-hidden="true">−</div>
+                    <div>
+                        <div class="stat-label">Usuarios inactivos</div>
+                        <div class="stat-value">0</div>
+                        <small>Acceso suspendido</small>
+                    </div>
+                </div>
+                <div class="stat-card users-stat users-stat-new">
+                    <div class="users-stat-icon" aria-hidden="true">＋</div>
+                    <div>
+                        <div class="stat-label">Nuevos esta semana</div>
+                        <div class="stat-value">0</div>
+                        <small>Altas recientes</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container users-table-card">
+                <div class="users-table-heading">
+                    <div>
+                        <span class="users-eyebrow">Directorio institucional</span>
+                        <h2>Lista de usuarios</h2>
+                    </div>
+                    <div class="users-utility-actions">
+                        <button class="users-icon-button" onclick="mostrarEstadisticasSincronizacion()"
+                            title="Ver estadísticas de sincronización" aria-label="Ver estadísticas de sincronización">
+                            📊
+                        </button>
+                        <button class="users-icon-button" onclick="forzarSincronizacionUsuarios()"
+                            title="Sincronizar usuarios" aria-label="Sincronizar usuarios">
+                            🔄
+                        </button>
+                        <button class="users-notify-button" onclick="mostrarModalEnviarNotificacion()">✉ Enviar notificación</button>
+                    </div>
+                </div>
+                <div class="users-filters">
+                    <label class="users-search">
+                        <span aria-hidden="true">⌕</span>
+                        <input id="admin-user-search" type="search" placeholder="Buscar por nombre, correo o rol…"
+                            oninput="filtrarUsuariosAdmin()" aria-label="Buscar usuarios">
+                    </label>
+                    <select id="admin-user-status" onchange="filtrarUsuariosAdmin()" aria-label="Filtrar por estado">
+                        <option value="todos">Todos los estados</option>
+                        <option value="activo">Activos</option>
+                        <option value="inactivo">Inactivos</option>
+                    </select>
+                </div>
+                <div class="users-table-scroll">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuario</th>
+                                <th>Correo electrónico</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuarios-tbody">
+                            <!-- Los usuarios se cargarán dinámicamente aquí -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -1315,9 +1360,9 @@
                                     d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z" />
                             </svg>
                         </span>
-                        Expedientes
+                        Ingresos adicionales
                     </h1>
-                    <p class="subtitle">Gestión integral del acervo documentario y procesos judiciales activos.</p>
+                    <p class="subtitle">Documentos e información agregada posteriormente a una solicitud TMARC.</p>
                 </div>
                 <div class="btn-group">
                 </div>
@@ -1325,36 +1370,36 @@
 
             <div class="cards-container">
                 <div class="stat-card">
-                    <div class="stat-label">Expedientes Activos</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-label">Pendientes de recepción</div>
+                    <div class="stat-value" id="admin-presentaciones-pendientes">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">En Trámite</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-label">Recepción confirmada</div>
+                    <div class="stat-value" id="admin-presentaciones-recibidas">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Finalizados</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-label">Total de ingresos adicionales</div>
+                    <div class="stat-value" id="admin-presentaciones-total">0</div>
                 </div>
             </div>
 
             <div class="table-container" style="margin-top: 40px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 style="color: #000000;">Lista de Expedientes</h3>
+                    <h3 style="color: #000000;">Nuevos documentos e información</h3>
                     <div style="display: flex; gap: 10px;">
-                        <input type="text" placeholder="Buscar expediente..."
+                        <input type="text" id="buscar-presentacion-admin" placeholder="Buscar presentación..."
                             style="padding: 10px 15px; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 12px; color: #333; width: 250px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); transition: all 0.3s;">
                     </div>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>N° Expediente</th>
-                            <th>Solicitante</th>
+                            <th>Registro</th>
+                            <th>Presentado por</th>
                             <th>Tipo</th>
-                            <th>Fecha Inicio</th>
+                            <th>Fecha</th>
                             <th>Estado</th>
-                            <th>Última Actualización</th>
+                            <th>Recepción</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -1378,31 +1423,32 @@
                         </span>
                         Solicitudes
                     </h1>
-                    <p class="subtitle">Procesamiento y validación de requerimientos administrativos pendientes.</p>
+                    <p class="subtitle">Presentaciones principales organizadas según el servicio solicitado.</p>
                 </div>
             </div>
 
             <div class="cards-container">
                 <div class="stat-card">
-                    <div class="stat-label">Solicitudes Pendientes</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-label">Pendientes de recepción</div>
+                    <div class="stat-value" id="admin-solicitudes-pendientes">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Solicitudes Aprobadas</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-label">Recepción confirmada</div>
+                    <div class="stat-value" id="admin-solicitudes-recibidas">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Solicitudes Rechazadas</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-label">Total de solicitudes</div>
+                    <div class="stat-value" id="admin-solicitudes-total">0</div>
                 </div>
             </div>
 
             <div class="table-container" style="margin-top: 40px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 style="color: #000000;">Solicitudes Pendientes</h3>
+                    <h3 style="color: #000000;">Solicitudes por tipo de servicio</h3>
                     <div style="display: flex; gap: 10px;">
-                        <input type="text" placeholder="Buscar..."
-                            style="padding: 8px 12px; background: #1a1a1a; border: 1px solid #3a3a3a; border-radius: 8px; color: #fff; width: 200px;">
+                        <select id="filtro-tipo-solicitud-admin" onchange="filtrarSolicitudesAdmin()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;min-width:210px;"><option value="">Todos los servicios</option></select>
+                        <input id="buscar-solicitud-admin" type="text" placeholder="Buscar..." oninput="filtrarSolicitudesAdmin()"
+                            style="padding: 8px 12px; background: #fff; border: 1px solid #ddd; border-radius: 8px; color: #222; width: 200px;">
                     </div>
                 </div>
                 <table>
@@ -2006,8 +2052,14 @@
                 </div>
 
                 <div id="documentos" class="expediente-tab-content">
+                    <div class="expediente-info-card full-width" style="margin-bottom:16px;">
+                        <h3>🕘 INFORMACIÓN AGREGADA POR EL USUARIO</h3>
+                        <div id="expediente-info-agregada" style="display:grid; gap:12px;">
+                            <div style="padding:18px; text-align:center; color:#777;">Cargando historial...</div>
+                        </div>
+                    </div>
                     <div class="expediente-info-card full-width">
-                        <h3>📎 DOCUMENTOS ADJUNTOS</h3>
+                        <h3>📎 DOCUMENTOS INICIALES DEL EXPEDIENTE</h3>
                         <div id="documentos-lista" class="documentos-grid">
                             <div class="no-documentos">No se encontraron documentos adjuntos</div>
                         </div>
@@ -2266,13 +2318,13 @@
     <script src="js/modals.js"></script>
 
     <!-- 4. Módulos de funcionalidad -->
-    <script src="js/solicitudes.js"></script>
-    <script src="js/expedientes.js"></script>
+    <script src="js/solicitudes.js?v=2.0"></script>
+    <script src="js/expedientes.js?v=3.2"></script>
     <script src="js/usuarios.js"></script>
-    <script src="js/casilla-unificada.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script src="js/casilla-unificada.js?v=2.4"></script>
+    <script src="js/dashboard.js?v=1.1"></script>
     <script src="js/configuracion.js"></script>
-    <script src="js/timeline.js"></script>
+    <script src="js/timeline.js?v=2.2"></script>
 
     <!-- 5. Inicialización (debe cargar al final) -->
     <script src="js/init.js"></script>
@@ -2284,6 +2336,28 @@
 
     <!-- Panel Notificaciones Admin -->
     <script>
+        // Preloader inicial exclusivo para pantallas móviles.
+        (function () {
+            const preloader = document.getElementById('mobileAppPreloader');
+            if (!preloader) return;
+
+            const startedAt = Date.now();
+            let dismissed = false;
+
+            function dismissMobilePreloader() {
+                if (dismissed) return;
+                dismissed = true;
+                const remaining = Math.max(0, 550 - (Date.now() - startedAt));
+                setTimeout(function () {
+                    preloader.classList.add('is-hidden');
+                    setTimeout(function () { preloader.remove(); }, 380);
+                }, remaining);
+            }
+
+            window.addEventListener('load', dismissMobilePreloader, { once: true });
+            setTimeout(dismissMobilePreloader, 2500);
+        })();
+
         // ===== NOTIFICACIONES ADMIN =====
         let panelNotifAbierto = false;
 

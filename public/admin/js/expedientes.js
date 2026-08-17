@@ -67,6 +67,9 @@ async function verDetalleExpediente(expedienteId) {
         if (typeof cargarDocumentosExpediente === 'function') {
             cargarDocumentosExpediente(expediente);
         }
+        if (typeof cargarInformacionAgregadaExpediente === 'function') {
+            cargarInformacionAgregadaExpediente(expediente);
+        }
 
         // Mostrar modal y activar primera pestaña
         const modal = document.getElementById('expedienteModal');
@@ -77,6 +80,44 @@ async function verDetalleExpediente(expedienteId) {
     } catch (error) {
         console.error('Error obteniendo expediente:', error);
         if (window.showError) window.showError('Error obteniendo datos del expediente');
+    }
+}
+
+function escaparHtmlExpediente(value) {
+    return String(value ?? '').replace(/[&<>'"]/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    })[character]);
+}
+
+async function cargarInformacionAgregadaExpediente(expediente) {
+    const container = document.getElementById('expediente-info-agregada');
+    if (!container) return;
+    const expedienteId = expediente.id || expediente.numero;
+    container.innerHTML = '<div style="padding:18px;text-align:center;color:#777;">Cargando información agregada...</div>';
+    try {
+        const response = await fetch(`/api/expedientes/${encodeURIComponent(expedienteId)}/timeline`);
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.error || 'No se pudo cargar el historial');
+        const movimientos = Array.isArray(result.data) ? result.data : [];
+        if (!movimientos.length) {
+            container.innerHTML = '<div style="padding:18px;border:1px dashed #d8d8d8;border-radius:12px;text-align:center;color:#777;">El usuario todavía no agregó información ni documentos adicionales.</div>';
+            return;
+        }
+        container.innerHTML = movimientos.slice().reverse().map(movimiento => {
+            const fecha = movimiento.fecha_documento ? new Date(`${movimiento.fecha_documento}`.slice(0, 10) + 'T12:00:00').toLocaleDateString('es-PE') : 'Sin fecha';
+            const archivo = movimiento.tiene_documento && movimiento.documento_archivo
+                ? `<a href="${escaparHtmlExpediente(movimiento.documento_ruta || `/uploads/timeline/${encodeURIComponent(movimiento.documento_archivo)}`)}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border-radius:8px;background:#111;color:#fff;text-decoration:none;font-size:11px;font-weight:700;">📎 ${escaparHtmlExpediente(movimiento.documento_nombre || 'Ver documento')}</a>`
+                : '<span style="font-size:11px;color:#999;">Sin documento adjunto</span>';
+            return `<article style="padding:16px;border:1px solid rgba(212,175,55,.34);border-left:4px solid #D4AF37;border-radius:12px;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.04);">
+                <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;"><div><strong style="display:block;color:#1a1a1a;font-size:13px;">${escaparHtmlExpediente(movimiento.tipo_documento || 'INFORMACIÓN')}</strong><span style="font-size:11px;color:#777;">${fecha}${movimiento.numero_documento ? ` · ${escaparHtmlExpediente(movimiento.numero_documento)}` : ''}</span></div>${archivo}</div>
+                ${movimiento.asunto ? `<div style="font-weight:700;color:#333;margin-bottom:6px;">${escaparHtmlExpediente(movimiento.asunto)}</div>` : ''}
+                ${movimiento.sumilla ? `<p style="margin:0 0 9px;color:#555;line-height:1.55;font-size:12px;white-space:pre-wrap;">${escaparHtmlExpediente(movimiento.sumilla)}</p>` : ''}
+                <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:10px;color:#888;">${movimiento.presentado_por ? `<span><b>Presentado por:</b> ${escaparHtmlExpediente(movimiento.presentado_por)}</span>` : ''}${movimiento.creado_por_nombre ? `<span><b>Registrado por:</b> ${escaparHtmlExpediente(movimiento.creado_por_nombre)}</span>` : ''}</div>
+            </article>`;
+        }).join('');
+    } catch (error) {
+        console.error('Error cargando información agregada:', error);
+        container.innerHTML = '<div style="padding:18px;border:1px solid #ffcdd2;border-radius:12px;color:#c62828;background:#fff5f5;">No se pudo cargar la información agregada.</div>';
     }
 }
 
@@ -384,9 +425,10 @@ async function enviarRespuestaExpediente(event, expedienteId, usuarioId) {
 // Función para cargar expedientes en la tabla
 async function cargarExpedientesTabla() {
     try {
-        console.log('📂 Cargando expedientes...');
-        const response = await fetch('/api/expedientes');
-        const data = await response.json();
+        console.log('📥 Cargando presentaciones de Mesa de Partes...');
+        const movimientosResponse = await fetch('/api/timeline/presentaciones');
+        const movimientosData = await movimientosResponse.json();
+        const data = { success: movimientosData.success, data: movimientosData.data };
 
         console.log('📦 Respuesta de expedientes:', data);
 
@@ -396,26 +438,61 @@ async function cargarExpedientesTabla() {
             console.log('📊 Total expedientes:', data.data?.length || 0);
             
             if (tbody) {
-                if (data.data && data.data.length > 0) {
-                    tbody.innerHTML = data.data.map(expediente => `
-                        <tr>
-                            <td>${expediente.numero || expediente.id}</td>
-                            <td>${expediente.presentante || 'N/A'}</td>
-                            <td>${expediente.materia || 'N/A'}</td>
-                            <td>${expediente.fecha_creacion ? new Date(expediente.fecha_creacion).toLocaleDateString('es-ES') : 'N/A'}</td>
-                            <td><span class="status-badge status-${(expediente.estado || 'nuevo').toLowerCase()}">${expediente.estado || 'Nuevo'}</span></td>
-                            <td>${expediente.fecha_actualizacion ? new Date(expediente.fecha_actualizacion).toLocaleDateString('es-ES') : (expediente.fecha_creacion ? new Date(expediente.fecha_creacion).toLocaleDateString('es-ES') : 'N/A')}</td>
+                const totalEl = document.getElementById('admin-presentaciones-total');
+                const pendientesEl = document.getElementById('admin-presentaciones-pendientes');
+                const recibidasEl = document.getElementById('admin-presentaciones-recibidas');
+                const movimientos = movimientosData.success && Array.isArray(movimientosData.data) ? movimientosData.data : [];
+                const ingresos = movimientos.map(m => ({ ...m, clase_ingreso: 'adicional', fecha_orden: m.fecha_creacion || m.fecha_documento }))
+                    .sort((a, b) => new Date(b.fecha_orden || 0) - new Date(a.fecha_orden || 0));
+                if (totalEl) totalEl.textContent = ingresos.length;
+                if (pendientesEl) pendientesEl.textContent = ingresos.filter(p => p.clase_ingreso === 'adicional' ? !Number(p.recepcion_confirmada) : p.estado !== 'Recibido').length;
+                if (recibidasEl) recibidasEl.textContent = ingresos.filter(p => p.clase_ingreso === 'adicional' ? Number(p.recepcion_confirmada) : p.estado === 'Recibido').length;
+
+                if (ingresos.length > 0) {
+                    tbody.innerHTML = ingresos.map(presentacion => {
+                        let demandante = presentacion.demandante || {};
+                        if (typeof demandante === 'string') {
+                            try { demandante = JSON.parse(demandante || '{}'); }
+                            catch (_) { demandante = { nombre: demandante }; }
+                        }
+                        const adicional = presentacion.clase_ingreso === 'adicional';
+                        const recibida = adicional ? Boolean(Number(presentacion.recepcion_confirmada)) : presentacion.estado === 'Recibido';
+                        const estado = adicional ? (recibida ? 'Recibido' : 'Pendiente') : (presentacion.estado || 'Pendiente');
+                        const solicitante = presentacion.presentado_por || demandante.nombre || demandante.razon_social || presentacion.nombre_usuario || 'N/A';
+                        const tipo = adicional ? `Información adicional · ${presentacion.tipo_documento || 'Documento'}` : (presentacion.tipo_presentacion || presentacion.materia || 'N/A');
+                        const fecha = adicional ? (presentacion.fecha_creacion || presentacion.fecha_documento) : presentacion.fecha_presentacion;
+                        const idMesa = adicional ? presentacion.mesa_partes_id : presentacion.id;
+                        return `
+                        <tr data-tipo-ingreso="${adicional ? 'adicional' : 'principal'}">
+                            <td><strong>${escaparHtmlExpediente(presentacion.numero_registro)}</strong>${adicional ? `<small style="display:block;color:#b7791f;font-weight:800;margin-top:4px;">NUEVO INGRESO #${presentacion.id}</small>` : ''}</td>
+                            <td>${escaparHtmlExpediente(solicitante)}</td>
+                            <td>${escaparHtmlExpediente(tipo)}</td>
+                            <td>${fecha ? new Date(fecha).toLocaleString('es-PE') : 'N/A'}</td>
+                            <td><span class="status-badge status-${estado.toLowerCase().replace(/\s+/g,'-')}">${escaparHtmlExpediente(estado)}</span></td>
+                            <td>${recibida ? '<span style="color:#16794c;font-weight:800;">✓ Confirmada</span>' : '<span style="color:#b7791f;font-weight:700;">Pendiente</span>'}</td>
                             <td>
-                                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px; margin-right: 5px;" onclick="verDetalleExpediente('${expediente.id || expediente.numero}')" title="Ver detalles">👁️ Ver</button>
-                                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px; margin-right: 5px; background:linear-gradient(135deg,#2196F3,#64B5F6);color:#fff;" onclick="editarExpediente('${expediente.id}')" title="Editar">✏️ Editar</button>
-                                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px; margin-right: 5px; background:linear-gradient(135deg,#d4af37,#f1d582);color:#1a1a1a;" onclick="TimelineManager.abrir('expedientes','${expediente.id}','Expediente: ${expediente.numero || expediente.id}')" title="Ver Timeline">📋 Timeline</button>
-                                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px; background:#4CAF50;" onclick="responderExpediente('${expediente.id || expediente.numero}')" title="Responder">💬 Responder</button>
+                                ${!recibida ? (adicional
+                                    ? `<button class="btn btn-primary" style="padding:4px 8px;font-size:12px;margin-right:5px;background:#16794c;color:#fff;" onclick="TimelineManager.confirmarRecepcion(${presentacion.id})">📥 Confirmar</button>`
+                                    : `<button class="btn btn-primary" style="padding:4px 8px;font-size:12px;margin-right:5px;background:#16794c;color:#fff;" onclick="CasillaUnificada.confirmarCambioEstado('mesa_partes','${idMesa}','Recibido')">📥 Confirmar</button>`) : ''}
+                                ${!adicional ? `<button class="btn btn-primary" style="padding:4px 8px;font-size:12px;margin-right:5px;" onclick="CasillaUnificada.verDetalle('mesa_partes','${idMesa}')">👁️ Ver</button><button class="btn btn-primary" style="padding:4px 8px;font-size:12px;margin-right:5px;background:#2196F3;color:#fff;" onclick="CasillaUnificada.editarMesaPartes('${idMesa}')">✏️ Editar</button>` : ''}
+                                <button class="btn btn-primary" style="padding:4px 8px;font-size:12px;margin-right:5px;background:#d4af37;color:#111;" onclick="TimelineManager.abrir('mesa-partes','${idMesa}','Mesa de Partes: ${presentacion.numero_registro}',${!adicional && recibida})">📋 Seguimiento</button>
+                                <button class="btn btn-primary" style="padding:4px 8px;font-size:12px;background:#4CAF50;" onclick="CasillaUnificada.responderMesaPartes('${idMesa}','${presentacion.usuario_id}','${presentacion.numero_registro}')">💬 Responder</button>
                             </td>
                         </tr>
-                    `).join('');
-                    console.log('✅ Expedientes cargados en la tabla');
+                    `}).join('');
+                    const buscador = document.getElementById('buscar-presentacion-admin');
+                    if (buscador && !buscador.dataset.listenerActivo) {
+                        buscador.dataset.listenerActivo = 'true';
+                        buscador.addEventListener('input', () => {
+                            const consulta = buscador.value.trim().toLocaleLowerCase('es');
+                            tbody.querySelectorAll('tr').forEach(fila => {
+                                fila.style.display = fila.textContent.toLocaleLowerCase('es').includes(consulta) ? '' : 'none';
+                            });
+                        });
+                    }
+                    console.log('✅ Presentaciones cargadas en la bandeja');
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;">No hay expedientes registrados</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;">No hay presentaciones registradas</td></tr>';
                     console.log('⚠️ No hay expedientes para mostrar');
                 }
             } else {

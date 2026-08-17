@@ -526,59 +526,80 @@ async function cargarTablaSolicitudes() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Cargando solicitudes...</td></tr>';
 
     try {
-        const response = await fetch('/api/solicitudes');
+        const response = await fetch('/api/mesa-partes');
         const data = await response.json();
+        const solicitudes = data.success && Array.isArray(data.data) ? data.data : [];
+        window.solicitudesAdminData = solicitudes;
 
-        if (!data.success || !data.data || data.data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay solicitudes pendientes</td></tr>';
-            return;
+        const total = document.getElementById('admin-solicitudes-total');
+        const pendientes = document.getElementById('admin-solicitudes-pendientes');
+        const recibidas = document.getElementById('admin-solicitudes-recibidas');
+        if (total) total.textContent = solicitudes.length;
+        if (pendientes) pendientes.textContent = solicitudes.filter(s => s.estado !== 'Recibido').length;
+        if (recibidas) recibidas.textContent = solicitudes.filter(s => s.estado === 'Recibido').length;
+
+        const selector = document.getElementById('filtro-tipo-solicitud-admin');
+        if (selector) {
+            const seleccion = selector.value;
+            const tipos = [...new Set(solicitudes.map(s => s.tipo_presentacion || s.materia || 'General'))].sort();
+            selector.innerHTML = '<option value="">Todos los servicios</option>' + tipos.map(tipo => `<option value="${escaparSolicitudAdmin(tipo)}">${escaparSolicitudAdmin(tipo)}</option>`).join('');
+            selector.value = seleccion;
         }
-
-        // Filtrar solo pendientes
-        const pendientes = data.data.filter(s => 
-            (s.estado || '').toLowerCase() === 'pendiente'
-        );
-
-        if (pendientes.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay solicitudes pendientes</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = pendientes.map(s => {
-            const fecha = s.fecha ? new Date(s.fecha).toLocaleString('es-ES', {
-                dateStyle: 'short',
-                timeStyle: 'short'
-            }) : '-';
-
-            return `
-                <tr>
-                    <td>${s.id}</td>
-                    <td>${s.nombre || s.usuario || '-'}</td>
-                    <td>${s.tipo || s.asunto || 'General'}</td>
-                    <td>${fecha}</td>
-                    <td><span class="status-badge status-pending">${s.estado || 'Pendiente'}</span></td>
-                    <td>
-                        <button class="btn btn-primary" style="padding:4px 8px;font-size:12px;margin-right:5px;"
-                            onclick="verDetalleSolicitud('${s.id}')" title="Ver detalles">👁️</button>
-                        <button class="btn btn-primary" style="padding:4px 8px;font-size:12px;margin-right:5px;background:linear-gradient(135deg,#d4af37,#f1d582);color:#1a1a1a;"
-                            onclick="TimelineManager.abrir('solicitudes','${s.id}','Solicitud: ${s.id}')" title="Ver Timeline">📋</button>
-                        <button class="btn btn-primary" style="padding:4px 8px;font-size:12px;margin-right:5px;background:#4CAF50;"
-                            onclick="responderSolicitud('${s.id}')" title="Responder">💬</button>
-                        <button class="btn btn-primary" style="padding:4px 8px;font-size:12px;margin-right:5px;"
-                            onclick="aprobarSolicitud('${s.id}')" title="Aprobar">✅</button>
-                        <button class="btn btn-secondary" style="padding:4px 8px;font-size:12px;"
-                            onclick="rechazarSolicitud('${s.id}')" title="Rechazar">❌</button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-
-        console.log(`✅ ${pendientes.length} solicitudes cargadas`);
+        filtrarSolicitudesAdmin();
+        console.log(`✅ ${solicitudes.length} solicitudes principales cargadas`);
 
     } catch (error) {
         console.error('Error cargando solicitudes:', error);
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Error cargando solicitudes</td></tr>';
     }
+}
+
+function escaparSolicitudAdmin(valor) {
+    return String(valor ?? '').replace(/[&<>'"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[c]);
+}
+
+function obtenerDemandanteSolicitudAdmin(valor) {
+    if (!valor) return {};
+    if (typeof valor === 'object') return valor;
+    try { return JSON.parse(valor); } catch (_) { return { nombre: valor }; }
+}
+
+function filtrarSolicitudesAdmin() {
+    const tbody = document.getElementById('solicitudes-table-body');
+    if (!tbody) return;
+    const solicitudes = Array.isArray(window.solicitudesAdminData) ? window.solicitudesAdminData : [];
+    const tipoElegido = document.getElementById('filtro-tipo-solicitud-admin')?.value || '';
+    const busqueda = (document.getElementById('buscar-solicitud-admin')?.value || '').trim().toLocaleLowerCase('es');
+    const filtradas = solicitudes.filter(s => {
+        const demandante = obtenerDemandanteSolicitudAdmin(s.demandante);
+        const tipo = s.tipo_presentacion || s.materia || 'General';
+        const texto = `${s.numero_registro || ''} ${demandante.nombre || demandante.razon_social || s.nombre_usuario || ''} ${tipo} ${s.estado || ''}`.toLocaleLowerCase('es');
+        return (!tipoElegido || tipo === tipoElegido) && (!busqueda || texto.includes(busqueda));
+    });
+    if (!filtradas.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#777;">No hay solicitudes para este filtro</td></tr>';
+        return;
+    }
+    tbody.innerHTML = filtradas.map(s => {
+        const demandante = obtenerDemandanteSolicitudAdmin(s.demandante);
+        const nombre = demandante.nombre || demandante.razon_social || s.nombre_usuario || 'N/A';
+        const tipo = s.tipo_presentacion || s.materia || 'General';
+        const recibida = s.estado === 'Recibido';
+        const fecha = s.fecha_presentacion ? new Date(s.fecha_presentacion).toLocaleString('es-PE') : '-';
+        return `<tr>
+            <td><strong>${escaparSolicitudAdmin(s.numero_registro)}</strong></td>
+            <td>${escaparSolicitudAdmin(nombre)}</td>
+            <td><span style="font-weight:700;color:#8a6911;">${escaparSolicitudAdmin(tipo)}</span></td>
+            <td>${fecha}</td>
+            <td><span class="status-badge status-${String(s.estado || 'pendiente').toLowerCase().replace(/\s+/g, '-')}">${escaparSolicitudAdmin(s.estado || 'Pendiente')}</span></td>
+            <td>
+                ${!recibida ? `<button class="btn btn-primary" style="padding:5px 8px;font-size:11px;margin-right:4px;background:#16794c;color:#fff;" onclick="CasillaUnificada.confirmarCambioEstado('mesa_partes','${s.id}','Recibido')">📥 Confirmar</button>` : '<span style="color:#16794c;font-size:11px;font-weight:800;margin-right:6px;">✓ Recibida</span>'}
+                <button class="btn btn-primary" style="padding:5px 8px;font-size:11px;margin-right:4px;" onclick="CasillaUnificada.verDetalle('mesa_partes','${s.id}')">👁️ Ver</button>
+                <button class="btn btn-primary" style="padding:5px 8px;font-size:11px;margin-right:4px;background:#d4af37;color:#111;" onclick="TimelineManager.abrir('mesa-partes','${s.id}','Solicitud: ${escaparSolicitudAdmin(s.numero_registro)}',${recibida})">📋 Seguimiento</button>
+                <button class="btn btn-primary" style="padding:5px 8px;font-size:11px;background:#4CAF50;" onclick="CasillaUnificada.responderMesaPartes('${s.id}','${s.usuario_id}','${escaparSolicitudAdmin(s.numero_registro)}')">💬 Responder</button>
+            </td>
+        </tr>`;
+    }).join('');
 }
 
 // Exportar funciones para uso global
@@ -595,6 +616,7 @@ if (typeof window !== 'undefined') {
     window.cerrarModalResponderSolicitud = cerrarModalResponderSolicitud;
     window.enviarRespuestaSolicitud = enviarRespuestaSolicitud;
     window.cargarTablaSolicitudes = cargarTablaSolicitudes;
+    window.filtrarSolicitudesAdmin = filtrarSolicitudesAdmin;
     window.refreshSolicitudesTable = cargarTablaSolicitudes; // Alias para compatibilidad
 }
 

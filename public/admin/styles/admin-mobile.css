@@ -1,0 +1,846 @@
+/* Ajustes móviles comunes para todas las secciones del administrador. */
+.mobile-app-preloader {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-app-preloader {
+        position: fixed;
+        inset: 0;
+        z-index: 1000000;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        color: #111;
+        background:
+            radial-gradient(circle at 50% 42%, rgba(212, 175, 55, .11), transparent 34%),
+            linear-gradient(155deg, #ffffff, #f7f5ef 72%);
+        opacity: 1;
+        visibility: visible;
+        transition: opacity .35s ease, visibility .35s ease;
+    }
+
+    .mobile-app-preloader.is-hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .mobile-preloader-brand {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+        animation: mobilePreloaderEnter .55s cubic-bezier(.2, .8, .2, 1) both;
+    }
+
+    .mobile-preloader-logo {
+        position: relative;
+        width: min(240px, 72vw);
+        height: 118px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 20px;
+        padding: 8px;
+        overflow: hidden;
+        border: 0;
+        border-radius: 0;
+        background: #fff;
+        box-shadow: none;
+        animation: mobileLogoPulse 1.5s ease-in-out infinite;
+    }
+
+    .mobile-preloader-logo::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(110deg, transparent 30%, rgba(212, 175, 55, .12) 48%, transparent 66%);
+        transform: translateX(-120%);
+        animation: mobileLogoShine 1.6s ease-in-out infinite;
+    }
+
+    .mobile-preloader-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .mobile-preloader-caption {
+        color: #202020;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+    }
+
+    .mobile-preloader-progress {
+        width: 130px;
+        height: 3px;
+        margin-top: 25px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: rgba(20, 20, 20, .1);
+    }
+
+    .mobile-preloader-progress span {
+        display: block;
+        width: 42%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #d9ad37, #f2d77d);
+        animation: mobilePreloaderProgress 1.05s ease-in-out infinite;
+    }
+
+    @keyframes mobilePreloaderEnter {
+        from { opacity: 0; transform: translateY(12px) scale(.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes mobileLogoPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.025); }
+    }
+
+    @keyframes mobileLogoShine {
+        0%, 25% { transform: translateX(-120%); }
+        75%, 100% { transform: translateX(120%); }
+    }
+
+    @keyframes mobilePreloaderProgress {
+        from { transform: translateX(-115%); }
+        to { transform: translateX(340%); }
+    }
+
+    html,
+    body {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .main-content,
+    .content-section,
+    .content-section.active {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .content-section > .header {
+        width: 100%;
+        margin-bottom: 18px;
+        padding: 22px 18px;
+        border-radius: 18px;
+        box-shadow: 0 8px 22px rgba(15, 31, 56, .08);
+    }
+
+    .content-section > .header h1 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: clamp(22px, 7vw, 28px);
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+    }
+
+    .content-section > .header .header-icon {
+        flex: 0 0 auto;
+    }
+
+    .content-section > .header .subtitle {
+        margin-top: 9px;
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .cards-container,
+    .cards-container.three-cards {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 11px;
+    }
+
+    .stat-card {
+        min-width: 0;
+        padding: 19px;
+        border-radius: 16px;
+    }
+
+    .stat-card .stat-value {
+        font-size: 34px;
+    }
+
+    #dashboard .cards-container {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: calc((100% - 16px) / 3);
+        grid-template-columns: none;
+        gap: 8px;
+        padding: 2px 1px 10px;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #dashboard .cards-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    #dashboard .stat-card {
+        min-height: 124px;
+        padding: 14px 10px;
+        scroll-snap-align: start;
+        border-radius: 14px;
+        box-shadow: 0 6px 16px rgba(15, 31, 56, .07);
+    }
+
+    #dashboard .stat-card .stat-label {
+        min-height: 34px;
+        font-size: 9px;
+        line-height: 1.25;
+        letter-spacing: .02em;
+    }
+
+    #dashboard .stat-card .stat-value {
+        margin: 7px 0 3px;
+        font-size: 29px;
+        line-height: 1;
+    }
+
+    #dashboard .stat-card small {
+        display: block;
+        font-size: 8px !important;
+        line-height: 1.25;
+    }
+
+    #expedientes .cards-container,
+    #solicitudes .cards-container {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    #expedientes .stat-card,
+    #solicitudes .stat-card {
+        min-height: 112px;
+        padding: 14px 9px;
+        border-radius: 14px;
+        box-shadow: 0 6px 16px rgba(15, 31, 56, .065);
+    }
+
+    #expedientes .stat-card .stat-label,
+    #solicitudes .stat-card .stat-label {
+        min-height: 34px;
+        font-size: 9px;
+        line-height: 1.25;
+        letter-spacing: .01em;
+        overflow-wrap: anywhere;
+    }
+
+    #expedientes .stat-card .stat-value,
+    #solicitudes .stat-card .stat-value {
+        margin-top: 8px;
+        font-size: 29px;
+        line-height: 1;
+    }
+
+    .table-container {
+        width: 100%;
+        max-width: 100%;
+        margin-top: 20px !important;
+        padding: 18px 14px;
+        overflow-x: auto;
+        border-radius: 17px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-container > div[style*="display: flex"] {
+        min-width: 0;
+        align-items: stretch !important;
+        flex-direction: column;
+        gap: 12px !important;
+    }
+
+    .table-container > div[style*="display: flex"] > div {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .table-container input[type="text"],
+    .table-container input[type="search"],
+    #casilla-search {
+        width: 100% !important;
+        min-width: 0;
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    #expedientes .table-container table,
+    #solicitudes .table-container table {
+        width: 100%;
+        min-width: 680px;
+    }
+
+    .table-container th,
+    .table-container td {
+        padding: 12px 10px;
+        white-space: nowrap;
+    }
+
+    #dashboard .table-container {
+        overflow: visible;
+    }
+
+    #dashboard .table-container table,
+    #dashboard .table-container tbody,
+    #dashboard .table-container tr,
+    #dashboard .table-container td {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    #dashboard .table-container thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+    }
+
+    #dashboard .table-container tbody {
+        display: grid;
+        gap: 10px;
+    }
+
+    #dashboard .activity-row {
+        padding: 13px 14px;
+        border: 1px solid #e7ebf0;
+        border-radius: 14px;
+        background: #fff;
+    }
+
+    #dashboard .activity-row td {
+        display: grid;
+        grid-template-columns: 88px minmax(0, 1fr);
+        align-items: start;
+        gap: 10px;
+        padding: 7px 0;
+        border: 0;
+        border-bottom: 1px solid #eef1f4;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    #dashboard .activity-row td:last-child {
+        border-bottom: 0;
+    }
+
+    #dashboard .activity-row td::before {
+        content: attr(data-label);
+        color: #7c8796;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+    }
+
+    #casilla > div[style*="flex-wrap"] {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px !important;
+        margin: 18px 0 !important;
+    }
+
+    #casilla .filter-btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        justify-content: center;
+        padding: 9px 8px !important;
+        font-size: 11px !important;
+    }
+
+    #casilla .table-container {
+        overflow: visible;
+    }
+
+    #casilla .table-container table,
+    #casilla .table-container tbody,
+    #casilla .table-container tr,
+    #casilla .table-container td {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    #casilla .table-container thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+    }
+
+    #casilla .table-container tbody {
+        display: grid;
+        gap: 12px;
+    }
+
+    #casilla .table-container tbody tr {
+        padding: 14px;
+        overflow: hidden;
+        border: 1px solid #e6ebf1;
+        border-radius: 15px;
+        background: #fff;
+        box-shadow: 0 5px 15px rgba(15, 31, 56, .045);
+    }
+
+    #casilla .table-container tbody td {
+        display: grid;
+        grid-template-columns: 76px minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+        border: 0;
+        border-bottom: 1px solid #eef1f4;
+        white-space: normal;
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+
+    #casilla .table-container tbody td:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    #casilla .table-container tbody td::before {
+        content: attr(data-label);
+        color: #7d8998;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+    }
+
+    #casilla .table-container tbody td[data-label="Asunto"] strong,
+    #casilla .table-container tbody td[data-label="Asunto"] small {
+        display: block;
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    #casilla .table-container tbody td[data-label="Acciones"] {
+        grid-template-columns: 76px minmax(0, 1fr);
+    }
+
+    #casilla .casilla-row-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 42px;
+        gap: 7px;
+        width: 100%;
+    }
+
+    #casilla .table-container tbody td[data-label="Acciones"] .btn {
+        width: 100%;
+        min-height: 38px;
+        margin: 0 !important;
+    }
+
+    #configuracion > div[style*="grid-template-columns"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 14px !important;
+    }
+
+    #configuracion .card {
+        min-width: 0;
+        padding: 16px 14px !important;
+        border-radius: 16px;
+        box-shadow: 0 6px 18px rgba(15, 31, 56, .06);
+    }
+
+    #configuracion > .header {
+        padding: 18px 16px;
+        margin-bottom: 14px;
+    }
+
+    #configuracion > .header h1 {
+        font-size: 23px;
+    }
+
+    #configuracion > .header .subtitle {
+        margin-top: 6px;
+    }
+
+    #configuracion .card > .card-header,
+    #configuracion .card > div:first-child {
+        min-height: 0;
+        margin-bottom: 14px !important;
+        padding-bottom: 12px !important;
+        gap: 10px !important;
+    }
+
+    #configuracion .card-header > span:first-child,
+    #configuracion .card > div:first-child > span:first-child {
+        width: 38px !important;
+        height: 38px !important;
+        flex: 0 0 38px;
+        border-radius: 10px !important;
+        font-size: 20px !important;
+    }
+
+    #configuracion .card-title {
+        font-size: 16px !important;
+    }
+
+    #configuracion .card > div[style*="margin-bottom"] {
+        margin-bottom: 12px !important;
+    }
+
+    #configuracion label {
+        margin-bottom: 5px !important;
+        font-size: 9px !important;
+        letter-spacing: .07em !important;
+    }
+
+    #configuracion input,
+    #configuracion select,
+    #configuracion textarea {
+        min-height: 42px !important;
+        padding: 10px 12px !important;
+        border-radius: 10px !important;
+        font-size: 16px !important;
+    }
+
+    #configuracion input,
+    #configuracion select,
+    #configuracion textarea,
+    #configuracion button {
+        max-width: 100%;
+    }
+
+    #configuracion button {
+        min-height: 44px;
+        padding: 10px 14px !important;
+        border-radius: 11px !important;
+    }
+
+    .modal {
+        padding: 10px !important;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .modal-content,
+    .expediente-modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: calc(100dvh - 24px);
+        margin: 0 auto !important;
+        overflow: hidden;
+        border-radius: 22px 22px 0 0 !important;
+    }
+
+    .modal-header,
+    .expediente-modal-header {
+        padding: 17px 16px !important;
+    }
+
+    .modal-header h2,
+    .expediente-modal-header h2 {
+        font-size: 17px !important;
+        line-height: 1.25;
+    }
+
+    .modal-body,
+    .expediente-tab-content {
+        padding: 18px 16px !important;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .modal-body > div[style*="grid-template-columns"],
+    .expediente-info-grid,
+    .documentos-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .modal-body input,
+    .modal-body select,
+    .modal-body textarea,
+    .form-input,
+    .form-input-dark {
+        width: 100%;
+        max-width: 100%;
+        min-height: 46px;
+        font-size: 16px;
+    }
+
+    .modal-footer,
+    .modal-body div[style*="justify-content: flex-end"],
+    .modal-body div[style*="justify-content: center"] {
+        align-items: stretch !important;
+        flex-direction: column;
+        gap: 10px !important;
+    }
+
+    .modal-footer .btn,
+    .modal-body .btn {
+        width: 100%;
+        max-width: none !important;
+        min-height: 46px;
+    }
+
+    .modal-table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    #panelNotificacionesAdmin {
+        position: fixed !important;
+        inset: 12px 12px calc(82px + env(safe-area-inset-bottom)) 12px !important;
+        width: auto !important;
+        max-width: none !important;
+        max-height: none !important;
+        overflow-y: auto;
+    }
+
+    /* Pop-ups dinámicos: Casilla, respuestas y edición de expedientes. */
+    #casillaModal,
+    #detallesCasillaModal,
+    #anexosCasillaModal {
+        padding: 10px !important;
+        align-items: flex-end !important;
+        overflow-y: auto !important;
+    }
+
+    #casillaModal > .modal-content,
+    #detallesCasillaModal > .modal-content,
+    #anexosCasillaModal > .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: calc(100dvh - 20px) !important;
+        margin: 0 !important;
+        border-radius: 20px 20px 0 0 !important;
+        overflow-y: auto !important;
+    }
+
+    #casillaModal .modal-header,
+    #detallesCasillaModal .modal-header,
+    #anexosCasillaModal .modal-header {
+        padding: 17px 16px !important;
+    }
+
+    #casillaModal .modal-body,
+    #detallesCasillaModal .modal-body,
+    #anexosCasillaModal .modal-body {
+        max-height: none !important;
+        padding: 18px 15px !important;
+        overflow: visible !important;
+    }
+
+    #casillaModal [style*="grid-template-columns"],
+    #detallesCasillaModal [style*="grid-template-columns"],
+    #anexosCasillaModal [style*="grid-template-columns"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    #casillaModal [style*="display: flex"],
+    #casillaModal [style*="display:flex"] {
+        max-width: 100%;
+        flex-wrap: wrap;
+    }
+
+    #modalResponderSolicitud,
+    #modalResponderMesaPartes,
+    #modalResponderExpediente,
+    #modalEditarExpediente {
+        padding: 10px !important;
+        overflow-y: auto !important;
+    }
+
+    #modalResponderSolicitud > div,
+    #modalResponderMesaPartes > div,
+    #modalResponderExpediente > div,
+    #modalEditarExpediente > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: calc(100dvh - 20px);
+        margin: 0 auto !important;
+        overflow-y: auto !important;
+        border-radius: 20px 20px 0 0 !important;
+    }
+
+    #modalResponderSolicitud form,
+    #modalResponderMesaPartes form,
+    #modalResponderExpediente form,
+    #modalEditarExpediente form {
+        padding: 18px 15px !important;
+    }
+
+    #modalResponderSolicitud form > div[style*="display:flex"],
+    #modalResponderMesaPartes form > div[style*="display:flex"],
+    #modalResponderExpediente form > div[style*="display:flex"],
+    #modalEditarExpediente form > div[style*="display:flex"] {
+        align-items: stretch !important;
+        flex-direction: column !important;
+    }
+
+    #modalEditarExpediente [style*="grid-template-columns"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    #modalResponderSolicitud input,
+    #modalResponderSolicitud textarea,
+    #modalResponderMesaPartes input,
+    #modalResponderMesaPartes textarea,
+    #modalResponderExpediente input,
+    #modalResponderExpediente textarea,
+    #modalEditarExpediente input,
+    #modalEditarExpediente select,
+    #modalEditarExpediente textarea {
+        width: 100% !important;
+        max-width: 100%;
+        font-size: 16px !important;
+    }
+
+    /* Timeline universal. */
+    #timeline-overlay {
+        padding: 10px !important;
+        align-items: flex-end !important;
+    }
+
+    #timeline-overlay > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: calc(100dvh - 20px) !important;
+        border-radius: 20px 20px 0 0 !important;
+    }
+
+    #timeline-overlay > div > div:first-child {
+        padding: 16px !important;
+        align-items: flex-start !important;
+        flex-direction: column !important;
+        gap: 12px;
+    }
+
+    #timeline-overlay > div > div:first-child > div:last-child {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    #timeline-overlay > div > div:first-child button:first-child {
+        flex: 1;
+        min-height: 42px;
+        padding: 10px 14px !important;
+    }
+
+    #timeline-body {
+        padding: 22px 14px !important;
+    }
+
+    #timeline-body > div {
+        padding-left: 4px !important;
+    }
+
+    #timeline-body > div > div[style*="display: flex"] {
+        gap: 14px !important;
+    }
+
+    #timeline-body div[style*="padding: 25px 30px"] {
+        min-width: 0;
+        padding: 17px 14px !important;
+    }
+
+    /* Alertas de confirmación y formularios secundarios. */
+    .swal2-container {
+        padding: 10px !important;
+    }
+
+    .swal2-popup {
+        width: 100% !important;
+        max-width: 520px !important;
+        max-height: calc(100dvh - 20px);
+        padding: 20px 15px !important;
+        overflow-y: auto;
+        border-radius: 20px !important;
+    }
+
+    .swal2-html-container {
+        margin: 14px 0 !important;
+        overflow: visible !important;
+    }
+
+    .swal2-html-container [style*="grid-template-columns"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .swal2-actions {
+        width: 100%;
+        margin-top: 14px !important;
+        flex-direction: column;
+    }
+
+    .swal2-actions button {
+        width: 100%;
+        margin: 4px 0 !important;
+    }
+}
+
+@media (max-width: 390px) {
+    #casilla > div[style*="flex-wrap"] {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .content-section > .header {
+        padding: 19px 15px;
+    }
+
+    .table-container {
+        padding: 15px 11px;
+    }
+
+    #dashboard .cards-container {
+        grid-auto-columns: calc((100% - 12px) / 3);
+        gap: 6px;
+    }
+
+    #dashboard .stat-card {
+        min-height: 118px;
+        padding: 12px 7px;
+    }
+
+    #dashboard .stat-card .stat-label {
+        font-size: 8px;
+    }
+
+    #expedientes .cards-container,
+    #solicitudes .cards-container {
+        gap: 6px;
+    }
+
+    #expedientes .stat-card,
+    #solicitudes .stat-card {
+        min-height: 106px;
+        padding: 12px 7px;
+    }
+
+    #expedientes .stat-card .stat-label,
+    #solicitudes .stat-card .stat-label {
+        font-size: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mobile-preloader-brand,
+    .mobile-preloader-logo,
+    .mobile-preloader-logo::after,
+    .mobile-preloader-progress span {
+        animation: none;
+    }
+}

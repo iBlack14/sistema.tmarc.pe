@@ -1,0 +1,22 @@
+.support-phone-list {
+    display: grid;
+    gap: 8px;
+}
+
+.support-phone-list a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px;
+    border-radius: 9px;
+    background: #171717;
+    color: #e3bd3b;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.support-phone-list a::before {
+    content: '☎';
+    margin-right: 7px;
+}

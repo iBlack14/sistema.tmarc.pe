@@ -94,7 +94,9 @@ class DashboardApp {
 
         // Global click and key listeners
         document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-overlay')) this.closeAllModals();
+            if (e.target.classList.contains('modal-overlay') && e.target.dataset.preventOutsideClose !== 'true') {
+                this.closeAllModals();
+            }
             
             // Close notification dropdown when clicking outside
             const dropdown = document.getElementById('notification-dropdown');
@@ -106,6 +108,7 @@ class DashboardApp {
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                if (document.querySelector('.modal-overlay.active[data-prevent-outside-close="true"]')) return;
                 this.closeAllModals();
                 this.closeNotificationDropdown();
                 this.closeMobileSidebar();
@@ -164,6 +167,7 @@ class DashboardApp {
             'casilla': 'Casilla Electrónica',
             'expedientes': 'Seguimiento de Expedientes',
             'mesa': 'Mesa de Partes Virtual',
+            'soporte': 'Soporte Tecnológico',
             'configuracion': 'Configuración del Sistema'
         };
 
@@ -262,7 +266,7 @@ class DashboardApp {
     }
 
     async loadSectionData(sectionId) {
-        const module = this.modules[sectionId === 'casilla' ? 'notificaciones' : sectionId === 'mesa' ? 'mesaPartes' : sectionId];
+        const module = this.modules[sectionId === 'casilla' ? 'notificaciones' : (sectionId === 'mesa' || sectionId === 'expedientes') ? 'mesaPartes' : sectionId];
         
         // Carga inteligente bajo demanda (Lazy Loading)
         if (module) {

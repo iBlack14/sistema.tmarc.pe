@@ -7,6 +7,16 @@ const path = require('path');
 const fs = require('fs');
 const { query } = require('../database-config');
 const { verificarAuth } = require('../middleware/auth');
+const smtpConfigManager = require('../smtp-config-manager');
+
+function escaparHtml(valor) {
+    return String(valor || '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+}
+
+function correoRecepcionMovimiento(datos) {
+    const baseUrl = (process.env.APP_URL || process.env.BASE_URL || 'https://sistema.tmarc.pe').replace(/\/+$/, '');
+    return `<!doctype html><html lang="es"><body style="margin:0;background:#f2f3f5;font-family:Arial,sans-serif"><table width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px"><tr><td align="center"><table width="100%" cellspacing="0" cellpadding="0" style="max-width:610px;background:#fff;border-radius:17px;overflow:hidden;border:1px solid #ddd7c4"><tr><td style="background:#111;padding:25px 29px;border-bottom:4px solid #d4af37;color:#fff;font-family:Georgia,serif;font-size:27px;font-weight:bold">Tmarc</td></tr><tr><td style="padding:31px"><div style="color:#16794c;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px">Recepción confirmada</div><h1 style="font-size:23px;margin:8px 0 12px;color:#171717">Información adicional recibida</h1><p style="font-size:14px;color:#666;line-height:1.6">Confirmamos la recepción del siguiente movimiento incorporado a su presentación.</p><div style="background:#fff9e8;border:1px solid #ead486;border-radius:11px;padding:17px;margin:21px 0"><p style="margin:0 0 7px"><b>Presentación:</b> ${escaparHtml(datos.codigo)}</p><p style="margin:0 0 7px"><b>Tipo:</b> ${escaparHtml(datos.tipo_documento)}</p><p style="margin:0 0 7px"><b>Documento:</b> ${escaparHtml(datos.numero_documento || 'Sin número')}</p><p style="margin:0"><b>Asunto:</b> ${escaparHtml(datos.asunto || datos.sumilla || 'Información adicional')}</p></div><div style="text-align:center"><a href="${baseUrl}/dashboard-modular.html#expedientes" style="display:inline-block;padding:13px 24px;background:#d4af37;color:#111;text-decoration:none;border-radius:9px;font-size:13px;font-weight:bold">Ver seguimiento →</a></div><p style="margin-top:23px;font-size:11px;color:#888">Esta confirmación corresponde únicamente al movimiento señalado.</p></td></tr><tr><td style="background:#111;padding:18px;text-align:center;color:#aaa;font-size:10px"><b style="color:#d4af37">SISTEMA TMARC</b><br>Notificación institucional automática</td></tr></table></td></tr></table></body></html>`;
+}
 
 // Fix encoding de nombres de archivo (multer recibe Latin-1, necesitamos UTF-8)
 function fixNombre(originalname) {
@@ -122,6 +132,28 @@ router.get('/resumen-actividad', verificarAuth, async (req, res) => {
     }
 });
 
+// Bandeja administrativa: cada información adicional de Mesa de Partes es un
+// ingreso independiente y conserva el vínculo con su presentación principal.
+router.get('/timeline/presentaciones', async (_req, res) => {
+    try {
+        const movimientos = await query(`
+            SELECT st.id, st.mesa_partes_id, st.fecha_documento, st.fecha_creacion,
+                   st.tipo_documento, st.numero_documento, st.asunto, st.sumilla,
+                   st.presentado_por, st.recepcion_confirmada, st.fecha_recepcion,
+                   mp.numero_registro, mp.usuario_id, mp.tipo_presentacion,
+                   mp.demandante, u.nombre AS nombre_usuario
+            FROM seguimiento_timeline st
+            INNER JOIN mesa_partes mp ON mp.id = st.mesa_partes_id
+            LEFT JOIN usuarios u ON u.id = mp.usuario_id
+            ORDER BY st.fecha_creacion DESC, st.id DESC
+        `);
+        res.json({ success: true, data: movimientos });
+    } catch (error) {
+        console.error('Error cargando ingresos adicionales:', error);
+        res.status(500).json({ success: false, error: 'Error interno del servidor' });
+    }
+});
+
 router.get('/:fuente/:id/timeline', async (req, res) => {
     try {
         const { fuente, id } = req.params;
@@ -214,15 +246,116 @@ router.post('/:fuente/:id/timeline', upload.single('documento'), async (req, res
 
         await registrarAuditoria('seguimiento_timeline', result.insertId, 'INSERT', creado_por, req.body);
 
+        // Cuando el movimiento lo registra un administrador, avisar al titular
+        // de la presentación en su Casilla electrónica.
+        let notificacionSistema = false;
+        if (fuente === 'mesa-partes' && registro.id) {
+            const actorId = /^\d+$/.test(String(creado_por || '')) ? Number(creado_por) : null;
+            const [actor] = actorId ? await query('SELECT tipo FROM usuarios WHERE id = ? LIMIT 1', [actorId]) : [];
+            if (actor?.tipo === 'admin') {
+                const [destino] = await query('SELECT numero_registro, usuario_id FROM mesa_partes WHERE id = ? LIMIT 1', [registro.id]);
+                if (destino?.usuario_id && Number(destino.usuario_id) !== actorId) {
+                    const notifId = `NOTIF-TL-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+                    const linea = (etiqueta, valor) => valor ? `<div style="margin:0 0 7px"><b>${etiqueta}:</b> ${escaparHtml(valor)}</div>` : '';
+                    const detalle = `
+                        <div style="line-height:1.55">
+                            ${linea('Presentación', destino.numero_registro)}
+                            ${linea('Tipo de documento', tipo_documento)}
+                            ${linea('Número / referencia', numero_documento)}
+                            ${linea('Asunto procesal', asunto)}
+                            ${linea('Fecha del documento', fecha_documento)}
+                            ${linea('Fecha de presentación', fecha_presentacion)}
+                            ${linea('Fecha de emisión', fecha_emision)}
+                            ${linea('Presentado por', presentado_por)}
+                            ${linea('Tipo de parte', tipo_parte)}
+                            ${linea('Notificación virtual', fecha_notificacion_virtual)}
+                            ${linea('Notificación física', fecha_notificacion_fisica)}
+                            ${linea('Forma de entrega', forma_entrega)}
+                            ${linea('Destinatario', destinatario_notificacion)}
+                            ${linea('Resumen / sumilla', sumilla)}
+                        </div>`;
+                    const archivoNotificacion = req.file ? JSON.stringify({
+                        nombre: documento_nombre,
+                        archivo: documento_archivo,
+                        ruta: documento_ruta,
+                        tipo: req.file.mimetype,
+                        tamano: req.file.size
+                    }) : null;
+                    await query(
+                        `INSERT INTO notificaciones (id, usuario_id, tipo, titulo, mensaje, expediente_id, archivo_adjunto, leida, fecha)
+                         VALUES (?, ?, 'sistema', ?, ?, ?, ?, 0, NOW())`,
+                        [
+                            notifId,
+                            destino.usuario_id,
+                            `Nuevo movimiento en ${destino.numero_registro}`,
+                            detalle,
+                            destino.numero_registro,
+                            archivoNotificacion
+                        ]
+                    );
+                    notificacionSistema = true;
+                }
+            }
+        }
+
         res.status(201).json({
             success: true,
             message: 'Movimiento agregado al timeline exitosamente',
-            data: { id: result.insertId }
+            data: { id: result.insertId },
+            notificacion_sistema: notificacionSistema
         });
     } catch (err) {
         console.error('Error POST timeline:', err);
         if (req.file) try { fs.unlinkSync(req.file.path); } catch (_) {}
         res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Confirmar de manera independiente la recepción de un movimiento
+router.post('/timeline/:id/confirmar-recepcion', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const confirmadoPorRaw = req.body.confirmado_por;
+        const confirmadoPor = /^\d+$/.test(String(confirmadoPorRaw || ''))
+            ? Number(confirmadoPorRaw)
+            : null;
+        const [movimiento] = await query('SELECT * FROM seguimiento_timeline WHERE id = ?', [id]);
+        if (!movimiento) return res.status(404).json({ success:false, error:'Movimiento no encontrado' });
+
+        let referencia;
+        if (movimiento.mesa_partes_id) {
+            [referencia] = await query(`SELECT mp.numero_registro AS codigo, mp.usuario_id, u.nombre, u.email FROM mesa_partes mp LEFT JOIN usuarios u ON u.id=mp.usuario_id WHERE mp.id=?`, [movimiento.mesa_partes_id]);
+        } else if (movimiento.expediente_id) {
+            [referencia] = await query(`SELECT e.numero AS codigo, e.usuario_id, u.nombre, u.email FROM expedientes e LEFT JOIN usuarios u ON u.id=e.usuario_id WHERE e.id=?`, [movimiento.expediente_id]);
+        } else if (movimiento.solicitud_id) {
+            [referencia] = await query(`SELECT s.id AS codigo, s.usuario_id, u.nombre, u.email FROM solicitudes s LEFT JOIN usuarios u ON u.id=s.usuario_id WHERE s.id=?`, [movimiento.solicitud_id]);
+        }
+        if (!referencia) return res.status(404).json({ success:false, error:'No se encontró la presentación relacionada' });
+
+        await query('UPDATE seguimiento_timeline SET recepcion_confirmada=1, fecha_recepcion=NOW(), confirmado_por=? WHERE id=?', [confirmadoPor, id]);
+
+        let notificacionSistema = false;
+        let correoEnviado = false;
+        let correoError = null;
+        if (referencia.usuario_id) {
+            const notifId = `NOTIF-MOV-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+            await query(`INSERT INTO notificaciones (id, usuario_id, tipo, titulo, mensaje, leida, fecha) VALUES (?, ?, 'sistema', ?, ?, 0, NOW())`, [notifId, referencia.usuario_id, 'Información recibida', `Confirmamos la recepción de ${movimiento.tipo_documento || 'la información'}${movimiento.numero_documento ? ` ${movimiento.numero_documento}` : ''} en ${referencia.codigo}.`]);
+            notificacionSistema = true;
+        }
+        if (referencia.email) {
+            try {
+                const envio = await smtpConfigManager.enviarEmail({ destinatario:referencia.email, asunto:`TMARC | Información recibida ${referencia.codigo}`, contenido:correoRecepcionMovimiento({ ...movimiento, codigo:referencia.codigo }), tipo:'confirmacion_recepcion_movimiento' });
+                correoEnviado = Boolean(envio.success && envio.estado !== 'simulado' && envio.estado !== 'pendiente_smtp');
+                if (!correoEnviado) correoError = envio.message || 'El SMTP no confirmó el envío';
+            } catch (errorCorreo) {
+                correoError = errorCorreo.message;
+            }
+        }
+        await registrarAuditoria('seguimiento_timeline', id, 'CONFIRMAR_RECEPCION', confirmadoPor, { notificacionSistema, correoEnviado });
+        res.json({ success:true, message:'Recepción confirmada', notificacion_sistema:notificacionSistema, correo_enviado:correoEnviado, correo_error:correoError });
+    } catch (error) {
+        console.error('Error confirmando recepción del movimiento:', error);
+        res.status(500).json({ success:false, error:error.message });
     }
 });
 
