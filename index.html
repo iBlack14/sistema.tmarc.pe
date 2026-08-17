@@ -466,16 +466,16 @@
                 <section class="manual-section">
                     <div class="manual-section-heading"><span class="manual-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M19 8v6M22 11h-6"></path></svg></span><div><h3>Registro</h3><p>Creación y habilitación de una cuenta en SISTMARC.</p></div></div>
                     <div class="manual-options">
-                        <a class="manual-option" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=3" target="_blank" rel="noopener"><span>Manual para el registro de usuarios</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
+                        <a class="manual-option" data-manual="registro" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=3" target="_blank" rel="noopener"><span>Manual para el registro de usuarios</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
                     </div>
                 </section>
 
                 <section class="manual-section">
                     <div class="manual-section-heading"><span class="manual-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="13" rx="2"></rect><path d="M8 21h8M12 16v5"></path><path d="m16 7-2.5 2.5L12 8l-3 3"></path></svg></span><div><h3>Uso del sistema</h3><p>Consulta, acceso, notificaciones y trazabilidad.</p></div></div>
                     <div class="manual-options">
-                        <a class="manual-option" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=4" target="_blank" rel="noopener"><span>Acceso y uso de la cuenta</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
-                        <a class="manual-option" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=6" target="_blank" rel="noopener"><span>Uso de la mesa de partes virtual</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
-                        <a class="manual-option" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=7" target="_blank" rel="noopener"><span>Seguimiento y trazabilidad de la información</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
+                        <a class="manual-option" data-manual="acceso" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=4" target="_blank" rel="noopener"><span>Acceso y uso de la cuenta</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
+                        <a class="manual-option" data-manual="mesaPartes" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=6" target="_blank" rel="noopener"><span>Uso de la mesa de partes virtual</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
+                        <a class="manual-option" data-manual="seguimiento" href="/output/pdf/instructivo-uso-sistmarc.pdf#page=7" target="_blank" rel="noopener"><span>Seguimiento y trazabilidad de la información</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg></a>
                     </div>
                 </section>
                 <p class="manual-note">Revise el instructivo antes de registrar información o adjuntar documentos.</p>
@@ -523,6 +523,7 @@
             if (event.key === 'Escape' && document.getElementById('manual-modal').classList.contains('is-open')) cerrarManuales();
         });
     </script>
-    <script src="assets/js/manuals.js?v=1.4"></script>
+    <script src="assets/js/config/manuals-config.js?v=1.0"></script>
+    <script src="assets/js/manuals.js?v=1.5"></script>
 </body>
 </html>

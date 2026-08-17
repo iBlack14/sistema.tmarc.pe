@@ -1,0 +1,20 @@
+MANUALES DE SISTMARC
+====================
+
+Suba en esta carpeta los siguientes archivos PDF:
+
+1. manual-registro-usuarios.pdf
+2. manual-acceso-cuenta.pdf
+3. manual-mesa-partes-virtual.pdf
+4. manual-seguimiento-trazabilidad.pdf
+
+Después abra:
+
+assets/js/config/manuals-config.js
+
+Y cambie "publicado: false" por "publicado: true" en cada manual que ya haya subido.
+
+Si el archivo tiene otro nombre, modifique también el campo "archivo" en ese mismo archivo de configuración.
+
+No edite manuals.js ni dashboard-sections.js para reemplazar documentos.
+

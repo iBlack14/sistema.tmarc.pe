@@ -280,6 +280,9 @@
         }
     }
 </style>
+<style>
+    .security-code-overlay{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.78);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px}.security-code-overlay.show{display:flex}.security-code-card{width:min(430px,100%);padding:30px;border:1px solid rgba(212,175,55,.45);border-radius:20px;background:#101010;box-shadow:0 30px 90px rgba(0,0,0,.7);text-align:center}.security-code-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border-radius:15px;background:#d4af37;color:#111;font-size:26px}.security-code-card h2{margin:0 0 8px;font-size:22px}.security-code-card p{margin:0;color:#aaa;font-size:13px;line-height:1.55}.security-code-card strong{color:#f1d582}.security-code-input{width:100%;margin:22px 0 10px;padding:15px;border:1px solid #4c4122;border-radius:12px;background:#080808;color:#f1d582;text-align:center;font:700 28px monospace;letter-spacing:9px;outline:none}.security-code-input:focus{border-color:#d4af37;box-shadow:0 0 0 3px rgba(212,175,55,.14)}.security-code-error{min-height:18px;margin:4px 0 10px!important;color:#ff7b7b!important}.security-code-actions{display:flex;gap:10px}.security-code-actions button{flex:1;padding:12px;border-radius:10px;border:1px solid #444;cursor:pointer;font-weight:700}.security-code-verify{background:#d4af37;color:#111;border-color:#d4af37!important}.security-code-cancel{background:#191919;color:#ddd}.security-code-resend{display:inline-block;margin-top:15px;color:#d4af37;background:none;border:0;cursor:pointer;font-size:12px}
+</style>
     <title>Acceso de Seguridad | Panel Administrativo TMARC</title>
     <meta name="description" content="Portal de acceso seguro para la gestión judicial administrativa del sistema TMARC.">
 </head>
@@ -343,6 +346,18 @@
         </form>
     </div>
 
+    <div class="security-code-overlay" id="adminCodeOverlay" role="dialog" aria-modal="true" aria-labelledby="adminCodeTitle">
+        <div class="security-code-card">
+            <div class="security-code-icon">🔐</div>
+            <h2 id="adminCodeTitle">Código de seguridad</h2>
+            <p>Enviamos un código de 6 dígitos a <strong id="adminMaskedEmail"></strong>.</p>
+            <input id="adminSecurityCode" class="security-code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+            <p class="security-code-error" id="adminCodeError"></p>
+            <div class="security-code-actions"><button type="button" class="security-code-cancel" id="adminCodeCancel">Cancelar</button><button type="button" class="security-code-verify" id="adminCodeVerify">Verificar e ingresar</button></div>
+            <button type="button" class="security-code-resend" id="adminCodeResend">Reenviar código</button>
+        </div>
+    </div>
+
     <script>
         class AdminAuthSystem {
             constructor() { this.init(); }
@@ -367,6 +382,9 @@
                     if (!data.success) {
                         return { success: false, message: data.error || 'Credenciales inválidas' };
                     }
+                    if (data.requiresVerification) {
+                        return { success: true, requiresVerification: true, challengeId: data.data.challengeId, maskedEmail: data.data.maskedEmail };
+                    }
                     const usuario = data.data.usuario;
                     if (usuario.tipo !== 'admin') {
                         return { success: false, message: '⚠️ Acceso restringido a nivel administrativo.' };
@@ -389,6 +407,18 @@
                 }
             }
 
+            async verifyCode(challengeId, code) {
+                const response = await fetch('/api/auth/verify-first-login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ challengeId, code }) });
+                const data = await response.json();
+                if (!response.ok || !data.success) return { success:false, message:data.error || 'Código inválido' };
+                const usuario = data.data.usuario;
+                if (usuario.tipo !== 'admin') return { success:false, message:'Acceso restringido a administradores.' };
+                await setSecureItem('authToken', data.data.token);
+                await setSecureItem('userData', usuario);
+                await setSecureItem('userId', usuario.id.toString());
+                return { success:true, usuario };
+            }
+
             limpiarSesion() {
                 ['authToken', 'userData', 'userId', 'user', 'usuarioActual'].forEach(k => sessionStorage.removeItem(k));
             }
@@ -402,6 +432,34 @@
         }
 
         const auth = new AdminAuthSystem();
+        let adminChallengeId = null;
+        const adminCodeOverlay = document.getElementById('adminCodeOverlay');
+        const adminSecurityCode = document.getElementById('adminSecurityCode');
+        const adminCodeError = document.getElementById('adminCodeError');
+
+        function abrirCodigoAdmin(resultado) {
+            adminChallengeId = resultado.challengeId;
+            document.getElementById('adminMaskedEmail').textContent = resultado.maskedEmail;
+            adminSecurityCode.value = '';
+            adminCodeError.textContent = '';
+            adminCodeOverlay.classList.add('show');
+            setTimeout(() => adminSecurityCode.focus(), 50);
+        }
+
+        adminSecurityCode.addEventListener('input', () => { adminSecurityCode.value = adminSecurityCode.value.replace(/\D/g,'').slice(0,6); adminCodeError.textContent=''; });
+        document.getElementById('adminCodeCancel').addEventListener('click', () => { adminChallengeId=null; adminCodeOverlay.classList.remove('show'); const btn=document.getElementById('loginBtn'); btn.disabled=false; btn.innerHTML='<span>AUTENTICAR ACCESO</span>'; });
+        document.getElementById('adminCodeVerify').addEventListener('click', async () => {
+            if (!adminChallengeId || adminSecurityCode.value.length !== 6) { adminCodeError.textContent='Ingrese los 6 dígitos.'; return; }
+            const button=document.getElementById('adminCodeVerify'); button.disabled=true; button.textContent='Verificando...';
+            const result=await auth.verifyCode(adminChallengeId,adminSecurityCode.value);
+            button.disabled=false; button.textContent='Verificar e ingresar';
+            if (!result.success) { adminCodeError.textContent=result.message; adminSecurityCode.value=''; adminSecurityCode.focus(); return; }
+            window.location.href='/public/admin/index.html';
+        });
+        document.getElementById('adminCodeResend').addEventListener('click', async (event) => {
+            if (!adminChallengeId) return; const button=event.currentTarget; button.disabled=true; button.textContent='Enviando...';
+            try { const response=await fetch('/api/auth/resend-first-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({challengeId:adminChallengeId})});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.error||'No se pudo reenviar');adminChallengeId=data.data.challengeId;document.getElementById('adminMaskedEmail').textContent=data.data.maskedEmail;adminCodeError.style.color='#7bdc9b';adminCodeError.textContent='Código reenviado correctamente.'; } catch(error){adminCodeError.style.color='';adminCodeError.textContent=error.message;} finally{button.disabled=false;button.textContent='Reenviar código';}
+        });
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
@@ -412,7 +470,9 @@
             btn.innerHTML = '<div class="loader"></div><span>Verificando...</span>';
 
             const res = await auth.login(user, pass);
-            if (res.success) {
+            if (res.success && res.requiresVerification) {
+                abrirCodigoAdmin(res);
+            } else if (res.success) {
                 auth.mostrarMensaje('success', res.message);
                 // Esperar un momento para mostrar el mensaje, luego redirigir
                 await new Promise(r => setTimeout(r, 600));

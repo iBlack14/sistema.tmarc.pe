@@ -61,7 +61,7 @@ function emailCodigo(usuario, codigo) {
 </td></tr>
 <tr><td style="padding:38px 42px;text-align:center">
 <h1 style="font-size:25px;margin:0 0 12px">Código de acceso</h1>
-<p style="color:#666;line-height:1.55;margin:0 0 26px">Hola <strong>${String(usuario.nombre).replace(/[<>&"]/g, '')}</strong>, usa este código para verificar el primer ingreso a tu cuenta TMARC.</p>
+<p style="color:#666;line-height:1.55;margin:0 0 26px">Hola <strong>${String(usuario.nombre).replace(/[<>&"]/g, '')}</strong>, usa este código para autorizar tu inicio de sesión en SISTMARC.</p>
 <div style="display:inline-block;background:#d4af37;color:#1a1a1a;border-radius:12px;padding:17px 24px;font:700 34px monospace;letter-spacing:9px">${codigo}</div>
 <p style="color:#666;font-size:14px;margin:26px 0 0">El código vence en <strong>${CODE_TTL_MINUTES} minutos</strong> y solo puede usarse una vez.</p>
 <p style="color:#999;font-size:12px;margin:22px 0 0">Si no intentaste ingresar, no compartas este código y cambia tu contraseña.</p>
@@ -84,9 +84,9 @@ async function emitirCodigo(usuario) {
 
     const envio = await smtpConfigManager.enviarEmail({
         destinatario: usuario.email,
-        asunto: 'Código de acceso a tu cuenta TMARC',
+        asunto: 'Código de seguridad para ingresar a SISTMARC',
         contenido: emailCodigo(usuario, codigo),
-        tipo: 'primer_ingreso'
+        tipo: 'codigo_seguridad_login'
     });
 
     if (!envio.success || envio.estado === 'simulado' || envio.estado === 'pendiente_smtp') {
@@ -191,35 +191,21 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        if (usuario.tipo !== 'admin' && !Number(usuario.primer_ingreso_verificado)) {
-            try {
-                const challenge = await emitirCodigo(usuario);
-                return res.json({
-                    success: true,
-                    requiresVerification: true,
-                    message: 'Enviamos un código de acceso a tu correo',
-                    data: challenge
-                });
-            } catch (emailError) {
-                console.error('Error enviando código de primer ingreso:', emailError);
-                return res.status(503).json({
-                    success: false,
-                    error: 'Tus credenciales son correctas, pero no pudimos enviar el código. Verifica la configuración de correo o inténtalo nuevamente.'
-                });
-            }
+        try {
+            const challenge = await emitirCodigo(usuario);
+            return res.json({
+                success: true,
+                requiresVerification: true,
+                message: 'Enviamos un código de seguridad a tu correo',
+                data: challenge
+            });
+        } catch (emailError) {
+            console.error('Error enviando código de seguridad:', emailError);
+            return res.status(503).json({
+                success: false,
+                error: 'Tus credenciales son correctas, pero no pudimos enviar el código de seguridad. Inténtalo nuevamente o contacta a soporte.'
+            });
         }
-
-        await UsuarioModel.actualizarUltimoAcceso(usuario.id);
-        const token = crearToken(usuario);
-
-        res.json({
-            success: true,
-            message: 'Login exitoso',
-            data: {
-                usuario: usuarioPublico(usuario),
-                token: token
-            }
-        });
     } catch (error) {
         console.error('Error en login:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
@@ -267,7 +253,7 @@ router.post('/verify-first-login', async (req, res) => {
         const usuario = usuarioPublico(record);
         return res.json({
             success: true,
-            message: 'Correo verificado correctamente',
+            message: 'Inicio de sesión verificado correctamente',
             data: { usuario, token: crearToken(record) }
         });
     } catch (error) {
