@@ -73,6 +73,7 @@ config.local.json
 *.bak
 *.backup
 *~
+sistema.tmarc.pe.zip
 
 # Archivos de certificados (si los tienes)
 *.pem

@@ -179,9 +179,9 @@ class DashboardSections {
                     </div>
                 </section>
 
-                <section class="requests-summary" id="requestsSummary" aria-label="Resumen de solicitudes" style="display:none"><div class="requests-summary-copy"><span class="requests-summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l2 2 4-4M7 3h10a2 2 0 0 1 2 2v14H5V5a2 2 0 0 1 2-2Z"/></svg></span><div><span>Solicitudes aprobadas</span><small>Trámites concluidos favorablemente</small></div></div><strong id="solicitudes-aprobadas">0</strong></section>
+                <section class="requests-summary" id="requestsSummary" aria-label="Resumen de solicitudes" style="display:flex"><div class="requests-summary-copy"><span class="requests-summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l2 2 4-4M7 3h10a2 2 0 0 1 2 2v14H5V5a2 2 0 0 1 2-2Z"/></svg></span><div><span>Solicitudes aprobadas</span><small>Trámites concluidos favorablemente</small></div></div><strong id="solicitudes-aprobadas">0</strong></section>
 
-                <section class="requests-history card" id="solicitudesHistoryView" style="display:none">
+                <section class="requests-history card" id="solicitudesHistoryView" style="display:block">
                     <div class="requests-section-heading">
                         <div>
                             <span class="requests-eyebrow">Seguimiento</span>

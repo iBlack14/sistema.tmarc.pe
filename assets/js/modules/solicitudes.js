@@ -260,9 +260,17 @@ class SolicitudesModule {
             : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg> Volver a servicios';
     }
 
+    mostrarHistorialSolicitudes() {
+        const history = document.getElementById('solicitudesHistoryView');
+        const summary = document.getElementById('requestsSummary');
+        if (history) history.style.display = 'block';
+        if (summary) summary.style.display = 'flex';
+        history?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     continueToSolicitudForm() {
         document.getElementById('modalSolicitud')?.classList.remove('active');
-        window.mesaPartesModule?.presentarDocumento({ modo:'mesa_servicio', servicio:this.selectedService });
+        window.mesaPartesModule?.presentarDocumento({ modo:'solicitud_servicio', servicio:this.selectedService });
     }
 
     backToServiceSelector() {

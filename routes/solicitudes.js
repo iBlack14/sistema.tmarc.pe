@@ -237,8 +237,8 @@ router.get('/:id/archivos', async (req, res) => {
 
 // Crear nueva solicitud con archivos
 router.post('/', upload.fields([
-    { name: 'documentos_principales', maxCount: 5 },
-    { name: 'anexos', maxCount: 5 }
+    { name: 'documentos_principales', maxCount: 1 },
+    { name: 'anexos', maxCount: 9 }
 ]), async (req, res) => {
     try {
         const {

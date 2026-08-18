@@ -562,8 +562,8 @@ class MesaPartesModule {
         if (servicio && selector) selector.value = servicio.title;
         const titulo = modal.querySelector('[data-mesa-form-title]');
         const subtitulo = modal.querySelector('[data-mesa-form-subtitle]');
-        if (titulo) titulo.textContent = this.modoPresentacion === 'mesa_servicio' ? `Nueva presentación: ${servicio?.title || 'TMARC'}` : 'Nueva Presentación Procesal';
-        if (subtitulo) subtitulo.textContent = 'Mesa de Partes Virtual - SISTMARC';
+        if (titulo) titulo.textContent = this.modoPresentacion === 'solicitud_servicio' ? `Nueva solicitud: ${servicio?.title || 'TMARC'}` : 'Nueva Presentación Procesal';
+        if (subtitulo) subtitulo.textContent = this.modoPresentacion === 'solicitud_servicio' ? 'Gestión de Solicitudes - SISTMARC' : 'Mesa de Partes Virtual - SISTMARC';
         const botonEnviar = modal.querySelector('#formMesaPartes > div:not(#mesaCamposAntiguos) button[type="submit"]');
         if (botonEnviar) botonEnviar.textContent = '🚀 Presentar documento';
     }
@@ -622,7 +622,7 @@ class MesaPartesModule {
 
                     <div class="mesa-seccion"><div class="mesa-seccion-titulo">📋 3. Detalles de la solicitud</div><div class="mesa-seccion-cuerpo"><div class="mesa-form-grid"><div class="form-group mesa-full"><label class="stat-label">Asunto *</label><input id="mesaAsunto" class="form-input" maxlength="150" required></div><div class="form-group"><label class="stat-label">Tipo de solicitud *</label><select id="tipoDocumentoMesa" class="form-select"><option value="Arbitraje">Arbitraje</option><option value="Junta de Prevención y Resolución de Disputas">Junta de Prevención y Resolución de Disputas</option><option value="Conciliación Extrajudicial">Conciliación Extrajudicial</option><option value="Arbitraje de Emergencia">Arbitraje de Emergencia</option><option value="Arbitraje Express">Arbitraje Express</option><option value="Arbitraje entre privados">Arbitraje entre privados</option><option value="Recusación">Recusación</option><option value="Centro de Formación y Capacitación">Centro de Formación y Capacitación</option><option value="Otro">Otro</option></select></div><div class="form-group"><label class="stat-label">Cuantía (S/) — opcional</label><input type="number" id="mesaCuantia" class="form-input" min="0" step="0.01"></div><div class="form-group mesa-full"><label class="stat-label">Descripción / Sumilla</label><textarea id="descripcionMesa" class="form-input" rows="4"></textarea></div></div></div></div>
 
-                    <div class="mesa-seccion"><div class="mesa-seccion-titulo">📎 4. Anexos</div><div class="mesa-seccion-cuerpo"><div style="padding:14px;border:1px dashed #d4af37;border-radius:11px"><button type="button" class="btn btn-secondary" onclick="document.getElementById('archivosMesa').click()">＋ Seleccionar archivos</button><span id="archivosMesaResumen" class="text-muted" style="font-size:11px;margin-left:10px">Ningún archivo seleccionado</span><input type="file" id="archivosMesa" multiple style="display:none" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"></div><small style="display:block;margin:8px 0;color:#777">Máximo 10 archivos. Complete la información de cada anexo.</small><div id="mesaArchivosWrap"><table id="mesaArchivosTabla"><thead><tr><th>#</th><th>Archivo</th><th>Página fin</th><th>Descripción</th><th>Folios</th><th>Peso</th><th></th></tr></thead><tbody id="mesaArchivosLista"><tr><td colspan="7" style="text-align:center;padding:20px;color:#888">No se han agregado archivos</td></tr></tbody></table></div><div style="margin-top:10px;text-align:right;font-size:12px;font-weight:700">Total: <span id="mesaPesoTotal">0 MB</span></div></div></div>
+                    <div class="mesa-seccion"><div class="mesa-seccion-titulo">📎 4. Anexos</div><div class="mesa-seccion-cuerpo"><div style="padding:14px;border:1px dashed #d4af37;border-radius:11px"><button type="button" class="btn btn-secondary" onclick="mesaPartesModule.getControlMesa('archivosMesa')?.click()">＋ Seleccionar archivos</button><span id="archivosMesaResumen" class="text-muted" style="font-size:11px;margin-left:10px">Ningún archivo seleccionado</span><input type="file" id="archivosMesa" multiple style="display:none" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"></div><small style="display:block;margin:8px 0;color:#777">Máximo 10 archivos. Complete la información de cada anexo.</small><div id="mesaArchivosWrap"><table id="mesaArchivosTabla"><thead><tr><th>#</th><th>Archivo</th><th>Página fin</th><th>Descripción</th><th>Folios</th><th>Peso</th><th></th></tr></thead><tbody id="mesaArchivosLista"><tr><td colspan="7" style="text-align:center;padding:20px;color:#888">No se han agregado archivos</td></tr></tbody></table></div><div style="margin-top:10px;text-align:right;font-size:12px;font-weight:700">Total: <span id="mesaPesoTotal">0 MB</span></div></div></div>
 
                     <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--glass-border);display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap"><button type="submit" class="btn btn-primary" style="padding:11px 36px;font-weight:600">🚀 Enviar solicitud</button></div>
                     <div id="mesaCamposAntiguos" style="display:none">
@@ -780,16 +780,17 @@ class MesaPartesModule {
     }
 
     alternarPersonaMesa(rol, tipo) {
+        const formulario = this.getFormularioMesaActivo();
         const prefijo = rol === 'demandante' ? 'mesaDemandante' : 'mesaDemandado';
-        const natural = document.getElementById(`${prefijo}Natural`);
-        const juridica = document.getElementById(`${prefijo}Juridica`);
+        const natural = formulario?.querySelector(`#${prefijo}Natural`);
+        const juridica = formulario?.querySelector(`#${prefijo}Juridica`);
         if (natural) natural.style.display = tipo === 'natural' ? 'grid' : 'none';
         if (juridica) juridica.style.display = tipo === 'juridica' ? 'grid' : 'none';
         natural?.querySelectorAll('input, select').forEach(control => control.disabled = tipo !== 'natural');
         juridica?.querySelectorAll('input, select').forEach(control => control.disabled = tipo !== 'juridica');
         if (rol === 'demandante') {
-            const camposNaturales = [document.getElementById('mesaNombre'), document.getElementById('mesaDni')];
-            const camposJuridicos = [document.getElementById('mesaRazonSocial'), document.getElementById('mesaRuc')];
+            const camposNaturales = [this.getControlMesa('mesaNombre'), this.getControlMesa('mesaDni')];
+            const camposJuridicos = [this.getControlMesa('mesaRazonSocial'), this.getControlMesa('mesaRuc')];
             camposNaturales.forEach(control => { if (control) control.required = tipo === 'natural'; });
             camposJuridicos.forEach(control => { if (control) control.required = tipo === 'juridica'; });
         }
@@ -799,12 +800,21 @@ class MesaPartesModule {
         const nuevos = Array.from(fileList || []);
         if (this.mesaArchivos.length + nuevos.length > 10) {
             this.dashboard.showError('Puede adjuntar como máximo 10 archivos.');
-            document.getElementById('archivosMesa').value = '';
+            this.getControlMesa('archivosMesa').value = '';
             return;
         }
         nuevos.forEach(archivo => this.mesaArchivos.push({ archivo, paginaFin: 0, descripcion: '', folios: 0 }));
-        document.getElementById('archivosMesa').value = '';
+        this.getControlMesa('archivosMesa').value = '';
         this.renderizarArchivosMesa();
+    }
+
+    getFormularioMesaActivo() {
+        return document.querySelector('#modalPresentarDocumento.active #formMesaPartes') ||
+            document.querySelector('#mesa-formulario-inline #formMesaPartes');
+    }
+
+    getControlMesa(id) {
+        return this.getFormularioMesaActivo()?.querySelector(`#${id}`) || null;
     }
 
     quitarArchivoMesa(indice) {
@@ -817,9 +827,9 @@ class MesaPartesModule {
     }
 
     renderizarArchivosMesa() {
-        const lista = document.getElementById('mesaArchivosLista');
-        const resumen = document.getElementById('archivosMesaResumen');
-        const peso = document.getElementById('mesaPesoTotal');
+        const lista = this.getControlMesa('mesaArchivosLista');
+        const resumen = this.getControlMesa('archivosMesaResumen');
+        const peso = this.getControlMesa('mesaPesoTotal');
         if (!lista) return;
         resumen.textContent = this.mesaArchivos.length ? `${this.mesaArchivos.length} archivo(s) seleccionado(s)` : 'Ningún archivo seleccionado';
         peso.textContent = `${(this.mesaArchivos.reduce((total, item) => total + item.archivo.size, 0) / 1048576).toFixed(2)} MB`;
@@ -834,18 +844,20 @@ class MesaPartesModule {
      * Submit documento
      */
     async submitDocumento() {
-        const tipo        = document.getElementById('tipoDocumentoMesa')?.value;
-        const tipoDemandante = document.querySelector('input[name="mesaTipoDemandante"]:checked')?.value || 'natural';
-        const tipoDemandado = document.querySelector('input[name="mesaTipoDemandado"]:checked')?.value || 'natural';
-        const nombre      = (tipoDemandante === 'juridica' ? document.getElementById('mesaRazonSocial')?.value : document.getElementById('mesaNombre')?.value)?.trim();
-        const dni         = (tipoDemandante === 'juridica' ? document.getElementById('mesaRuc')?.value : document.getElementById('mesaDni')?.value)?.trim();
-        const telefono    = document.getElementById('mesaTelefono')?.value?.trim() || '';
-        const email       = document.getElementById('mesaEmail')?.value?.trim() || '';
-        const asunto      = document.getElementById('mesaAsunto')?.value?.trim();
-        const descripcion = document.getElementById('descripcionMesa')?.value?.trim() || '';
-        const cuantia     = document.getElementById('mesaCuantia')?.value || null;
-        const demNombre   = (tipoDemandado === 'juridica' ? document.getElementById('mesaDemandadoRazon')?.value : document.getElementById('mesaDemandadoNombre')?.value)?.trim() || 'N/A';
-        const demDni      = (tipoDemandado === 'juridica' ? document.getElementById('mesaDemandadoRuc')?.value : document.getElementById('mesaDemandadoDni')?.value)?.trim() || '';
+        const formulario = this.getFormularioMesaActivo();
+        const esSolicitud = this.modoPresentacion === 'solicitud_servicio';
+        const tipo        = this.getControlMesa('tipoDocumentoMesa')?.value;
+        const tipoDemandante = formulario?.querySelector('input[name="mesaTipoDemandante"]:checked')?.value || 'natural';
+        const tipoDemandado = formulario?.querySelector('input[name="mesaTipoDemandado"]:checked')?.value || 'natural';
+        const nombre      = (tipoDemandante === 'juridica' ? this.getControlMesa('mesaRazonSocial')?.value : this.getControlMesa('mesaNombre')?.value)?.trim();
+        const dni         = (tipoDemandante === 'juridica' ? this.getControlMesa('mesaRuc')?.value : this.getControlMesa('mesaDni')?.value)?.trim();
+        const telefono    = this.getControlMesa('mesaTelefono')?.value?.trim() || '';
+        const email       = this.getControlMesa('mesaEmail')?.value?.trim() || '';
+        const asunto      = this.getControlMesa('mesaAsunto')?.value?.trim();
+        const descripcion = this.getControlMesa('descripcionMesa')?.value?.trim() || '';
+        const cuantia     = this.getControlMesa('mesaCuantia')?.value || null;
+        const demNombre   = (tipoDemandado === 'juridica' ? this.getControlMesa('mesaDemandadoRazon')?.value : this.getControlMesa('mesaDemandadoNombre')?.value)?.trim() || 'N/A';
+        const demDni      = (tipoDemandado === 'juridica' ? this.getControlMesa('mesaDemandadoRuc')?.value : this.getControlMesa('mesaDemandadoDni')?.value)?.trim() || '';
         if (!tipo || !nombre || !dni || !asunto) {
             this.dashboard.showError('Por favor, complete los campos obligatorios: Nombre, DNI, Tipo y Asunto.');
             return;
@@ -856,7 +868,7 @@ class MesaPartesModule {
             return;
         }
 
-        const btn = document.querySelector('#formMesaPartes button[type="submit"]');
+        const btn = formulario?.querySelector('button[type="submit"]');
         if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
 
         try {
@@ -864,44 +876,76 @@ class MesaPartesModule {
             if (!usuarioId) { this.dashboard.showError('Error: No se encontró el ID de usuario'); return; }
 
             const formData = new FormData();
-            formData.append('usuario_id', usuarioId);
-            formData.append('tipo_presentacion', tipo);
-            formData.append('materia', asunto);
-            formData.append('sumilla', descripcion || asunto);
-            if (cuantia) formData.append('cuantia', cuantia);
-
-            formData.append('demandante', JSON.stringify({
+            const demandante = {
                 tipo_persona:     tipoDemandante,
                 nombre:           nombre,
                 correo:           email,
                 telefono:         telefono,
-                domicilio:        document.getElementById('mesaDomicilio')?.value?.trim() || '',
-                representante:    tipoDemandante === 'juridica' ? document.getElementById('mesaRepresentante')?.value?.trim() || '' : '',
-                documento_tipo:   tipoDemandante === 'juridica' ? 'RUC' : document.getElementById('mesaDocTipo')?.value,
+                domicilio:        this.getControlMesa('mesaDomicilio')?.value?.trim() || '',
+                representante:    tipoDemandante === 'juridica' ? this.getControlMesa('mesaRepresentante')?.value?.trim() || '' : '',
+                documento_tipo:   tipoDemandante === 'juridica' ? 'RUC' : this.getControlMesa('mesaDocTipo')?.value,
                 documento_numero: dni
-            }));
+            };
 
-            formData.append('demandado', JSON.stringify({
+            const demandado = {
                 tipo_persona:     tipoDemandado,
                 nombre:           demNombre,
-                documento_tipo:   tipoDemandado === 'juridica' ? 'RUC' : document.getElementById('mesaDemandadoDocTipo')?.value,
+                documento_tipo:   tipoDemandado === 'juridica' ? 'RUC' : this.getControlMesa('mesaDemandadoDocTipo')?.value,
                 documento_numero: demDni,
-                representante:    tipoDemandado === 'juridica' ? document.getElementById('mesaDemandadoRepresentante')?.value?.trim() || '' : '',
-                correo:           document.getElementById('mesaDemandadoEmail')?.value?.trim() || '',
-                telefono:         document.getElementById('mesaDemandadoTelefono')?.value?.trim() || '',
-                domicilio:        document.getElementById('mesaDemandadoDomicilio')?.value?.trim() || ''
-            }));
+                representante:    tipoDemandado === 'juridica' ? this.getControlMesa('mesaDemandadoRepresentante')?.value?.trim() || '' : '',
+                correo:           this.getControlMesa('mesaDemandadoEmail')?.value?.trim() || '',
+                telefono:         this.getControlMesa('mesaDemandadoTelefono')?.value?.trim() || '',
+                domicilio:        this.getControlMesa('mesaDemandadoDomicilio')?.value?.trim() || ''
+            };
 
-            this.mesaArchivos.forEach(item => formData.append('documentos', item.archivo));
-            formData.append('documentos_metadata', JSON.stringify(this.mesaArchivos.map(item => ({ nombre: item.archivo.name, pagina_fin: item.paginaFin, descripcion: item.descripcion, folios: item.folios }))));
+            formData.append('usuario_id', usuarioId);
+            if (esSolicitud) {
+                formData.append('nombre', nombre);
+                formData.append('email', email);
+                formData.append('telefono', telefono);
+                formData.append('dni', dni);
+                formData.append('tipo', tipo);
+                formData.append('asunto', asunto);
+                formData.append('descripcion', descripcion);
+                formData.append('prioridad', 'normal');
+                formData.append('demandado_nombre', demNombre === 'N/A' ? '' : demNombre);
+                formData.append('demandado_dni', demDni);
+                formData.append('demandado_email', demandado.correo);
+                formData.append('documentos_principales', this.mesaArchivos[0].archivo);
+                this.mesaArchivos.slice(1).forEach(item => formData.append('anexos', item.archivo));
+            } else {
+                formData.append('tipo_presentacion', tipo);
+                formData.append('materia', asunto);
+                formData.append('sumilla', descripcion || asunto);
+                if (cuantia) formData.append('cuantia', cuantia);
+                formData.append('demandante', JSON.stringify(demandante));
+                formData.append('demandado', JSON.stringify(demandado));
+                this.mesaArchivos.forEach(item => formData.append('documentos', item.archivo));
+                formData.append('documentos_metadata', JSON.stringify(this.mesaArchivos.map(item => ({ nombre: item.archivo.name, pagina_fin: item.paginaFin, descripcion: item.descripcion, folios: item.folios }))));
+            }
 
-            const response = await fetch('/api/mesa-partes', { method: 'POST', body: formData });
+            const response = await fetch(esSolicitud ? '/api/solicitudes' : '/api/mesa-partes', { method: 'POST', body: formData });
             const result   = await response.json();
 
             if (result.success) {
                 this.closeDocumentoModal();
-                await this.loadDocumentosPresentados();
-                await this.mostrarCargoRecepcion(result.data || {
+                if (esSolicitud) {
+                    await window.solicitudesModule?.loadSolicitudesUsuario();
+                    await window.solicitudesModule?.mostrarCargoSolicitud(result.data?.solicitud || {
+                        id: result.data?.id,
+                        nombre,
+                        tipo,
+                        asunto,
+                        descripcion,
+                        fecha_creacion: new Date().toISOString(),
+                        documentos: this.mesaArchivos.map(item => ({ nombre_original: item.archivo.name }))
+                    });
+                    window.location.hash = 'solicitudes';
+                    this.dashboard.showSection('solicitudes');
+                    window.solicitudesModule?.mostrarHistorialSolicitudes();
+                } else {
+                    await this.loadDocumentosPresentados();
+                    await this.mostrarCargoRecepcion(result.data || {
                     id: result.numero_registro,
                     numero_registro: result.numero_registro,
                     demandante: { nombre },
@@ -910,11 +954,7 @@ class MesaPartesModule {
                     sumilla: descripcion,
                     fecha_presentacion: new Date().toISOString(),
                     documentos: this.mesaArchivos.map(item => ({ nombre_original: item.archivo.name }))
-                });
-                if (this.modoPresentacion === 'mesa_servicio') {
-                    window.location.hash = 'mesa';
-                    this.dashboard.showSection('mesa');
-                } else {
+                    });
                     this.mostrarFormularioInline();
                 }
             } else {
