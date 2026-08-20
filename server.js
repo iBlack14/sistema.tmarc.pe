@@ -348,7 +348,7 @@ async function iniciarServidor() {
     console.log('✅ Base de datos inicializada');
   } catch (error) {
     console.error('❌ Error iniciando base de datos:', error);
-    console.log('⚠️ El servidor sigue arriba; puedes luego llamar /api/init-db');
+    throw error;
   }
 
   try {

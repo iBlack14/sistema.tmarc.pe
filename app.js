@@ -254,7 +254,7 @@ async function inicializarServicios() {
     console.log('✅ Base de datos inicializada');
   } catch (error) {
     console.error('❌ Error iniciando base de datos:', error);
-    console.log('⚠️ Puedes llamar /api/init-db manualmente');
+    throw error;
   }
 
   try {

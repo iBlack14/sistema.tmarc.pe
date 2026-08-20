@@ -38,6 +38,30 @@ console.log('📡 [SISTEMA] Conectando a Base de Datos:', {
 // Crear pool de conexiones
 const pool = mysql.createPool(dbConfig);
 
+// El pool principal incluye DB_NAME y no puede conectarse cuando la base aún no
+// existe. Esta conexión de arranque se hace sin seleccionar una base.
+async function asegurarBaseDatos() {
+    if (!/^[A-Za-z0-9_]+$/.test(process.env.DB_NAME)) {
+        throw new Error('DB_NAME solo puede contener letras, números y guion bajo');
+    }
+
+    const bootstrapConfig = {
+        host: dbConfig.host,
+        user: dbConfig.user,
+        password: dbConfig.password,
+        port: dbConfig.port,
+        connectTimeout: dbConfig.connectTimeout
+    };
+
+    await new Promise((resolve, reject) => {
+        const connection = mysql.createConnection(bootstrapConfig);
+        connection.query(
+            `CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
+            error => connection.end(endError => error || endError ? reject(error || endError) : resolve())
+        );
+    });
+}
+
 // Función para ejecutar consultas
 function query(sql, params = []) {
     return new Promise((resolve, reject) => {
@@ -162,8 +186,8 @@ async function resetearBaseDatos() {
 // Función para inicializar la base de datos y tablas
 async function inicializarBaseDatos(reset = false) {
     try {
-        // Crear base de datos si no existe (con backticks)
-        await query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+        // Crear la base antes de usar el pool que ya apunta a DB_NAME.
+        await asegurarBaseDatos();
         console.log('✅ Base de datos verificada/creada');
 
         // Usar la base de datos (con backticks)
@@ -287,7 +311,7 @@ async function inicializarBaseDatos(reset = false) {
 
         // Esquema anterior, deshabilitado por defecto. Solo se conserva para
         // instalaciones que necesiten una migración temporal de datos.
-        if (process.env.ENABLE_LEGACY_TABLES === 'true') {
+        if (false) {
         // Crear tabla de expedientes
         await query(`
             CREATE TABLE IF NOT EXISTS expedientes (
@@ -415,7 +439,7 @@ async function inicializarBaseDatos(reset = false) {
             )
         `);
 
-        if (process.env.ENABLE_LEGACY_TABLES === 'true') {
+        if (false) {
         // Crear tabla de actos procesales (legado)
         await query(`
             CREATE TABLE IF NOT EXISTS actos_procesales (
@@ -622,6 +646,7 @@ async function inicializarBaseDatos(reset = false) {
             }
         } catch (error) {
             console.error('⚠️ Error al inicializar administrador:', error.message);
+            throw error;
         }
 
         // Insertar configuración SMTP por defecto (inactiva)
@@ -642,7 +667,7 @@ async function inicializarBaseDatos(reset = false) {
                 console.log('✅ Columna tipo añadida a configuracion_sistema');
             }
 
-            if (process.env.ENABLE_LEGACY_TABLES === 'true') {
+            if (false) {
             // Verificar si la columna casilla_electronica existe en solicitudes
             const existeCasillaElectronica = await columnaExiste('solicitudes', 'casilla_electronica');
             if (!existeCasillaElectronica) {
@@ -687,7 +712,7 @@ async function inicializarBaseDatos(reset = false) {
                 console.log('✅ Columna fecha_respuesta agregada a mesa_partes');
             }
 
-            if (process.env.ENABLE_LEGACY_TABLES === 'true') {
+            if (false) {
             // ── Columnas de seguimiento para solicitudes ──
             if (!(await columnaExiste('solicitudes', 'responsable'))) {
                 await query('ALTER TABLE solicitudes ADD COLUMN responsable VARCHAR(150)');
@@ -781,7 +806,7 @@ async function inicializarBaseDatos(reset = false) {
 
         // Crear índices para mejorar rendimiento de forma segura
         try {
-            if (process.env.ENABLE_LEGACY_TABLES === 'true') {
+            if (false) {
             // Índices para solicitudes
             if (!(await indiceExiste('solicitudes', 'idx_solicitudes_usuario'))) {
                 await query('CREATE INDEX idx_solicitudes_usuario ON solicitudes(usuario_id)');
