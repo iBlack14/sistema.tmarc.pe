@@ -285,6 +285,9 @@ async function inicializarBaseDatos(reset = false) {
             await query('ALTER TABLE mesa_partes ADD COLUMN sumilla TEXT AFTER cuantia');
         }
 
+        // Esquema anterior, deshabilitado por defecto. Solo se conserva para
+        // instalaciones que necesiten una migración temporal de datos.
+        if (process.env.ENABLE_LEGACY_TABLES === 'true') {
         // Crear tabla de expedientes
         await query(`
             CREATE TABLE IF NOT EXISTS expedientes (
@@ -394,6 +397,8 @@ async function inicializarBaseDatos(reset = false) {
             )
         `);
 
+        }
+
         // Crear tabla de notificaciones
         await query(`
             CREATE TABLE IF NOT EXISTS notificaciones (
@@ -410,7 +415,8 @@ async function inicializarBaseDatos(reset = false) {
             )
         `);
 
-        // Crear tabla de actos procesales (EL CORAZÓN DEL SEGUIMIENTO)
+        if (process.env.ENABLE_LEGACY_TABLES === 'true') {
+        // Crear tabla de actos procesales (legado)
         await query(`
             CREATE TABLE IF NOT EXISTS actos_procesales (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -452,6 +458,8 @@ async function inicializarBaseDatos(reset = false) {
                 FOREIGN KEY (acto_procesal_id) REFERENCES actos_procesales(id) ON DELETE SET NULL
             )
         `);
+
+        }
 
         // Crear tabla de respuestas del administrador
         await query(`
@@ -572,7 +580,6 @@ async function inicializarBaseDatos(reset = false) {
                 INDEX idx_st_fecha (fecha_documento),
                 INDEX idx_st_tipo (tipo_documento),
                 
-                FOREIGN KEY (expediente_id) REFERENCES expedientes(id) ON DELETE CASCADE,
                 FOREIGN KEY (mesa_partes_id) REFERENCES mesa_partes(id) ON DELETE CASCADE,
                 FOREIGN KEY (creado_por) REFERENCES usuarios(id) ON DELETE SET NULL
             )
@@ -635,6 +642,7 @@ async function inicializarBaseDatos(reset = false) {
                 console.log('✅ Columna tipo añadida a configuracion_sistema');
             }
 
+            if (process.env.ENABLE_LEGACY_TABLES === 'true') {
             // Verificar si la columna casilla_electronica existe en solicitudes
             const existeCasillaElectronica = await columnaExiste('solicitudes', 'casilla_electronica');
             if (!existeCasillaElectronica) {
@@ -642,6 +650,8 @@ async function inicializarBaseDatos(reset = false) {
                 console.log('✅ Columna casilla_electronica agregada a solicitudes');
             } else {
                 console.log('ℹ️  Columna casilla_electronica ya existe en solicitudes');
+            }
+
             }
 
             // ── Columnas de seguimiento para mesa_partes ──
@@ -677,6 +687,7 @@ async function inicializarBaseDatos(reset = false) {
                 console.log('✅ Columna fecha_respuesta agregada a mesa_partes');
             }
 
+            if (process.env.ENABLE_LEGACY_TABLES === 'true') {
             // ── Columnas de seguimiento para solicitudes ──
             if (!(await columnaExiste('solicitudes', 'responsable'))) {
                 await query('ALTER TABLE solicitudes ADD COLUMN responsable VARCHAR(150)');
@@ -749,6 +760,8 @@ async function inicializarBaseDatos(reset = false) {
                 console.log('✅ Columna demandado_domicilio agregada a expedientes');
             }
 
+            }
+
             // ── Columna archivo_adjunto para notificaciones ──
             if (!(await columnaExiste('notificaciones', 'archivo_adjunto'))) {
                 await query('ALTER TABLE notificaciones ADD COLUMN archivo_adjunto JSON AFTER solicitud_id');
@@ -768,6 +781,7 @@ async function inicializarBaseDatos(reset = false) {
 
         // Crear índices para mejorar rendimiento de forma segura
         try {
+            if (process.env.ENABLE_LEGACY_TABLES === 'true') {
             // Índices para solicitudes
             if (!(await indiceExiste('solicitudes', 'idx_solicitudes_usuario'))) {
                 await query('CREATE INDEX idx_solicitudes_usuario ON solicitudes(usuario_id)');
@@ -798,6 +812,8 @@ async function inicializarBaseDatos(reset = false) {
             if (!(await indiceExiste('expedientes', 'idx_expedientes_numero'))) {
                 await query('CREATE INDEX idx_expedientes_numero ON expedientes(numero)');
                 console.log('✅ Índice idx_expedientes_numero creado');
+            }
+
             }
 
             // Índices para notificaciones

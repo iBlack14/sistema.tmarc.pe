@@ -66,14 +66,8 @@ async function registrarAuditoria(tabla, registro_id, accion, usuario_id, datos)
 async function verificarFuente(fuente, id) {
     let rows;
     switch (fuente) {
-        case 'expedientes':
-            rows = await query('SELECT id FROM expedientes WHERE id = ? OR numero = ? LIMIT 1', [id, id]);
-            return rows[0] || null;
         case 'mesa-partes':
             rows = await query('SELECT id FROM mesa_partes WHERE id = ? OR numero_registro = ? LIMIT 1', [id, id]);
-            return rows[0] || null;
-        case 'solicitudes':
-            rows = await query('SELECT id FROM solicitudes WHERE id = ? LIMIT 1', [id]);
             return rows[0] || null;
         default:
             return null;
@@ -83,9 +77,7 @@ async function verificarFuente(fuente, id) {
 // Construir WHERE según fuente
 function buildForeignKey(fuente) {
     switch (fuente) {
-        case 'expedientes': return 'expediente_id';
         case 'mesa-partes': return 'mesa_partes_id';
-        case 'solicitudes': return 'solicitud_id';
         default: return null;
     }
 }
@@ -107,17 +99,12 @@ router.get('/resumen-actividad', verificarAuth, async (req, res) => {
             SELECT 
                 st.*, 
                 u.nombre AS creado_por_nombre,
-                COALESCE(e.numero, mp.numero_registro, s.id) AS codigo_referencia,
-                CASE 
-                    WHEN st.expediente_id IS NOT NULL THEN 'expediente'
-                    WHEN st.mesa_partes_id IS NOT NULL THEN 'mesa_partes'
-                    WHEN st.solicitud_id IS NOT NULL THEN 'solicitud'
-                END AS fuente_tipo
+                mp.numero_registro AS codigo_referencia,
+                'mesa_partes' AS fuente_tipo
             FROM seguimiento_timeline st
             LEFT JOIN usuarios u ON st.creado_por = u.id
-            LEFT JOIN expedientes e ON st.expediente_id = e.id
             LEFT JOIN mesa_partes mp ON st.mesa_partes_id = mp.id
-            LEFT JOIN solicitudes s ON st.solicitud_id = s.id
+            WHERE st.mesa_partes_id IS NOT NULL
             ORDER BY st.id DESC
             LIMIT 10
         `);
@@ -158,7 +145,7 @@ router.get('/:fuente/:id/timeline', async (req, res) => {
     try {
         const { fuente, id } = req.params;
         const fk = buildForeignKey(fuente);
-        if (!fk) return res.status(400).json({ success: false, error: 'Fuente inválida. Use: expedientes, mesa-partes, solicitudes' });
+        if (!fk) return res.status(410).json({ success: false, error: 'Fuente retirada. Use: mesa-partes' });
 
         const registro = await verificarFuente(fuente, id);
         if (!registro) return res.status(404).json({ success: false, error: 'Registro no encontrado' });
@@ -325,10 +312,6 @@ router.post('/timeline/:id/confirmar-recepcion', async (req, res) => {
         let referencia;
         if (movimiento.mesa_partes_id) {
             [referencia] = await query(`SELECT mp.numero_registro AS codigo, mp.usuario_id, u.nombre, u.email FROM mesa_partes mp LEFT JOIN usuarios u ON u.id=mp.usuario_id WHERE mp.id=?`, [movimiento.mesa_partes_id]);
-        } else if (movimiento.expediente_id) {
-            [referencia] = await query(`SELECT e.numero AS codigo, e.usuario_id, u.nombre, u.email FROM expedientes e LEFT JOIN usuarios u ON u.id=e.usuario_id WHERE e.id=?`, [movimiento.expediente_id]);
-        } else if (movimiento.solicitud_id) {
-            [referencia] = await query(`SELECT s.id AS codigo, s.usuario_id, u.nombre, u.email FROM solicitudes s LEFT JOIN usuarios u ON u.id=s.usuario_id WHERE s.id=?`, [movimiento.solicitud_id]);
         }
         if (!referencia) return res.status(404).json({ success:false, error:'No se encontró la presentación relacionada' });
 
@@ -494,13 +477,7 @@ router.get('/seguimiento-completo/:codigo', verificarAuth, async (req, res) => {
         const upper = codigo.toUpperCase();
 
         // ── 1. Buscar en expedientes ──
-        let rows = await query(`
-            SELECT e.*, u.nombre AS nombre_usuario
-            FROM expedientes e
-            LEFT JOIN usuarios u ON e.usuario_id = u.id
-            WHERE UPPER(e.id) = ? OR UPPER(e.numero) = ? OR UPPER(e.numero) LIKE ?
-            LIMIT 1
-        `, [upper, upper, `%${upper}%`]);
+        const rows = [];
 
         if (rows && rows.length > 0) {
             const exp = rows[0];
@@ -673,13 +650,7 @@ router.get('/seguimiento-completo/:codigo', verificarAuth, async (req, res) => {
         }
 
         // ── 3. Buscar en solicitudes ──
-        const solRows = await query(`
-            SELECT s.*, u.nombre AS nombre_usuario
-            FROM solicitudes s
-            LEFT JOIN usuarios u ON s.usuario_id = u.id
-            WHERE UPPER(s.id) = ?
-            LIMIT 1
-        `, [upper]);
+        const solRows = [];
 
         if (solRows && solRows.length > 0) {
             const sol = solRows[0];

@@ -1066,7 +1066,7 @@
                 </div>
                 <span class="nav-label">CASILLA</span>
             </div>
-            <div class="nav-item" onclick="showSection('expedientes', this)" title="Expedientes" aria-label="Expedientes">
+            <div class="nav-item" onclick="showSection('expedientes', this)" title="Expedientes" aria-label="Expedientes" style="display:none">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path
@@ -1075,7 +1075,7 @@
                 </div>
                 <span class="nav-label">EXPEDIENTES</span>
             </div>
-            <div class="nav-item" onclick="showSection('solicitudes', this)" title="Solicitudes" aria-label="Solicitudes">
+            <div class="nav-item" onclick="showSection('solicitudes', this)" title="Solicitudes" aria-label="Solicitudes" style="display:none">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path
@@ -1144,12 +1144,12 @@
                     <div class="stat-value" id="stat-usuarios">0</div>
                     <small style="color: #666; font-size: 12px;" id="stat-usuarios-nuevos">0 nuevos esta semana</small>
                 </div>
-                <div class="stat-card" onclick="showSection('solicitudes')" style="cursor: pointer;">
+                <div class="stat-card" onclick="showSection('solicitudes')" style="display:none; cursor: pointer;">
                     <div class="stat-label">📋 Solicitudes Pendientes</div>
                     <div class="stat-value" id="stat-solicitudes">0</div>
                     <small style="color: #666; font-size: 12px;" id="stat-solicitudes-total">0 total</small>
                 </div>
-                <div class="stat-card" onclick="showSection('expedientes')" style="cursor: pointer;">
+                <div class="stat-card" onclick="showSection('expedientes')" style="display:none; cursor: pointer;">
                     <div class="stat-label">📁 Expedientes Activos</div>
                     <div class="stat-value" id="stat-expedientes">0</div>
                     <small style="color: #666; font-size: 12px;" id="stat-expedientes-total">0 total</small>
@@ -1315,11 +1315,11 @@
                     onclick="CasillaUnificada.filtrar('mesa_partes')">
                     📨 Mesa de Partes <span class="filter-badge" data-badge-tipo="mesa_partes">0</span>
                 </button>
-                <button class="btn btn-secondary filter-btn" data-filtro-tipo="expediente"
+                <button class="btn btn-secondary filter-btn" data-filtro-tipo="expediente" style="display:none"
                     onclick="CasillaUnificada.filtrar('expediente')">
                     📁 Expedientes <span class="filter-badge" data-badge-tipo="expediente">0</span>
                 </button>
-                <button class="btn btn-secondary filter-btn" data-filtro-tipo="solicitud"
+                <button class="btn btn-secondary filter-btn" data-filtro-tipo="solicitud" style="display:none"
                     onclick="CasillaUnificada.filtrar('solicitud')">
                     📋 Solicitudes <span class="filter-badge" data-badge-tipo="solicitud">0</span>
                 </button>
@@ -1350,7 +1350,7 @@
         </div>
 
         <!-- EXPEDIENTES -->
-        <div class="content-section" id="expedientes">
+        <div class="content-section" id="expedientes" style="display:none">
             <div class="header">
                 <div>
                     <h1>
@@ -1411,7 +1411,7 @@
         </div>
 
         <!-- SOLICITUDES -->
-        <div class="content-section" id="solicitudes">
+        <div class="content-section" id="solicitudes" style="display:none">
             <div class="header">
                 <div>
                     <h1>
@@ -2309,7 +2309,7 @@
     <!-- ========== MÓDULOS JAVASCRIPT MODULARIZADOS ========== -->
 
     <!-- 1. Utilidades (sin dependencias) -->
-    <script src="js/utils.js"></script>
+    <script src="js/utils.js?v=2.1"></script>
 
     <!-- 2. Autenticación (debe cargar primero) -->
     <script src="js/auth.js"></script>
@@ -2327,7 +2327,7 @@
     <script src="js/timeline.js?v=2.2"></script>
 
     <!-- 5. Inicialización (debe cargar al final) -->
-    <script src="js/init.js"></script>
+    <script src="js/init.js?v=2.1"></script>
 
     <!-- ====================================================== -->
 

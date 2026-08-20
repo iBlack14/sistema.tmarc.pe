@@ -235,7 +235,18 @@ router.get('/:id/archivos', async (req, res) => {
     }
 });
 
-// Crear nueva solicitud con archivos
+// Las solicitudes nuevas se registran exclusivamente como presentaciones de
+// Mesa de Partes. Este endpoint permanece disponible solo para lectura del
+// historial; así se evita volver a generar identificadores SOL/EXP paralelos.
+router.post('/', (req, res) => {
+    res.status(410).json({
+        success: false,
+        error: 'Las nuevas presentaciones deben registrarse en /api/mesa-partes'
+    });
+});
+
+// Implementación histórica (inalcanzable) conservada temporalmente para poder
+// migrar o auditar clientes antiguos sin alterar sus registros existentes.
 router.post('/', upload.fields([
     { name: 'documentos_principales', maxCount: 1 },
     { name: 'anexos', maxCount: 9 }

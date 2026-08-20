@@ -85,6 +85,11 @@ function getStatusClass(estado) {
 
 // Función para cambiar sección
 function showSection(sectionId, el) {
+    // Expedientes y Solicitudes fueron unificados en la Casilla/Mesa de Partes.
+    if (sectionId === 'expedientes' || sectionId === 'solicitudes') {
+        sectionId = 'casilla';
+        el = null;
+    }
     // Alternar secciones
     document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
     const target = document.getElementById(sectionId);
@@ -106,8 +111,6 @@ function showSection(sectionId, el) {
         'dashboard': 'Dashboard',
         'usuarios': 'Gestión de Usuarios',
         'casilla': 'Casilla Electrónica',
-        'expedientes': 'Expedientes Judiciales',
-        'solicitudes': 'Solicitudes Pendientes',
         'configuracion': 'Configuración Sistema'
     };
     
@@ -120,17 +123,7 @@ function showSection(sectionId, el) {
     }
 
     // Cargas perezosas
-    if (sectionId === 'solicitudes') {
-        if (typeof window.cargarTablaSolicitudes === 'function') {
-            window.cargarTablaSolicitudes();
-        } else if (typeof window.refreshSolicitudesTable === 'function') {
-            window.refreshSolicitudesTable();
-        }
-    } else if (sectionId === 'expedientes') {
-        if (typeof window.cargarExpedientesTabla === 'function') {
-            window.cargarExpedientesTabla();
-        }
-    } else if (sectionId === 'casilla' && typeof window.cargarCasillaElectronicaAdmin === 'function') {
+    if (sectionId === 'casilla' && typeof window.cargarCasillaElectronicaAdmin === 'function') {
         window.cargarCasillaElectronicaAdmin();
     }
 }

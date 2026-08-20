@@ -46,7 +46,7 @@ function manejarHashInicial() {
     const hash = window.location.hash.substring(1);
     if (hash) {
         // Mapear hash a sectionId (por si son diferentes, aunque aquí coinciden)
-        const validSections = ['dashboard', 'usuarios', 'casilla', 'expedientes', 'solicitudes', 'configuracion'];
+        const validSections = ['dashboard', 'usuarios', 'casilla', 'configuracion'];
         if (validSections.includes(hash)) {
             if (typeof window.showSection === 'function') {
                 window.showSection(hash);
@@ -69,21 +69,6 @@ async function cargarDatosIniciales() {
         if (typeof cargarUsuariosDesdeMySQL === 'function') {
             await cargarUsuariosDesdeMySQL();
             console.log('  ✓ Usuarios cargados');
-        }
-
-        // Cargar expedientes
-        if (typeof cargarExpedientesTabla === 'function') {
-            await cargarExpedientesTabla();
-            console.log('  ✓ Expedientes cargados');
-        }
-
-        // Cargar solicitudes
-        if (typeof cargarTablaSolicitudes === 'function') {
-            await cargarTablaSolicitudes();
-            console.log('  ✓ Solicitudes cargadas');
-        } else if (typeof window.refreshSolicitudesTable === 'function') {
-            await window.refreshSolicitudesTable();
-            console.log('  ✓ Solicitudes cargadas');
         }
 
         // Cargar casilla electrónica unificada
@@ -165,16 +150,7 @@ function iniciarActualizacionesPeriodicas() {
 
         const ahora = Date.now();
 
-        // 1. Verificación de Solicitudes (Cada 2 min)
-        if (ahora - lastSolicitudCheck >= INTERVALO_SOLICITUDES) {
-            if (typeof verificarNuevasSolicitudes === 'function') {
-                console.log('🔄 Sincronizando solicitudes...');
-                await verificarNuevasSolicitudes();
-            }
-            lastSolicitudCheck = ahora;
-        }
-
-        // 2. Actualización General (Cada 5 min)
+        // Actualización general (cada 5 min)
         if (ahora - lastGlobalUpdate >= INTERVALO_GENERAL) {
             console.log('🔄 Sincronización global en progreso...');
             

@@ -845,7 +845,6 @@ class MesaPartesModule {
      */
     async submitDocumento() {
         const formulario = this.getFormularioMesaActivo();
-        const esSolicitud = this.modoPresentacion === 'solicitud_servicio';
         const tipo        = this.getControlMesa('tipoDocumentoMesa')?.value;
         const tipoDemandante = formulario?.querySelector('input[name="mesaTipoDemandante"]:checked')?.value || 'natural';
         const tipoDemandado = formulario?.querySelector('input[name="mesaTipoDemandado"]:checked')?.value || 'natural';
@@ -899,53 +898,24 @@ class MesaPartesModule {
             };
 
             formData.append('usuario_id', usuarioId);
-            if (esSolicitud) {
-                formData.append('nombre', nombre);
-                formData.append('email', email);
-                formData.append('telefono', telefono);
-                formData.append('dni', dni);
-                formData.append('tipo', tipo);
-                formData.append('asunto', asunto);
-                formData.append('descripcion', descripcion);
-                formData.append('prioridad', 'normal');
-                formData.append('demandado_nombre', demNombre === 'N/A' ? '' : demNombre);
-                formData.append('demandado_dni', demDni);
-                formData.append('demandado_email', demandado.correo);
-                formData.append('documentos_principales', this.mesaArchivos[0].archivo);
-                this.mesaArchivos.slice(1).forEach(item => formData.append('anexos', item.archivo));
-            } else {
-                formData.append('tipo_presentacion', tipo);
-                formData.append('materia', asunto);
-                formData.append('sumilla', descripcion || asunto);
-                if (cuantia) formData.append('cuantia', cuantia);
-                formData.append('demandante', JSON.stringify(demandante));
-                formData.append('demandado', JSON.stringify(demandado));
-                this.mesaArchivos.forEach(item => formData.append('documentos', item.archivo));
-                formData.append('documentos_metadata', JSON.stringify(this.mesaArchivos.map(item => ({ nombre: item.archivo.name, pagina_fin: item.paginaFin, descripcion: item.descripcion, folios: item.folios }))));
-            }
+            // Toda solicitud institucional es una presentación de Mesa de Partes.
+            // No se crea un registro paralelo SOL/EXP.
+            formData.append('tipo_presentacion', tipo);
+            formData.append('materia', asunto);
+            formData.append('sumilla', descripcion || asunto);
+            if (cuantia) formData.append('cuantia', cuantia);
+            formData.append('demandante', JSON.stringify(demandante));
+            formData.append('demandado', JSON.stringify(demandado));
+            this.mesaArchivos.forEach(item => formData.append('documentos', item.archivo));
+            formData.append('documentos_metadata', JSON.stringify(this.mesaArchivos.map(item => ({ nombre: item.archivo.name, pagina_fin: item.paginaFin, descripcion: item.descripcion, folios: item.folios }))));
 
-            const response = await fetch(esSolicitud ? '/api/solicitudes' : '/api/mesa-partes', { method: 'POST', body: formData });
+            const response = await fetch('/api/mesa-partes', { method: 'POST', body: formData });
             const result   = await response.json();
 
             if (result.success) {
                 this.closeDocumentoModal();
-                if (esSolicitud) {
-                    await window.solicitudesModule?.loadSolicitudesUsuario();
-                    await window.solicitudesModule?.mostrarCargoSolicitud(result.data?.solicitud || {
-                        id: result.data?.id,
-                        nombre,
-                        tipo,
-                        asunto,
-                        descripcion,
-                        fecha_creacion: new Date().toISOString(),
-                        documentos: this.mesaArchivos.map(item => ({ nombre_original: item.archivo.name }))
-                    });
-                    window.location.hash = 'solicitudes';
-                    this.dashboard.showSection('solicitudes');
-                    window.solicitudesModule?.mostrarHistorialSolicitudes();
-                } else {
-                    await this.loadDocumentosPresentados();
-                    await this.mostrarCargoRecepcion(result.data || {
+                await this.loadDocumentosPresentados();
+                await this.mostrarCargoRecepcion(result.data || {
                     id: result.numero_registro,
                     numero_registro: result.numero_registro,
                     demandante: { nombre },
@@ -954,9 +924,10 @@ class MesaPartesModule {
                     sumilla: descripcion,
                     fecha_presentacion: new Date().toISOString(),
                     documentos: this.mesaArchivos.map(item => ({ nombre_original: item.archivo.name }))
-                    });
-                    this.mostrarFormularioInline();
-                }
+                });
+                window.location.hash = 'mesa';
+                this.dashboard.showSection('mesa');
+                this.mostrarFormularioInline();
             } else {
                 throw new Error(result.error || 'Error presentando documento');
             }

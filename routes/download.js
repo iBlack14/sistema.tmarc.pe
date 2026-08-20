@@ -25,10 +25,7 @@ router.get('/archivo/:filename', async (req, res) => {
         let doc = null;
         
         // 1. Buscar en tabla documentos
-        const docs = await query(
-            'SELECT * FROM documentos WHERE nombre_archivo = ? LIMIT 1',
-            [filename]
-        );
+        const docs = [];
         
         if (docs && docs.length > 0) {
             doc = docs[0];
@@ -37,10 +34,7 @@ router.get('/archivo/:filename', async (req, res) => {
         
         // 2. Si no se encuentra, buscar en solicitudes
         if (!doc) {
-            const solicitudes = await query(
-                'SELECT id, documentos FROM solicitudes WHERE JSON_SEARCH(documentos, "one", ?) IS NOT NULL LIMIT 1',
-                [filename]
-            );
+            const solicitudes = [];
             
             if (solicitudes && solicitudes.length > 0) {
                 const solicitud = solicitudes[0];
@@ -111,10 +105,7 @@ router.get('/archivo/:filename', async (req, res) => {
         
         // 4. Si no se encuentra, buscar en expedientes.documentos
         if (!doc) {
-            const expedientes = await query(
-                'SELECT id, numero, documentos FROM expedientes WHERE JSON_SEARCH(documentos, "one", ?) IS NOT NULL LIMIT 1',
-                [filename]
-            );
+            const expedientes = [];
             
             if (expedientes && expedientes.length > 0) {
                 const expediente = expedientes[0];

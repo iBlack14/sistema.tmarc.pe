@@ -370,25 +370,18 @@ class DashboardApp {
         try {
             const usuarioId = this.getCurrentUserId();
             
-            // Cargar estadísticas básicas en paralelo para mayor velocidad
-            const [solResp, expResp, notifResp] = await Promise.all([
-                fetch(`/api/solicitudes/usuario/${usuarioId}`),
-                fetch(`/api/expedientes?usuario_id=${usuarioId}`),
-                fetch(`/api/notificaciones?usuario_id=${usuarioId}`)
-            ]);
-
-            const solData = await solResp.json();
-            const expData = await expResp.json();
-            const notifData = await notifResp.json();
+            const statsResp = await fetch(`/api/estadisticas/usuario/${usuarioId}`);
+            const statsData = await statsResp.json();
+            const stats = statsData.data || {};
 
             // Actualizar contadores en la UI (Inicio)
             const elSol = document.getElementById('inicio-solicitudes');
             const elExp = document.getElementById('inicio-expedientes');
             const elDoc = document.getElementById('inicio-documentos');
 
-            if (elSol) elSol.textContent = solData.data?.length || 0;
-            if (elExp) elExp.textContent = expData.data?.length || 0;
-            if (elDoc) elDoc.textContent = notifData.estadisticas?.no_leidas || 0;
+            if (elSol) elSol.textContent = stats.mesa_partes?.total || 0;
+            if (elExp) elExp.textContent = 0;
+            if (elDoc) elDoc.textContent = stats.notificaciones?.no_leidas || 0;
 
         } catch (error) {
             console.warn('⚠️ Error sincronizando estadísticas rápidas:', error);

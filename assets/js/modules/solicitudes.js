@@ -334,26 +334,44 @@ class SolicitudesModule {
             submitBtn.textContent = 'Enviando...';
 
             const formData = new FormData();
-            Object.keys(solicitudData).forEach(key => formData.append(key, solicitudData[key]));
+            formData.append('usuario_id', solicitudData.usuario_id);
+            formData.append('tipo_presentacion', solicitudData.tipo);
+            formData.append('materia', solicitudData.asunto);
+            formData.append('sumilla', solicitudData.descripcion || solicitudData.asunto);
+            formData.append('demandante', JSON.stringify({
+                tipo_persona: solicitudData.dni.length === 11 ? 'juridica' : 'natural',
+                nombre: solicitudData.nombre,
+                documento_tipo: solicitudData.dni.length === 11 ? 'RUC' : 'DNI',
+                documento_numero: solicitudData.dni,
+                correo: solicitudData.email,
+                telefono: solicitudData.telefono
+            }));
+            formData.append('demandado', JSON.stringify({
+                nombre: solicitudData.demandado_nombre || 'N/A',
+                documento_numero: solicitudData.demandado_dni,
+                correo: solicitudData.demandado_email
+            }));
 
             const documentoPrincipal = document.getElementById('documentoPrincipal');
             if (documentoPrincipal && documentoPrincipal.files.length > 0) {
-                formData.append('documentos_principales', documentoPrincipal.files[0]);
+                formData.append('documentos', documentoPrincipal.files[0]);
             }
 
             const anexosFiles = document.getElementById('anexosFiles');
             if (anexosFiles && anexosFiles.files.length > 0) {
-                Array.from(anexosFiles.files).forEach(file => formData.append('anexos', file));
+                Array.from(anexosFiles.files).forEach(file => formData.append('documentos', file));
             }
 
-            const response = await fetch('/api/solicitudes', { method: 'POST', body: formData });
+            const response = await fetch('/api/mesa-partes', { method: 'POST', body: formData });
             const result = await response.json();
 
             if (result.success) {
-                this.dashboard.showSuccess('✅ Solicitud registrada exitosamente');
+                this.dashboard.showSuccess(`✅ Presentación registrada en Mesa de Partes: ${result.numero_registro}`);
                 this.resetFormSolicitud();
                 this.dashboard.closeAllModals();
-                await this.loadSolicitudesUsuario();
+                window.location.hash = 'mesa';
+                this.dashboard.showSection('mesa');
+                await window.mesaPartesModule?.loadDocumentosPresentados();
             } else {
                 throw new Error(result.error || 'Error enviando solicitud');
             }

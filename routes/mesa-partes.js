@@ -411,7 +411,7 @@ router.get('/seguimiento/:codigo', async (req, res) => {
         let expediente = await MesaPartesModel.obtenerPorNumero(codigo);
 
         // Si no se encuentra, buscar en solicitudes
-        if (!expediente) {
+        if (!expediente && false) {
             const sqlSolicitud = `
                 SELECT 
                     s.*,
@@ -440,7 +440,8 @@ router.get('/seguimiento/:codigo', async (req, res) => {
                     tipo: 'solicitud' // Identificar que viene de solicitudes
                 };
             }
-        } else {
+        }
+        if (expediente) {
             expediente.tipo = 'mesa_partes'; // Identificar que viene de mesa de partes
         }
 
@@ -544,7 +545,7 @@ router.get('/buscar', async (req, res) => {
             LIMIT 10
         `;
 
-        const resultadosSolicitudes = await query(sqlSolicitudes, [searchTerm]);
+        const resultadosSolicitudes = [];
 
         // Formatear solicitudes
         const expedientesSolicitudes = resultadosSolicitudes.map(sol => ({

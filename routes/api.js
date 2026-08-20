@@ -4,7 +4,6 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { query } = require('../database-config'); // Importar función query
-const ExpedienteModel = require('../models/expediente-model'); // MySQL
 const UsuarioModel = require('../models/usuario-model'); // MySQL
 const smtpConfigManager = require('../smtp-config-manager');
 
@@ -96,22 +95,19 @@ const upload = multer({
 // Importar rutas modulares
 const authRoutes = require('./auth');
 const usuariosRoutes = require('./usuarios');
-const expedientesRoutes = require('./expedientes');
-const solicitudesRoutes = require('./solicitudes');
-const documentosRoutes = require('./documentos');
 const mesaPartesRoutes = require('./mesa-partes');
 const casillaElectronicaRoutes = require('./casilla-electronica');
 const estadisticasRoutes = require('./estadisticas');
 const configuracionRoutes = require('./configuracion');
-const actosRoutes = require('./actos-procesales');
 const timelineRoutes = require('./timeline');
 
 // Usar rutas modulares
 router.use('/auth', authRoutes);
 router.use('/usuarios', usuariosRoutes);
-router.use('/expedientes', expedientesRoutes);
-router.use('/solicitudes', solicitudesRoutes);
-router.use('/documentos', documentosRoutes);
+router.use(['/expedientes', '/solicitudes'], (_req, res) => res.status(410).json({
+    success: false,
+    error: 'Recurso retirado. Use /api/mesa-partes'
+}));
 router.use('/mesa-partes', mesaPartesRoutes);
 router.use('/casilla-electronica', casillaElectronicaRoutes);
 router.use('/estadisticas', estadisticasRoutes);
@@ -125,8 +121,6 @@ router.use('/configuracion', configuracionRoutes);
 // DELETE /api/actos/:id           → eliminar acto
 // GET/POST /api/expedientes/:id/notificaciones-procesales
 // PUT/DELETE /api/notificaciones-procesales/:id
-router.use('/', actosRoutes);
-
 // Rutas de timeline universal (Expedientes + Mesa de Partes + Solicitudes)
 // GET/POST /api/{expedientes|mesa-partes|solicitudes}/:id/timeline
 // PUT/DELETE /api/timeline/:id
@@ -619,15 +613,16 @@ router.get('/usuarios/existe/:email', async (req, res) => {
 // Obtener estadísticas generales
 router.get('/estadisticas', async (req, res) => {
     try {
-        const [estadisticasExpedientes, estadisticasUsuarios] = await Promise.all([
-            ExpedienteModel.obtenerEstadisticas(),
+        const [filasMesa, estadisticasUsuarios] = await Promise.all([
+            query(`SELECT COUNT(*) total, SUM(estado='Pendiente') pendientes,
+                   SUM(estado='Recibido') recibidos FROM mesa_partes`),
             UsuarioModel.obtenerEstadisticas()
         ]);
 
         res.json({
             success: true,
             data: {
-                expedientes: estadisticasExpedientes,
+                mesa_partes: filasMesa[0] || { total: 0, pendientes: 0, recibidos: 0 },
                 usuarios: estadisticasUsuarios
             }
         });
