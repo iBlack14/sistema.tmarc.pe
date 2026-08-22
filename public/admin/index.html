@@ -1085,6 +1085,15 @@
                 </div>
                 <span class="nav-label">SOLICITUDES</span>
             </div>
+            <div class="nav-item" onclick="showSection('alertas-admin', this); AlertasAdmin.init();" title="Alertas" aria-label="Alertas">
+                <div class="nav-icon" style="position: relative;">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                    </svg>
+                    <span class="alertas-admin-badge" style="position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 9px; font-weight: bold; display: none;">0</span>
+                </div>
+                <span class="nav-label">ALERTAS</span>
+            </div>
             <div class="nav-item" onclick="showSection('configuracion', this)" title="Ajustes" aria-label="Ajustes">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
@@ -1177,6 +1186,46 @@
                     <tbody id="actividades-recientes">
                         <tr>
 
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- NOTIFICACIONES DE ENTRADA ADMIN -->
+        <div class="content-section" id="alertas-admin" style="display:none">
+            <div class="header">
+                <div>
+                    <h1>
+                        <span class="header-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                            </svg>
+                        </span>
+                        Notificaciones de Administración
+                    </h1>
+                    <p class="subtitle">Buzón de alertas y notificaciones recibidas por solicitudes de usuarios.</p>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="color: #000000; margin: 0;">🔔 Alertas Recibidas</h3>
+                    <button class="btn btn-secondary" onclick="AlertasAdmin.marcarTodasComoLeidas()">✓ Marcar todas como leídas</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">Estado</th>
+                            <th>Asunto / Alerta</th>
+                            <th>Expediente</th>
+                            <th>Fecha/Hora</th>
+                            <th style="width: 120px; text-align: right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alertas-admin-tbody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 30px; color: #888;">Cargando alertas...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -2327,6 +2376,7 @@
     <script src="js/dashboard.js?v=1.1"></script>
     <script src="js/configuracion.js"></script>
     <script src="js/timeline.js?v=2.2"></script>
+    <script src="js/alertas-admin.js"></script>
 
     <!-- 5. Inicialización (debe cargar al final) -->
     <script src="js/init.js?v=2.1"></script>

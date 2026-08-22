@@ -314,19 +314,21 @@ router.post('/:fuente/:id/timeline', upload.any(), async (req, res) => {
                 notificacionSistema = true;
             }
             
-            // Si el creador es un cliente, notificar al administrador por correo
+            // Si el creador es un cliente, notificar al administrador por correo y base de datos
             if (isClient) {
+                const refCodigo = destino?.numero_registro || id;
+                const docCount = req.files ? req.files.length : 0;
+                const presentanteNombre = presentado_por || actor?.nombre || 'Usuario Cliente';
+                const fakeMovimiento = {
+                    presentado_por: presentanteNombre,
+                    tipo_documento,
+                    asunto,
+                    sumilla
+                };
+
                 const correoAdmin = process.env.ADMIN_EMAIL;
                 if (correoAdmin) {
                     try {
-                        const refCodigo = destino?.numero_registro || id;
-                        const docCount = req.files ? req.files.length : 0;
-                        const fakeMovimiento = {
-                            presentado_por: presentado_por || actor?.nombre || 'Usuario Cliente',
-                            tipo_documento,
-                            asunto,
-                            sumilla
-                        };
                         console.log(`✉️ Enviando notificación de nuevo movimiento al administrador (${correoAdmin})`);
                         await smtpConfigManager.enviarEmail({
                             destinatario: correoAdmin,
@@ -340,6 +342,27 @@ router.post('/:fuente/:id/timeline', upload.any(), async (req, res) => {
                     }
                 } else {
                     console.warn('⚠️ No se pudo enviar notificación de nuevo movimiento: ADMIN_EMAIL no está configurado');
+                }
+
+                // Notificación en base de datos para administradores (Casilla Admin)
+                try {
+                    const admins = await query("SELECT id FROM usuarios WHERE tipo = 'admin'");
+                    for (const adm of admins) {
+                        const notifId = `NOTIF-ADMIN-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+                        await query(`
+                            INSERT INTO notificaciones (id, usuario_id, tipo, titulo, mensaje, expediente_id, leida, fecha)
+                            VALUES (?, ?, 'sistema', ?, ?, ?, 0, NOW())
+                        `, [
+                            notifId,
+                            adm.id,
+                            `[Nueva Información] Registro: ${refCodigo}`,
+                            `El usuario ${presentanteNombre} ha agregado información (${tipo_documento}) en la Mesa de Partes.`,
+                            refCodigo
+                        ]);
+                    }
+                    console.log(`✅ Notificación de nuevo movimiento insertada en base de datos para ${admins.length} administradores`);
+                } catch (dbNotifError) {
+                    console.error('❌ Error guardando notificación de nuevo movimiento en base de datos:', dbNotifError.message);
                 }
             }
         }

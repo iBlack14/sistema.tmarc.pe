@@ -375,7 +375,10 @@ const CasillaUnificada = {
         }
 
         this.insertarModal(contenido);
-        if (tipo === 'mesa_partes') this.cargarTimelineMesaPartes(datos.id || datos.numero_registro);
+        if (tipo === 'mesa_partes') {
+            this.cargarTimelineMesaPartes(datos.id || datos.numero_registro);
+            this.cargarRespuestasEnviadas(datos.id || datos.numero_registro);
+        }
     },
 
     /**
@@ -472,6 +475,42 @@ const CasillaUnificada = {
         }
     },
 
+    async cargarRespuestasEnviadas(id) {
+        const container = document.getElementById('mesa-respuestas-enviadas-admin');
+        if (!container) return;
+        try {
+            const response = await fetch(`/api/notificaciones?expediente_id=${encodeURIComponent(id)}`);
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.error || 'Error cargando respuestas');
+            const notificaciones = Array.isArray(result.data) ? result.data : [];
+            if (!notificaciones.length) {
+                container.innerHTML = '<div style="padding:14px;text-align:center;color:#888;border:1px dashed #ddd;border-radius:10px;">No se han enviado respuestas aún.</div>';
+                return;
+            }
+            container.innerHTML = notificaciones.map(n => {
+                const fecha = new Date(n.fecha).toLocaleDateString('es-PE');
+                const hora = new Date(n.fecha).toLocaleTimeString('es-PE', { hour:'2-digit', minute:'2-digit', hour12:true });
+                const estadoBadge = n.leida === 1 
+                    ? `<span style="display:inline-block;padding:2px 8px;background:#e6f7ed;color:#187844;border-radius:20px;font-size:9px;font-weight:bold;margin-left:8px;">🟢 RECIBIDO / LEÍDO</span>`
+                    : `<span style="display:inline-block;padding:2px 8px;background:#f5f5f5;color:#666;border-radius:20px;font-size:9px;font-weight:bold;margin-left:8px;">⚪ ENVIADO / PENDIENTE</span>`;
+                
+                return `
+                    <div style="padding:13px;border:1px solid rgba(39,174,96,.3);border-left:3px solid #27ae60;border-radius:10px;background:#fff;margin-bottom:8px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <strong style="font-size:11px;color:#111;">${this.escaparHTML(n.titulo)}</strong>
+                            ${estadoBadge}
+                        </div>
+                        <span style="font-size:9px;color:#888;display:block;margin-top:2px;">${fecha} · ${hora}</span>
+                        <p style="margin:5px 0 0;font-size:11px;line-height:1.55;color:#555;white-space:pre-wrap;">${this.escaparHTML(n.mensaje.replace(/<[^>]*>/g, ''))}</p>
+                    </div>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Error cargando respuestas enviadas:', error);
+            container.innerHTML = '<div style="padding:14px;color:#c62828;background:#fff5f5;border-radius:10px;">No se pudo cargar el historial de respuestas.</div>';
+        }
+    },
+
     modalMesaPartes(presentacion) {
         const demandante = typeof presentacion.demandante === 'string' ? JSON.parse(presentacion.demandante) : (presentacion.demandante || {});
         const demandado = typeof presentacion.demandado === 'string' ? JSON.parse(presentacion.demandado) : (presentacion.demandado || {});
@@ -529,8 +568,12 @@ const CasillaUnificada = {
                             </div>
                             <div style="display:flex;flex-direction:column;gap:12px;">
                             <div style="background:#fffdf5; border-radius:12px; padding:14px; border:1px solid rgba(212,175,55,.28);">
-                                <h3 style="color:#111;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;margin:0 0 10px;">🕘 Información agregada</h3>
+                                <h3 style="color:#111;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;margin:0 0 10px;">📋 Información agregada</h3>
                                 <div id="mesa-info-agregada-admin" style="display:grid;gap:8px;"><div style="padding:12px;text-align:center;color:#888;">Cargando...</div></div>
+                            </div>
+                            <div style="background:#f4f9f4; border-radius:12px; padding:14px; border:1px solid rgba(39,174,96,.28);">
+                                <h3 style="color:#111;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;margin:0 0 10px;">✉️ Respuestas enviadas</h3>
+                                <div id="mesa-respuestas-enviadas-admin" style="display:grid;gap:8px;"><div style="padding:12px;text-align:center;color:#888;">Cargando...</div></div>
                             </div>
                             <div style="background:#f8f9fa; border-radius:12px; padding:14px; border:1px solid rgba(0,0,0,0.06);">
                                 <h3 style="color:#111; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; margin:0 0 10px 0; display:flex; align-items:center; gap:6px;">📎 Archivos <span style="background:#d4af37; color:#000; font-size:10px; padding:1px 7px; border-radius:8px; margin-left:4px;">${documentos.length}</span></h3>
@@ -1275,7 +1318,6 @@ const CasillaUnificada = {
                                     <input type="datetime-local" id="edit-fecha-presentacion" value="${fechaActual}" 
                                            style="width:100%; padding:15px 20px; border:2px solid #eee; border-radius:15px; font-size:15px; background:#f9f9f9; font-weight:600; font-family:inherit; transition:0.3s;"
                                            onfocus="this.style.borderColor='#d4af37'; this.style.background='white';">
-                                </div>
                                 
                                 <div>
                                     <label style="color:#888; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; display:block;">📝 Materia / Asunto</label>
@@ -1288,9 +1330,14 @@ const CasillaUnificada = {
                                     <label style="color:#888; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; display:block;">📂 Tipo de Presentación</label>
                                     <select id="edit-tipo-presentacion" style="width:100%; padding:15px 20px; border:2px solid #eee; border-radius:15px; font-size:15px; background:#f9f9f9; font-weight:600; font-family:inherit; transition:0.3s;"
                                             onfocus="this.style.borderColor='#d4af37'; this.style.background='white';">
+                                        <option value="" ${!presentacion.tipo_presentacion ? 'selected' : ''}>Seleccione una solicitud</option>
                                         <option value="Arbitraje" ${presentacion.tipo_presentacion === 'Arbitraje' ? 'selected' : ''}>Arbitraje</option>
+                                        <option value="Arbitraje Express" ${presentacion.tipo_presentacion === 'Arbitraje Express' ? 'selected' : ''}>Arbitraje Express</option>
+                                        <option value="Arbitraje de Emergencia" ${presentacion.tipo_presentacion === 'Arbitraje de Emergencia' ? 'selected' : ''}>Arbitraje de Emergencia</option>
+                                        <option value="Junta de Prevención y Resolución de Disputas" ${presentacion.tipo_presentacion === 'Junta de Prevención y Resolución de Disputas' ? 'selected' : ''}>Junta de Prevención y Resolución de Disputas</option>
+                                        <option value="Conciliación Extrajudicial" ${presentacion.tipo_presentacion === 'Conciliación Extrajudicial' ? 'selected' : ''}>Conciliación Extrajudicial</option>
+                                        <option value="Recusación" ${presentacion.tipo_presentacion === 'Recusación' ? 'selected' : ''}>Recusación</option>
                                         <option value="Mesa de Partes" ${presentacion.tipo_presentacion === 'Mesa de Partes' ? 'selected' : ''}>Mesa de Partes</option>
-                                        <option value="OTRO" ${presentacion.tipo_presentacion === 'OTRO' ? 'selected' : ''}>OTRO</option>
                                     </select>
                                 </div>
                             </div>

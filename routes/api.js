@@ -919,42 +919,53 @@ router.get('/notificaciones/admin-todas', async (req, res) => {
 // Obtener notificaciones del usuario actual
 router.get('/notificaciones', async (req, res) => {
     try {
-        // Obtener usuario_id desde el token o sesión
-        // Por simplicidad, asumimos que viene en query param o header
         const usuarioId = req.query.usuario_id || req.headers['x-usuario-id'];
+        const expedienteId = req.query.expediente_id || req.query.solicitud_id;
 
-        if (!usuarioId) {
-            return res.status(400).json({ error: 'Usuario ID requerido' });
+        if (!usuarioId && !expedienteId) {
+            return res.status(400).json({ error: 'Usuario ID o Expediente ID requerido' });
         }
 
-        const notificaciones = await query(`
-            SELECT
-                n.*,
-                u.nombre as administrador_nombre
-            FROM notificaciones n
-            LEFT JOIN usuarios u ON n.usuario_id = u.id
-            WHERE n.usuario_id = ?
-            ORDER BY n.fecha DESC
-        `, [usuarioId]);
+        let notificaciones;
+        let stats = { total: 0, no_leidas: 0, urgentes: 0 };
 
-        // Obtener estadísticas
-        const [stats] = await query(`
-            SELECT
-                COUNT(*) as total,
-                SUM(CASE WHEN leida = 0 THEN 1 ELSE 0 END) as no_leidas,
-                SUM(CASE WHEN tipo = 'urgente' AND leida = 0 THEN 1 ELSE 0 END) as urgentes
-            FROM notificaciones
-            WHERE usuario_id = ?
-        `, [usuarioId]);
+        if (expedienteId) {
+            notificaciones = await query(`
+                SELECT n.*, u.nombre as administrador_nombre
+                FROM notificaciones n
+                LEFT JOIN usuarios u ON n.usuario_id = u.id
+                WHERE n.expediente_id = ? OR n.solicitud_id = ?
+                ORDER BY n.fecha DESC
+            `, [expedienteId, expedienteId]);
+        } else {
+            notificaciones = await query(`
+                SELECT n.*, u.nombre as administrador_nombre
+                FROM notificaciones n
+                LEFT JOIN usuarios u ON n.usuario_id = u.id
+                WHERE n.usuario_id = ?
+                ORDER BY n.fecha DESC
+            `, [usuarioId]);
+
+            const [statsRow] = await query(`
+                SELECT
+                    COUNT(*) as total,
+                    SUM(CASE WHEN leida = 0 THEN 1 ELSE 0 END) as no_leidas,
+                    SUM(CASE WHEN tipo = 'urgente' AND leida = 0 THEN 1 ELSE 0 END) as urgentes
+                FROM notificaciones
+                WHERE usuario_id = ?
+            `, [usuarioId]);
+            
+            stats = {
+                total: parseInt(statsRow.total) || 0,
+                no_leidas: parseInt(statsRow.no_leidas) || 0,
+                urgentes: parseInt(statsRow.urgentes) || 0
+            };
+        }
 
         res.json({
             success: true,
             data: notificaciones,
-            estadisticas: {
-                total: parseInt(stats.total) || 0,
-                no_leidas: parseInt(stats.no_leidas) || 0,
-                urgentes: parseInt(stats.urgentes) || 0
-            }
+            estadisticas: stats
         });
     } catch (error) {
         console.error('Error obteniendo notificaciones:', error);

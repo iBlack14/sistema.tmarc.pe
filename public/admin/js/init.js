@@ -80,6 +80,12 @@ async function cargarDatosIniciales() {
             console.log('  ✓ Casilla electrónica (legacy) cargada');
         }
 
+        // Cargar alertas de administración
+        if (typeof AlertasAdmin !== 'undefined') {
+            await AlertasAdmin.cargarAlertas();
+            console.log('  ✓ Alertas de administración cargadas');
+        }
+
         // Cargar configuración del sistema
         if (typeof cargarConfiguracion === 'function') {
             await cargarConfiguracion();
@@ -162,6 +168,9 @@ function iniciarActualizacionesPeriodicas() {
             // Notificaciones Admin
             if (typeof cargarNotificacionesAdmin === 'function') {
                 await cargarNotificacionesAdmin();
+            }
+            if (typeof AlertasAdmin !== 'undefined' && typeof AlertasAdmin.cargarAlertas === 'function') {
+                await AlertasAdmin.cargarAlertas();
             }
             
             // Casilla

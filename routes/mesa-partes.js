@@ -149,6 +149,7 @@ router.post('/', upload.array('documentos', 20), async (req, res) => {
         
         // Notificar al administrador por correo
         const correoAdmin = process.env.ADMIN_EMAIL;
+        const solicitanteNombre = presentacionCreada?.remitente_nombre || 'Usuario Cliente';
         if (correoAdmin) {
             try {
                 console.log(`✉️ Enviando notificación al administrador (${correoAdmin})`);
@@ -164,6 +165,27 @@ router.post('/', upload.array('documentos', 20), async (req, res) => {
             }
         } else {
             console.warn('⚠️ No se pudo enviar notificación de administración: ADMIN_EMAIL no está configurado');
+        }
+
+        // Notificar al administrador en la base de datos (Casilla Admin)
+        try {
+            const admins = await query("SELECT id FROM usuarios WHERE tipo = 'admin'");
+            for (const adm of admins) {
+                const notifId = `NOTIF-ADMIN-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+                await query(`
+                    INSERT INTO notificaciones (id, usuario_id, tipo, titulo, mensaje, expediente_id, leida, fecha)
+                    VALUES (?, ?, 'sistema', ?, ?, ?, 0, NOW())
+                `, [
+                    notifId,
+                    adm.id,
+                    `[Nueva Presentación] Registro: ${resultado.numero_registro}`,
+                    `El usuario ${solicitanteNombre} ha registrado una nueva presentación en la Mesa de Partes Virtual.`,
+                    resultado.numero_registro
+                ]);
+            }
+            console.log(`✅ Notificación insertada en base de datos para ${admins.length} administradores`);
+        } catch (dbNotifError) {
+            console.error('❌ Error guardando notificación de administración en base de datos:', dbNotifError.message);
         }
         
         // Generar URL de seguimiento para QR (sin token)
