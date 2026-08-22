@@ -290,32 +290,49 @@ class NotificacionesModule {
         }
 
         try {
-            const archivo = typeof notificacion.archivo_adjunto === 'string' 
+            const data = typeof notificacion.archivo_adjunto === 'string' 
                 ? JSON.parse(notificacion.archivo_adjunto) 
                 : notificacion.archivo_adjunto;
 
-            if (!archivo || !archivo.nombre) {
+            if (!data) return '';
+
+            const archivos = Array.isArray(data) ? data : [data];
+            const archivosValidos = archivos.filter(archivo => archivo && archivo.nombre);
+            if (!archivosValidos.length) {
                 return '';
             }
 
-            const tamanoMB = (archivo.tamano / (1024 * 1024)).toFixed(2);
-            const icono = this.getIconoArchivo(archivo.tipo || archivo.nombre);
-
             return `
                 <div class="info-section">
-                    <h4 style="color: #666; margin-bottom: 10px;">📎 Archivo Adjunto:</h4>
-                    <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4CAF50; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-weight: 600; color: #333; margin-bottom: 5px;">
-                                ${icono} ${archivo.nombre}
-                            </div>
-                            <div style="font-size: 12px; color: #666;">
-                                Tamaño: ${tamanoMB} MB
-                            </div>
-                        </div>
-                        <button class="btn btn-primary" onclick="notificacionesModule.descargarArchivo('${archivo.ruta}', '${archivo.nombre}')" style="padding: 8px 16px;">
-                            ⬇️ Descargar
-                        </button>
+                    <h4 style="color: #666; margin-bottom: 10px;">📎 Archivo(s) Adjunto(s):</h4>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        ${archivosValidos.map(archivo => {
+                            const tamanoMB = (archivo.tamano / (1024 * 1024)).toFixed(2);
+                            const icono = this.getIconoArchivo(archivo.tipo || archivo.nombre);
+                            const nombreEscapado = String(archivo.nombre).replace(/'/g, "\\'");
+                            const rutaEscapada = String(archivo.ruta).replace(/'/g, "\\'");
+                            
+                            let metaInfo = `Tamaño: ${tamanoMB} MB`;
+                            if (archivo.pagina_fin) metaInfo += ` · Pág. Fin: ${archivo.pagina_fin}`;
+                            if (archivo.folios) metaInfo += ` · Folios: ${archivo.folios}`;
+                            if (archivo.descripcion) metaInfo += ` · ${archivo.descripcion}`;
+
+                            return `
+                                <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4CAF50; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                    <div>
+                                        <div style="font-weight: 600; color: #333; margin-bottom: 5px;">
+                                            ${icono} ${archivo.nombre}
+                                        </div>
+                                        <div style="font-size: 12px; color: #666;">
+                                            ${metaInfo}
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="notificacionesModule.descargarArchivo('${rutaEscapada}', '${nombreEscapado}')" style="padding: 8px 16px; flex-shrink: 0;">
+                                        ⬇️ Descargar
+                                    </button>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
             `;

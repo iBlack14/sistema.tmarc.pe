@@ -153,14 +153,17 @@ router.get('/archivo/:filename', async (req, res) => {
                         ? JSON.parse(notificacion.archivo_adjunto) 
                         : notificacion.archivo_adjunto;
                     
-                    // Verificar que el archivo realmente coincide
-                    if (archivoAdjunto && archivoAdjunto.ruta && archivoAdjunto.ruta.includes(filename)) {
+                    // Verificar que el archivo realmente coincide (soporta objeto único o array)
+                    const archivos = Array.isArray(archivoAdjunto) ? archivoAdjunto : [archivoAdjunto];
+                    const coincidencia = archivos.find(a => a && a.ruta && a.ruta.includes(filename));
+                    
+                    if (coincidencia) {
                         doc = {
                             nombre_archivo: filename,
-                            nombre_original: archivoAdjunto.nombre || filename,
-                            ruta: archivoAdjunto.ruta,
-                            tipo: archivoAdjunto.tipo || 'application/pdf',
-                            tamano: archivoAdjunto.tamano
+                            nombre_original: coincidencia.nombre || filename,
+                            ruta: coincidencia.ruta,
+                            tipo: coincidencia.tipo || 'application/pdf',
+                            tamano: coincidencia.tamano
                         };
                         console.log('📄 Archivo encontrado en notificaciones');
                     }

@@ -19,6 +19,17 @@ function plantillaRecepcion(presentacion, observaciones) {
     return `<!doctype html><html lang="es"><body style="margin:0;background:#f1f2f4;font-family:Arial,Helvetica,sans-serif;color:#222"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px;background:#f1f2f4"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:18px;overflow:hidden;border:1px solid #dfd8c2"><tr><td style="background:#111;padding:26px 30px;border-bottom:4px solid #d4af37"><div style="font-family:Georgia,serif;color:#fff;font-size:28px;font-weight:bold">Tmarc</div><div style="color:#d4af37;font-size:10px;letter-spacing:1.5px;text-transform:uppercase">Centro de Arbitraje &amp; Dispute Boards</div></td></tr><tr><td style="padding:32px"><div style="color:#218c55;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.2px">Confirmación institucional</div><h1 style="font-size:24px;margin:8px 0 12px">Presentación recibida</h1><p style="font-size:14px;line-height:1.6;color:#666">Estimado(a) <strong>${nombre}</strong>, confirmamos que su presentación fue recibida por SISTEMA TMARC.</p><div style="margin:22px 0;background:#fff9e8;border:1px solid #ead486;border-radius:12px;padding:18px;text-align:center"><div style="font-size:10px;color:#826b1b;text-transform:uppercase;font-weight:bold">Código de presentación</div><div style="font-size:20px;font-weight:800;margin-top:6px">${codigo}</div><div style="display:inline-block;margin-top:10px;padding:5px 12px;border-radius:20px;background:#e6f7ed;color:#187844;font-size:11px;font-weight:bold">RECIBIDO</div></div><div style="padding:16px;background:#f7f7f7;border-left:4px solid #d4af37;border-radius:6px;color:#555;font-size:13px;line-height:1.6">${detalle}</div><div style="text-align:center;margin-top:26px"><a href="${baseUrl}/dashboard-modular.html#expedientes" style="display:inline-block;background:#d4af37;color:#111;text-decoration:none;padding:13px 25px;border-radius:9px;font-size:13px;font-weight:bold">Ver seguimiento →</a></div><p style="font-size:11px;color:#888;line-height:1.5;margin:24px 0 0">Este mensaje confirma únicamente la recepción. La admisión o evaluación de la documentación se comunicará posteriormente.</p></td></tr><tr><td style="background:#111;padding:19px;text-align:center;color:#aaa;font-size:10px"><strong style="color:#d4af37">SISTEMA TMARC</strong><br>Notificación automática institucional</td></tr></table></td></tr></table></body></html>`;
 }
 
+function plantillaNuevaPresentacionAdmin(presentacion, documentosCount) {
+    const baseUrl = (process.env.APP_URL || process.env.BASE_URL || 'https://sistema.tmarc.pe').replace(/\/+$/, '');
+    const codigo = escaparHtml(presentacion.numero_registro);
+    const solicitante = escaparHtml(presentacion.nombre_usuario || presentacion.remitente_nombre || 'Usuario TMARC');
+    const materia = escaparHtml(presentacion.materia || presentacion.tipo_presentacion || 'N/A');
+    const asunto = escaparHtml(presentacion.sumilla || presentacion.asunto || 'Sin asunto');
+    const fecha = new Date().toLocaleString('es-PE');
+    
+    return `<!doctype html><html lang="es"><body style="margin:0;background:#f1f2f4;font-family:Arial,Helvetica,sans-serif;color:#222"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px;background:#f1f2f4"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:18px;overflow:hidden;border:1px solid #dfd8c2"><tr><td style="background:#111;padding:26px 30px;border-bottom:4px solid #d4af37"><div style="font-family:Georgia,serif;color:#fff;font-size:28px;font-weight:bold">Tmarc</div><div style="color:#d4af37;font-size:10px;letter-spacing:1.5px;text-transform:uppercase">Notificación de Administración</div></td></tr><tr><td style="padding:32px"><div style="color:#b22222;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.2px">Nueva Solicitud Registrada</div><h1 style="font-size:22px;margin:8px 0 12px">Mesa de Partes Virtual</h1><p style="font-size:14px;line-height:1.6;color:#333">Se ha registrado una nueva presentación en la Mesa de Partes Virtual.</p><div style="padding:16px;background:#f7f7f7;border-left:4px solid #d4af37;border-radius:6px;font-size:13px;line-height:1.6;margin:15px 0"><strong>Detalles de la presentación:</strong><br><ul style="margin:8px 0;padding-left:20px"><li><strong>Código de registro:</strong> ${codigo}</li><li><strong>Solicitante:</strong> ${solicitante}</li><li><strong>Materia:</strong> ${materia}</li><li><strong>Asunto:</strong> ${asunto}</li><li><strong>Archivos adjuntos:</strong> ${documentosCount}</li><li><strong>Fecha y hora:</strong> ${fecha}</li></ul></div><div style="text-align:center;margin-top:26px"><a href="${baseUrl}/public/admin/solicitudes.html" style="display:inline-block;background:#d4af37;color:#111;text-decoration:none;padding:13px 25px;border-radius:9px;font-size:13px;font-weight:bold">Ver en Panel Administrador</a></div></td></tr><tr><td style="background:#111;padding:19px;text-align:center;color:#aaa;font-size:10px"><strong style="color:#d4af37">SISTEMA TMARC</strong><br>Notificación automática institucional</td></tr></table></td></tr></table></body></html>`;
+}
+
 // Middleware de depuración para este router
 router.use((req, res, next) => {
     console.log(`[DEBUG-ROUTER] MesaPartes: ${req.method} ${req.path}`);
@@ -135,6 +146,25 @@ router.post('/', upload.array('documentos', 20), async (req, res) => {
         const presentacionCreada = await MesaPartesModel.obtenerPorNumero(resultado.numero_registro);
 
         console.log('✅ Presentación creada:', resultado.numero_registro);
+        
+        // Notificar al administrador por correo
+        const correoAdmin = process.env.ADMIN_EMAIL;
+        if (correoAdmin) {
+            try {
+                console.log(`✉️ Enviando notificación al administrador (${correoAdmin})`);
+                await smtpConfigManager.enviarEmail({
+                    destinatario: correoAdmin,
+                    asunto: `[Nueva Presentación] Código: ${resultado.numero_registro}`,
+                    contenido: plantillaNuevaPresentacionAdmin(presentacionCreada, documentos.length),
+                    tipo: 'notificacion_nueva_presentacion_admin'
+                });
+                console.log('✅ Notificación enviada al administrador exitosamente');
+            } catch (adminEmailError) {
+                console.error('❌ Falló la notificación al administrador por correo:', adminEmailError.message);
+            }
+        } else {
+            console.warn('⚠️ No se pudo enviar notificación de administración: ADMIN_EMAIL no está configurado');
+        }
         
         // Generar URL de seguimiento para QR (sin token)
         const baseUrl = process.env.BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://sistema.tmarc.pe' : 'http://localhost:3002');

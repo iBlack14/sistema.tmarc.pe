@@ -18,6 +18,17 @@ function correoRecepcionMovimiento(datos) {
     return `<!doctype html><html lang="es"><body style="margin:0;background:#f2f3f5;font-family:Arial,sans-serif"><table width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px"><tr><td align="center"><table width="100%" cellspacing="0" cellpadding="0" style="max-width:610px;background:#fff;border-radius:17px;overflow:hidden;border:1px solid #ddd7c4"><tr><td style="background:#111;padding:25px 29px;border-bottom:4px solid #d4af37;color:#fff;font-family:Georgia,serif;font-size:27px;font-weight:bold">Tmarc</td></tr><tr><td style="padding:31px"><div style="color:#16794c;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px">Recepción confirmada</div><h1 style="font-size:23px;margin:8px 0 12px;color:#171717">Información adicional recibida</h1><p style="font-size:14px;color:#666;line-height:1.6">Confirmamos la recepción del siguiente movimiento incorporado a su presentación.</p><div style="background:#fff9e8;border:1px solid #ead486;border-radius:11px;padding:17px;margin:21px 0"><p style="margin:0 0 7px"><b>Presentación:</b> ${escaparHtml(datos.codigo)}</p><p style="margin:0 0 7px"><b>Tipo:</b> ${escaparHtml(datos.tipo_documento)}</p><p style="margin:0 0 7px"><b>Documento:</b> ${escaparHtml(datos.numero_documento || 'Sin número')}</p><p style="margin:0"><b>Asunto:</b> ${escaparHtml(datos.asunto || datos.sumilla || 'Información adicional')}</p></div><div style="text-align:center"><a href="${baseUrl}/dashboard-modular.html#expedientes" style="display:inline-block;padding:13px 24px;background:#d4af37;color:#111;text-decoration:none;border-radius:9px;font-size:13px;font-weight:bold">Ver seguimiento →</a></div><p style="margin-top:23px;font-size:11px;color:#888">Esta confirmación corresponde únicamente al movimiento señalado.</p></td></tr><tr><td style="background:#111;padding:18px;text-align:center;color:#aaa;font-size:10px"><b style="color:#d4af37">SISTEMA TMARC</b><br>Notificación institucional automática</td></tr></table></td></tr></table></body></html>`;
 }
 
+function plantillaNuevoMovimientoAdmin(fuente, codigo, movimiento, documentosCount) {
+    const baseUrl = (process.env.APP_URL || process.env.BASE_URL || 'https://sistema.tmarc.pe').replace(/\/+$/, '');
+    const refCodigo = escaparHtml(codigo);
+    const solicitante = escaparHtml(movimiento.presentado_por || 'Usuario TMARC');
+    const tipoDoc = escaparHtml(movimiento.tipo_documento || 'N/A');
+    const asunto = escaparHtml(movimiento.asunto || movimiento.sumilla || 'Sin asunto');
+    const fecha = new Date().toLocaleString('es-PE');
+    
+    return `<!doctype html><html lang="es"><body style="margin:0;background:#f1f2f4;font-family:Arial,Helvetica,sans-serif;color:#222"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px;background:#f1f2f4"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:18px;overflow:hidden;border:1px solid #dfd8c2"><tr><td style="background:#111;padding:26px 30px;border-bottom:4px solid #d4af37"><div style="font-family:Georgia,serif;color:#fff;font-size:28px;font-weight:bold">Tmarc</div><div style="color:#d4af37;font-size:10px;letter-spacing:1.5px;text-transform:uppercase">Notificación de Administración</div></td></tr><tr><td style="padding:32px"><div style="color:#b22222;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.2px">Nueva Información Presentada</div><h1 style="font-size:22px;margin:8px 0 12px">Adición de Documentos / Escritos</h1><p style="font-size:14px;line-height:1.6;color:#333">Un usuario ha agregado nuevos documentos o información a un expediente existente.</p><div style="padding:16px;background:#f7f7f7;border-left:4px solid #d4af37;border-radius:6px;font-size:13px;line-height:1.6;margin:15px 0"><strong>Detalles de la presentación:</strong><br><ul style="margin:8px 0;padding-left:20px"><li><strong>Expediente/Mesa de partes:</strong> ${refCodigo}</li><li><strong>Presentado por:</strong> ${solicitante}</li><li><strong>Tipo de documento:</strong> ${tipoDoc}</li><li><strong>Asunto:</strong> ${asunto}</li><li><strong>Archivos adjuntos:</strong> ${documentosCount}</li><li><strong>Fecha y hora:</strong> ${fecha}</li></ul></div><div style="text-align:center;margin-top:26px"><a href="${baseUrl}/public/admin/solicitudes.html" style="display:inline-block;background:#d4af37;color:#111;text-decoration:none;padding:13px 25px;border-radius:9px;font-size:13px;font-weight:bold">Ver en Panel Administrador</a></div></td></tr><tr><td style="background:#111;padding:19px;text-align:center;color:#aaa;font-size:10px"><strong style="color:#d4af37">SISTEMA TMARC</strong><br>Notificación automática institucional</td></tr></table></td></tr></table></body></html>`;
+}
+
 // Fix encoding de nombres de archivo (multer recibe Latin-1, necesitamos UTF-8)
 function fixNombre(originalname) {
     try {
@@ -178,7 +189,7 @@ router.get('/:fuente/:id/timeline', async (req, res) => {
 //  Crear nuevo movimiento en el timeline (con archivo opcional)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-router.post('/:fuente/:id/timeline', upload.single('documento'), async (req, res) => {
+router.post('/:fuente/:id/timeline', upload.any(), async (req, res) => {
     try {
         const { fuente, id } = req.params;
         const fk = buildForeignKey(fuente);
@@ -193,20 +204,38 @@ router.post('/:fuente/:id/timeline', upload.single('documento'), async (req, res
             presentado_por, tipo_parte,
             fecha_notificacion_virtual, fecha_notificacion_fisica,
             forma_entrega, destinatario_notificacion,
-            observaciones, creado_por
+            observaciones, creado_por, documentos_metadata
         } = req.body;
 
         if (!fecha_documento || !tipo_documento) {
             return res.status(400).json({ success: false, error: 'fecha_documento y tipo_documento son requeridos' });
         }
 
-        // Documento adjunto
-        let tiene_documento = 0, documento_nombre = null, documento_archivo = null, documento_ruta = null;
-        if (req.file) {
+        // Documentos adjuntos (soporta múltiples archivos)
+        let tiene_documento = 0, documento_nombre = null, documento_archivo = null, documento_ruta = null, documentos = null;
+        if (req.files && req.files.length > 0) {
             tiene_documento = 1;
-            documento_nombre = req.file.originalname;
-            documento_archivo = req.file.filename;
-            documento_ruta = `/uploads/timeline/${req.file.filename}`;
+            // Para compatibilidad hacia atrás: guardar el primer archivo en los campos individuales
+            documento_nombre = req.files[0].originalname;
+            documento_archivo = req.files[0].filename;
+            documento_ruta = `/uploads/timeline/${req.files[0].filename}`;
+
+            // Guardar todos los archivos con su respectivo metadato en la columna documentos JSON
+            const metadatos = documentos_metadata ? JSON.parse(documentos_metadata) : [];
+            const archivos = req.files.map((file, idx) => {
+                const meta = metadatos[idx] || {};
+                return {
+                    nombre: file.originalname,
+                    ruta: file.path,
+                    filename: file.filename,
+                    tipo: file.mimetype,
+                    tamano: file.size,
+                    pagina_fin: Number(meta.pagina_fin) || 0,
+                    descripcion: meta.descripcion || '',
+                    folios: Number(meta.folios) || 0
+                };
+            });
+            documentos = JSON.stringify(archivos);
         }
 
         const result = await query(`
@@ -218,8 +247,8 @@ router.post('/:fuente/:id/timeline', upload.single('documento'), async (req, res
                 fecha_notificacion_virtual, fecha_notificacion_fisica,
                 forma_entrega, destinatario_notificacion,
                 tiene_documento, documento_nombre, documento_archivo, documento_ruta,
-                observaciones, creado_por
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                documentos, observaciones, creado_por
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             registro.id,
             fecha_documento, fecha_presentacion || null, fecha_emision || null,
@@ -228,59 +257,89 @@ router.post('/:fuente/:id/timeline', upload.single('documento'), async (req, res
             fecha_notificacion_virtual || null, fecha_notificacion_fisica || null,
             forma_entrega || null, destinatario_notificacion || null,
             tiene_documento, documento_nombre, documento_archivo, documento_ruta,
-            observaciones || null, creado_por || null
+            documentos, observaciones || null, creado_por || null
         ]);
 
         await registrarAuditoria('seguimiento_timeline', result.insertId, 'INSERT', creado_por, req.body);
 
-        // Cuando el movimiento lo registra un administrador, avisar al titular
-        // de la presentación en su Casilla electrónica.
+        // Verificar tipo de usuario creador
+        const actorId = /^\d+$/.test(String(creado_por || '')) ? Number(creado_por) : null;
+        const [actor] = actorId ? await query('SELECT tipo FROM usuarios WHERE id = ? LIMIT 1', [actorId]) : [];
+        const isClient = !actor || actor.tipo !== 'admin';
+
         let notificacionSistema = false;
         if (fuente === 'mesa-partes' && registro.id) {
-            const actorId = /^\d+$/.test(String(creado_por || '')) ? Number(creado_por) : null;
-            const [actor] = actorId ? await query('SELECT tipo FROM usuarios WHERE id = ? LIMIT 1', [actorId]) : [];
-            if (actor?.tipo === 'admin') {
-                const [destino] = await query('SELECT numero_registro, usuario_id FROM mesa_partes WHERE id = ? LIMIT 1', [registro.id]);
-                if (destino?.usuario_id && Number(destino.usuario_id) !== actorId) {
-                    const notifId = `NOTIF-TL-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-                    const linea = (etiqueta, valor) => valor ? `<div style="margin:0 0 7px"><b>${etiqueta}:</b> ${escaparHtml(valor)}</div>` : '';
-                    const detalle = `
-                        <div style="line-height:1.55">
-                            ${linea('Presentación', destino.numero_registro)}
-                            ${linea('Tipo de documento', tipo_documento)}
-                            ${linea('Número / referencia', numero_documento)}
-                            ${linea('Asunto procesal', asunto)}
-                            ${linea('Fecha del documento', fecha_documento)}
-                            ${linea('Fecha de presentación', fecha_presentacion)}
-                            ${linea('Fecha de emisión', fecha_emision)}
-                            ${linea('Presentado por', presentado_por)}
-                            ${linea('Tipo de parte', tipo_parte)}
-                            ${linea('Notificación virtual', fecha_notificacion_virtual)}
-                            ${linea('Notificación física', fecha_notificacion_fisica)}
-                            ${linea('Forma de entrega', forma_entrega)}
-                            ${linea('Destinatario', destinatario_notificacion)}
-                            ${linea('Resumen / sumilla', sumilla)}
-                        </div>`;
-                    const archivoNotificacion = req.file ? JSON.stringify({
-                        nombre: documento_nombre,
-                        archivo: documento_archivo,
-                        ruta: documento_ruta,
-                        tipo: req.file.mimetype,
-                        tamano: req.file.size
-                    }) : null;
-                    await query(
-                        `INSERT INTO notificaciones (id, usuario_id, tipo, titulo, mensaje, expediente_id, archivo_adjunto, leida, fecha)
-                         VALUES (?, ?, 'sistema', ?, ?, ?, ?, 0, NOW())`,
-                        [
-                            notifId,
-                            destino.usuario_id,
-                            `Nuevo movimiento en ${destino.numero_registro}`,
-                            detalle,
-                            destino.numero_registro,
-                            archivoNotificacion
-                        ]
-                    );
-                    notificacionSistema = true;
+            const [destino] = await query('SELECT numero_registro, usuario_id FROM mesa_partes WHERE id = ? LIMIT 1', [registro.id]);
+            
+            // Si el creador es un administrador, avisar al titular en su Casilla electrónica
+            if (!isClient && destino?.usuario_id && Number(destino.usuario_id) !== actorId) {
+                const notifId = `NOTIF-TL-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+                const linea = (etiqueta, valor) => valor ? `<div style="margin:0 0 7px"><b>${etiqueta}:</b> ${escaparHtml(valor)}</div>` : '';
+                const detalle = `
+                    <div style="line-height:1.55">
+                        ${linea('Presentación', destino.numero_registro)}
+                        ${linea('Tipo de documento', tipo_documento)}
+                        ${linea('Número / referencia', numero_documento)}
+                        ${linea('Asunto procesal', asunto)}
+                        ${linea('Fecha del documento', fecha_documento)}
+                        ${linea('Fecha de presentación', fecha_presentacion)}
+                        ${linea('Fecha de emisión', fecha_emision)}
+                        ${linea('Presentado por', presentado_por)}
+                        ${linea('Tipo de parte', tipo_parte)}
+                        ${linea('Notificación virtual', fecha_notificacion_virtual)}
+                        ${linea('Notificación física', fecha_notificacion_fisica)}
+                        ${linea('Forma de entrega', forma_entrega)}
+                        ${linea('Destinatario', destinatario_notificacion)}
+                        ${linea('Resumen / sumilla', sumilla)}
+                    </div>`;
+                const archivoNotificacion = req.file ? JSON.stringify({
+                    nombre: documento_nombre,
+                    archivo: documento_archivo,
+                    ruta: documento_ruta,
+                    tipo: req.file.mimetype,
+                    tamano: req.file.size
+                }) : null;
+                await query(
+                    `INSERT INTO notificaciones (id, usuario_id, tipo, titulo, mensaje, expediente_id, archivo_adjunto, leida, fecha)
+                     VALUES (?, ?, 'sistema', ?, ?, ?, ?, 0, NOW())`,
+                    [
+                        notifId,
+                        destino.usuario_id,
+                        `Nuevo movimiento en ${destino.numero_registro}`,
+                        detalle,
+                        destino.numero_registro,
+                        archivoNotificacion
+                    ]
+                );
+                notificacionSistema = true;
+            }
+            
+            // Si el creador es un cliente, notificar al administrador por correo
+            if (isClient) {
+                const correoAdmin = process.env.ADMIN_EMAIL;
+                if (correoAdmin) {
+                    try {
+                        const refCodigo = destino?.numero_registro || id;
+                        const docCount = req.files ? req.files.length : 0;
+                        const fakeMovimiento = {
+                            presentado_por: presentado_por || actor?.nombre || 'Usuario Cliente',
+                            tipo_documento,
+                            asunto,
+                            sumilla
+                        };
+                        console.log(`✉️ Enviando notificación de nuevo movimiento al administrador (${correoAdmin})`);
+                        await smtpConfigManager.enviarEmail({
+                            destinatario: correoAdmin,
+                            asunto: `[Nueva Información] Registro: ${refCodigo}`,
+                            contenido: plantillaNuevoMovimientoAdmin(fuente, refCodigo, fakeMovimiento, docCount),
+                            tipo: 'notificacion_nuevo_movimiento_admin'
+                        });
+                        console.log('✅ Notificación de nuevo movimiento enviada al administrador exitosamente');
+                    } catch (adminEmailError) {
+                        console.error('❌ Falló la notificación de nuevo movimiento al administrador:', adminEmailError.message);
+                    }
+                } else {
+                    console.warn('⚠️ No se pudo enviar notificación de nuevo movimiento: ADMIN_EMAIL no está configurado');
                 }
             }
         }

@@ -377,12 +377,207 @@ async function responderSolicitud(id) {
                         <div style="margin-bottom:20px;">
                             <label style="display:block;margin-bottom:8px;color:#333;font-weight:600;">Mensaje:</label>
                             <textarea id="respuesta-mensaje" required rows="6"
+    if (!url) {
+        if (window.showError) window.showError('URL del archivo no disponible');
+        return;
+    }
+
+    // Extraer nombre de archivo de la URL
+    const filename = url.split('/').pop();
+    
+    // Usar la nueva ruta de descarga segura
+    const downloadUrl = `/api/download/archivo/${filename}`;
+    
+    // Crear enlace temporal para descarga
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = nombreOriginal || 'archivo';
+    link.target = '_blank';
+    
+    // Agregar al DOM, hacer clic y eliminar
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    console.log(`📥 Descargando archivo: ${nombreOriginal} desde ${downloadUrl}`);
+}
+
+// Función para abrir archivo de solicitud (legacy - mantener por compatibilidad)
+function abrirArchivoSolicitud(nombre, tipo, esSimulado) {
+    if (esSimulado) {
+        alert(`📎 Archivo de ejemplo: ${nombre}\n\n` +
+              `Tipo: ${obtenerTipoArchivo(tipo)}\n` +
+              `En un sistema real, aquí se abriría el visor de documentos\n` +
+              `o se descargaría el archivo.`);
+        return;
+    }
+
+    // Redirigir a la función de descarga
+    descargarArchivoSolicitud(`/uploads/${nombre}`, nombre);
+}
+
+// Función para aprobar solicitud
+async function aprobarSolicitud(id) {
+    if (typeof Swal === 'undefined') {
+        if (!confirm('¿Está seguro de aprobar esta solicitud?')) return;
+        return procesarAprobacion(id);
+    }
+
+    Swal.fire({
+        title: '¿Aprobar solicitud?',
+        text: "Esta acción marcará la solicitud como aprobada.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#4CAF50',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, aprobar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            procesarAprobacion(id);
+        }
+    });
+}
+
+async function procesarAprobacion(id) {
+    try {
+        if (window.showLoading) window.showLoading('Aprobando solicitud...');
+        
+        const response = await fetch(`/api/solicitudes/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: 'Aprobado' })
+        });
+        const data = await response.json();
+        
+        if (window.hideLoading) window.hideLoading();
+        
+        if (data.success) {
+            if (window.showSuccess) window.showSuccess('Solicitud aprobada exitosamente');
+            
+            // Refrescar tabla
+            if (window.dataManager && typeof window.dataManager.refreshSolicitudesTable === 'function') {
+                await window.dataManager.refreshSolicitudesTable();
+            }
+            // Enviar notificación al usuario
+            enviarNotificacionUsuario(id, 'Su solicitud ha sido aprobada');
+        } else {
+            if (window.showError) window.showError('Error aprobando solicitud: ' + data.error);
+        }
+    } catch (error) {
+        if (window.hideLoading) window.hideLoading();
+        console.error('Error aprobando solicitud:', error);
+        if (window.showError) window.showError('Error aprobando solicitud');
+    }
+}
+
+// Función para rechazar solicitud
+async function rechazarSolicitud(id) {
+    if (typeof Swal === 'undefined') {
+        const motivo = prompt('Ingrese el motivo del rechazo:');
+        if (motivo) procesarRechazo(id, motivo);
+        return;
+    }
+
+    Swal.fire({
+        title: 'Rechazar Solicitud',
+        text: 'Por favor, ingrese el motivo del rechazo:',
+        input: 'textarea',
+        inputPlaceholder: 'Escriba el motivo aquí...',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Rechazar',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+            if (!value) return 'El motivo es obligatorio';
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            procesarRechazo(id, result.value);
+        }
+    });
+}
+
+async function procesarRechazo(id, motivo) {
+    try {
+        if (window.showLoading) window.showLoading('Rechazando solicitud...');
+        
+        const response = await fetch(`/api/solicitudes/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: 'Rechazado', motivo_rechazo: motivo })
+        });
+        const data = await response.json();
+        
+        if (window.hideLoading) window.hideLoading();
+        
+        if (data.success) {
+            if (window.showSuccess) window.showSuccess('Solicitud rechazada exitosamente');
+            
+            // Refrescar tabla
+            if (window.dataManager && typeof window.dataManager.refreshSolicitudesTable === 'function') {
+                await window.dataManager.refreshSolicitudesTable();
+            }
+            // Enviar notificación al usuario
+            enviarNotificacionUsuario(id, `Su solicitud ha sido rechazada. Motivo: ${motivo}`);
+        } else {
+            if (window.showError) window.showError('Error rechazando solicitud: ' + data.error);
+        }
+    } catch (error) {
+        if (window.hideLoading) window.hideLoading();
+        console.error('Error rechazando solicitud:', error);
+        if (window.showError) window.showError('Error rechazando solicitud');
+    }
+}
+
+// Función para responder solicitud
+async function responderSolicitud(id) {
+    try {
+        // Obtener datos de la solicitud
+        const response = await fetch(`/api/solicitudes/${id}`);
+        const data = await response.json();
+
+        if (!data.success) {
+            if (window.showError) window.showError('Error obteniendo datos de la solicitud');
+            return;
+        }
+
+        const solicitud = data.data;
+
+        // Crear modal de respuesta
+        const modalHTML = `
+            <div id="modalResponderSolicitud" style="display:block;position:fixed;z-index:30000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.7);">
+                <div style="background:#fff;margin:5% auto;padding:30px;width:90%;max-width:600px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:2px solid #f0f0f0;padding-bottom:15px;">
+                        <h2 style="margin:0;color:#000;font-size:22px;">💬 Responder Solicitud #${id}</h2>
+                        <button onclick="cerrarModalResponderSolicitud()" style="background:none;border:none;font-size:28px;cursor:pointer;color:#666;">&times;</button>
+                    </div>
+                    
+                    <div style="background:#f8f9fa;padding:15px;border-radius:8px;margin-bottom:20px;">
+                        <p style="margin:5px 0;color:#333;"><strong>Solicitante:</strong> ${solicitud.nombre || 'No especificado'}</p>
+                        <p style="margin:5px 0;color:#333;"><strong>Email:</strong> ${solicitud.email || 'No especificado'}</p>
+                        <p style="margin:5px 0;color:#333;"><strong>Asunto:</strong> ${solicitud.asunto || 'No especificado'}</p>
+                    </div>
+
+                    <form id="formResponderSolicitud" onsubmit="enviarRespuestaSolicitud(event, '${id}', '${solicitud.usuario_id}')">
+                        <div style="margin-bottom:20px;">
+                            <label style="display:block;margin-bottom:8px;color:#333;font-weight:600;">Asunto de la respuesta:</label>
+                            <input type="text" id="respuesta-asunto" required 
+                                style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:14px;"
+                                placeholder="Ej: Respuesta a su solicitud #${id}">
+                        </div>
+
+                        <div style="margin-bottom:20px;">
+                            <label style="display:block;margin-bottom:8px;color:#333;font-weight:600;">Mensaje:</label>
+                            <textarea id="respuesta-mensaje" required rows="6"
                                 style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:14px;resize:vertical;"
                                 placeholder="Escriba su respuesta aquí..."></textarea>
                         </div>
 
                         <div style="margin-bottom:20px;">
-                            ${window.FileUploadTable ? FileUploadTable.render({ id:'respuestaSolicitudArchivo', title:'Adjuntar archivo', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. PDF, Word o imágenes. Máximo 10 MB.' }) : '<input type="file" id="respuesta-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">'}
+                            ${window.FileUploadTable ? FileUploadTable.render({ id:'respuestaSolicitudArchivo', title:'Archivos adjuntos', multiple:true, maxFiles:10, showMetadata:true, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Máximo 10 archivos. Complete la información de cada anexo.' }) : '<input type="file" id="respuesta-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>'}
                         </div>
 
                         <div style="display:flex;gap:10px;justify-content:flex-end;">
@@ -433,16 +628,18 @@ async function enviarRespuestaSolicitud(event, solicitudId, usuarioId) {
     const asunto = document.getElementById('respuesta-asunto').value;
     const mensaje = document.getElementById('respuesta-mensaje').value;
     const archivoInput = document.getElementById('respuesta-archivo');
-    const archivo = (window.FileUploadTable?.getFiles('respuestaSolicitudArchivo') || [])[0] || archivoInput?.files[0];
+    const archivosRespuesta = window.FileUploadTable?.getItems('respuestaSolicitudArchivo') || [];
+    const legacyFiles = archivoInput?.files ? Array.from(archivoInput.files) : [];
 
     if (!asunto || !mensaje) {
         if (window.showError) window.showError('Por favor, complete todos los campos obligatorios');
         return;
     }
 
-    // Validar tamaño del archivo (10MB máximo)
-    if (archivo && archivo.size > 10 * 1024 * 1024) {
-        if (window.showError) window.showError('El archivo es demasiado grande. Máximo 10MB.');
+    // Validar tamaño del archivo (10MB máximo por archivo)
+    const tieneArchivoGrande = archivosRespuesta.some(item => item.file.size > 10 * 1024 * 1024) || legacyFiles.some(f => f.size > 10 * 1024 * 1024);
+    if (tieneArchivoGrande) {
+        if (window.showError) window.showError('Uno de los archivos es demasiado grande. Máximo 10MB por archivo.');
         return;
     }
 
@@ -457,23 +654,30 @@ async function enviarRespuestaSolicitud(event, solicitudId, usuarioId) {
         formData.append('referencia_tipo', 'solicitud');
         formData.append('referencia_id', solicitudId);
         
-        // Agregar archivo si existe
-        if (archivo) {
-            formData.append('archivo', archivo);
-            console.log('📎 Archivo adjunto:', archivo.name);
+        // Agregar archivos y metadatos si existen
+        let tieneArchivo = false;
+        if (archivosRespuesta.length > 0) {
+            tieneArchivo = true;
+            archivosRespuesta.forEach(item => formData.append('documentos', item.file));
+            formData.append('documentos_metadata', JSON.stringify(window.FileUploadTable.getMetadata('respuestaSolicitudArchivo')));
+            console.log(`📎 Archivos adjuntos (${archivosRespuesta.length})`);
+        } else if (legacyFiles.length > 0) {
+            tieneArchivo = true;
+            legacyFiles.forEach(file => formData.append('documentos', file));
+            console.log(`📎 Archivos adjuntos legacy (${legacyFiles.length})`);
         }
 
         // Crear notificación con archivo en la casilla del usuario
         const response = await fetch('/api/notificaciones', {
             method: 'POST',
-            body: formData // Usar FormData en lugar de JSON para enviar archivo
+            body: formData
         });
 
         const data = await response.json();
 
         if (data.success) {
-            const mensajeExito = archivo 
-                ? 'Respuesta enviada correctamente con archivo adjunto. El usuario la verá en su Casilla Electrónica.'
+            const mensajeExito = tieneArchivo 
+                ? 'Respuesta enviada correctamente con archivo(s) adjunto(s). El usuario la verá en su Casilla Electrónica.'
                 : 'Respuesta enviada correctamente. El usuario la verá en su Casilla Electrónica.';
             
             if (window.showSuccess) window.showSuccess(mensajeExito);
@@ -489,25 +693,6 @@ async function enviarRespuestaSolicitud(event, solicitudId, usuarioId) {
     } catch (error) {
         console.error('❌ Error enviando respuesta:', error);
         if (window.showError) window.showError('Error al enviar la respuesta: ' + error.message);
-    }
-}
-
-// Función auxiliar para enviar notificación al usuario
-async function enviarNotificacionUsuario(solicitudId, mensaje) {
-    try {
-        await fetch('/api/notificaciones', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                solicitud_id: solicitudId,
-                mensaje: mensaje,
-                tipo: 'solicitud'
-            })
-        });
-    } catch (error) {
-        console.error('Error enviando notificación:', error);
     }
 }
 

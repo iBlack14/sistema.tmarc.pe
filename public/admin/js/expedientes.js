@@ -314,7 +314,7 @@ async function responderExpediente(expedienteId) {
                         </div>
 
                         <div style="margin-bottom:20px;">
-                            ${window.FileUploadTable ? FileUploadTable.render({ id:'respuestaExpArchivo', title:'Adjuntar archivo', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. PDF, Word o imágenes. Máximo 10 MB.' }) : '<input type="file" id="respuesta-exp-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">'}
+                            ${window.FileUploadTable ? FileUploadTable.render({ id:'respuestaExpArchivo', title:'Archivos adjuntos', multiple:true, maxFiles:10, showMetadata:true, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Máximo 10 archivos. Complete la información de cada anexo.' }) : '<input type="file" id="respuesta-exp-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>'}
                         </div>
 
                         <div style="display:flex;gap:10px;justify-content:flex-end;">
@@ -358,16 +358,18 @@ async function enviarRespuestaExpediente(event, expedienteId, usuarioId) {
     const asunto = document.getElementById('respuesta-exp-asunto').value;
     const mensaje = document.getElementById('respuesta-exp-mensaje').value;
     const archivoInput = document.getElementById('respuesta-exp-archivo');
-    const archivo = (window.FileUploadTable?.getFiles('respuestaExpArchivo') || [])[0] || archivoInput?.files[0];
+    const archivosRespuesta = window.FileUploadTable?.getItems('respuestaExpArchivo') || [];
+    const legacyFiles = archivoInput?.files ? Array.from(archivoInput.files) : [];
 
     if (!asunto || !mensaje) {
         if (window.showError) window.showError('Por favor, complete todos los campos obligatorios');
         return;
     }
 
-    // Validar tamaño del archivo (10MB máximo)
-    if (archivo && archivo.size > 10 * 1024 * 1024) {
-        if (window.showError) window.showError('El archivo es demasiado grande. Máximo 10MB.');
+    // Validar tamaño del archivo (10MB máximo por archivo)
+    const tieneArchivoGrande = archivosRespuesta.some(item => item.file.size > 10 * 1024 * 1024) || legacyFiles.some(f => f.size > 10 * 1024 * 1024);
+    if (tieneArchivoGrande) {
+        if (window.showError) window.showError('Uno de los archivos es demasiado grande. Máximo 10MB por archivo.');
         return;
     }
 
@@ -383,10 +385,17 @@ async function enviarRespuestaExpediente(event, expedienteId, usuarioId) {
         formData.append('referencia_id', expedienteId);
         formData.append('expediente_id', expedienteId);
         
-        // Agregar archivo si existe
-        if (archivo) {
-            formData.append('archivo', archivo);
-            console.log('📎 Archivo adjunto:', archivo.name);
+        // Agregar archivos y metadatos si existen
+        let tieneArchivo = false;
+        if (archivosRespuesta.length > 0) {
+            tieneArchivo = true;
+            archivosRespuesta.forEach(item => formData.append('documentos', item.file));
+            formData.append('documentos_metadata', JSON.stringify(window.FileUploadTable.getMetadata('respuestaExpArchivo')));
+            console.log(`📎 Archivos adjuntos (${archivosRespuesta.length})`);
+        } else if (legacyFiles.length > 0) {
+            tieneArchivo = true;
+            legacyFiles.forEach(file => formData.append('documentos', file));
+            console.log(`📎 Archivos adjuntos legacy (${legacyFiles.length})`);
         }
 
         // Crear notificación con archivo en la casilla del usuario
@@ -398,8 +407,8 @@ async function enviarRespuestaExpediente(event, expedienteId, usuarioId) {
         const data = await response.json();
 
         if (data.success) {
-            const mensajeExito = archivo 
-                ? 'Respuesta enviada correctamente con archivo adjunto. El usuario la verá en su Casilla Electrónica.'
+            const mensajeExito = tieneArchivo 
+                ? 'Respuesta enviada correctamente con archivo(s) adjunto(s). El usuario la verá en su Casilla Electrónica.'
                 : 'Respuesta enviada correctamente. El usuario la verá en su Casilla Electrónica.';
             
             if (window.showSuccess) window.showSuccess(mensajeExito);

@@ -191,6 +191,19 @@ router.post('/login', async (req, res) => {
             });
         }
 
+        if (process.env.NODE_ENV !== 'production') {
+            const usrPublico = usuarioPublico(usuario);
+            return res.json({
+                success: true,
+                requiresVerification: false,
+                message: 'Inicio de sesión exitoso (Desarrollo: 2FA omitido)',
+                data: {
+                    usuario: usrPublico,
+                    token: crearToken(usuario)
+                }
+            });
+        }
+
         try {
             const challenge = await emitirCodigo(usuario);
             return res.json({

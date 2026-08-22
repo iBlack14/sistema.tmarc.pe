@@ -154,11 +154,35 @@ const TimelineManager = {
                                 ${m.recepcion_confirmada ? `<span style="display:inline-flex;align-items:center;padding:6px 10px;border-radius:8px;background:#e6f7ed;color:#16794c;font-size:10px;font-weight:800;white-space:nowrap;">✓ Recibido${m.fecha_recepcion ? ` · ${new Date(m.fecha_recepcion).toLocaleDateString('es-PE')}` : ''}</span>` : !this.parentRecepcionConfirmada ? `<button onclick="TimelineManager.confirmarRecepcion(${m.id})" style="border:0;background:#16794c;color:#fff;padding:7px 11px;border-radius:8px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap;">📥 Confirmar recepción</button>` : ''}
                                 <button onclick="TimelineManager.mostrarFormulario(${m.id})" style="background:none; border:none; color:#777; cursor:pointer; font-size:14px; padding:5px; transition:color 0.2s;" onmouseover="this.style.color='#d4af37'" onmouseout="this.style.color='#777'">✏️</button>
                                 <button onclick="TimelineManager.eliminar(${m.id})" style="background:none; border:none; color:#777; cursor:pointer; font-size:14px; padding:5px; transition:color 0.2s;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='#777'">🗑️</button>
-                                ${m.tiene_documento || m.documento_archivo ? `
-                                <a href="${m.documento_ruta || m.documento_archivo}" target="_blank" style="margin-left: 10px; display: flex; align-items: center; gap: 6px; color: var(--color-gold); text-decoration: none; font-size: 11px; font-weight: 800; padding: 6px 14px; background: #fffdf2; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 8px; transition: all 0.3s;" onmouseover="this.style.background='#d4af37'; this.style.color='#fff';" onmouseout="this.style.background='#fffdf2'; this.style.color='var(--color-gold)';">
-                                    VER ANEXO
-                                </a>
-                                ` : ''}
+                                ${(() => {
+                                    if (m.documentos) {
+                                        try {
+                                            const docs = typeof m.documentos === 'string' ? JSON.parse(m.documentos) : m.documentos;
+                                            if (Array.isArray(docs) && docs.length > 0) {
+                                                return docs.map(doc => {
+                                                    const filename = doc.filename || (doc.ruta ? doc.ruta.split('/').pop() : '');
+                                                    const url = filename ? `/api/download/archivo/${filename}` : (doc.url || '#');
+                                                    return `
+                                                        <a href="${url}" target="_blank" style="margin-left: 10px; display: inline-flex; align-items: center; gap: 6px; color: var(--color-gold); text-decoration: none; font-size: 11px; font-weight: 800; padding: 6px 14px; background: #fffdf2; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 8px; transition: all 0.3s;" onmouseover="this.style.background='#d4af37'; this.style.color='#fff';" onmouseout="this.style.background='#fffdf2'; this.style.color='var(--color-gold)';" title="${doc.nombre}">
+                                                            📄 ${doc.nombre.length > 15 ? doc.nombre.substring(0, 15) + '...' : doc.nombre}
+                                                        </a>
+                                                    `;
+                                                }).join('');
+                                            }
+                                        } catch (e) {
+                                            console.warn('Error parsing documentos in timeline rendering:', e);
+                                        }
+                                    }
+                                    if (m.tiene_documento || m.documento_archivo) {
+                                        const url = m.documento_ruta || m.documento_archivo;
+                                        return `
+                                            <a href="${url}" target="_blank" style="margin-left: 10px; display: inline-flex; align-items: center; gap: 6px; color: var(--color-gold); text-decoration: none; font-size: 11px; font-weight: 800; padding: 6px 14px; background: #fffdf2; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 8px; transition: all 0.3s;" onmouseover="this.style.background='#d4af37'; this.style.color='#fff';" onmouseout="this.style.background='#fffdf2'; this.style.color='var(--color-gold)';">
+                                                VER ANEXO
+                                            </a>
+                                        `;
+                                    }
+                                    return '';
+                                })()}
                             </div>
                         </div>
                     </div>
@@ -353,7 +377,7 @@ const TimelineManager = {
                     
                     ${!editId ? `
                     <div style="margin-bottom: 15px;">
-                        ${window.FileUploadTable ? FileUploadTable.render({ id:'timelineDocumento', title:'Archivo adjunto', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. PDF, Word, JPG o PNG. Máximo 1 GB.' }) : '<input type="file" id="tl_documento" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="premium-input">'}
+                        ${window.FileUploadTable ? FileUploadTable.render({ id:'timelineDocumento', title:'Archivos adjuntos', multiple:true, maxFiles:10, showMetadata:true, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Máximo 10 archivos. Complete la información de cada anexo.' }) : '<input type="file" id="tl_documento" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="premium-input" multiple>'}
                     </div>
                     ` : ''}
                     
@@ -408,8 +432,15 @@ const TimelineManager = {
             if (userData?.id) formData.append(editId ? 'actualizado_por' : 'creado_por', userData.id);
 
             const fileInput = document.getElementById('tl_documento');
-            const archivoTimeline = (window.FileUploadTable?.getFiles('timelineDocumento') || [])[0] || fileInput?.files?.[0];
-            if (archivoTimeline) formData.append('documento', archivoTimeline);
+            const archivosTimeline = window.FileUploadTable?.getItems('timelineDocumento') || [];
+            const legacyFiles = fileInput?.files ? Array.from(fileInput.files) : [];
+            
+            if (archivosTimeline.length > 0) {
+                archivosTimeline.forEach(item => formData.append('documentos', item.file));
+                formData.append('documentos_metadata', JSON.stringify(window.FileUploadTable.getMetadata('timelineDocumento')));
+            } else if (legacyFiles.length > 0) {
+                legacyFiles.forEach(file => formData.append('documentos', file));
+            }
 
             const token = await getSecureItem('authToken');
             const url = editId ? `/api/timeline/${editId}` : `/api/${this.currentFuente}/${this.currentId}/timeline`;

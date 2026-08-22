@@ -617,6 +617,10 @@ async function inicializarBaseDatos(reset = false) {
         if (!(await columnaExiste('seguimiento_timeline', 'confirmado_por'))) {
             await query('ALTER TABLE seguimiento_timeline ADD COLUMN confirmado_por INT NULL');
         }
+        if (!(await columnaExiste('seguimiento_timeline', 'documentos'))) {
+            await query('ALTER TABLE seguimiento_timeline ADD COLUMN documentos JSON');
+            console.log('✅ Columna documentos agregada a seguimiento_timeline');
+        }
         console.log('✅ Tabla seguimiento_timeline verificada');
 
         // Las configuraciones iniciales ahora se gestionan vía .env para mayor seguridad y flexibilidad

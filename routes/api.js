@@ -401,6 +401,21 @@ router.get('/solicitudes/:id', async (req, res) => {
     }
 });
 
+function escaparHtml(valor) {
+    return String(valor || '').replace(/[&<>"']/g, caracter => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[caracter]);
+}
+
+function plantillaNuevaSolicitudAdmin(solicitud, documentosCount) {
+    const baseUrl = (process.env.APP_URL || process.env.BASE_URL || 'https://sistema.tmarc.pe').replace(/\/+$/, '');
+    const codigo = escaparHtml(solicitud.id);
+    const solicitante = escaparHtml(solicitud.nombre || 'Usuario TMARC');
+    const materia = escaparHtml(solicitud.materia || solicitud.tipo || 'N/A');
+    const asunto = escaparHtml(solicitud.asunto || 'Sin asunto');
+    const fecha = new Date().toLocaleString('es-PE');
+    
+    return `<!doctype html><html lang="es"><body style="margin:0;background:#f1f2f4;font-family:Arial,Helvetica,sans-serif;color:#222"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px;background:#f1f2f4"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:18px;overflow:hidden;border:1px solid #dfd8c2"><tr><td style="background:#111;padding:26px 30px;border-bottom:4px solid #d4af37"><div style="font-family:Georgia,serif;color:#fff;font-size:28px;font-weight:bold">Tmarc</div><div style="color:#d4af37;font-size:10px;letter-spacing:1.5px;text-transform:uppercase">Notificación de Administración</div></td></tr><tr><td style="padding:32px"><div style="color:#b22222;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.2px">Nueva Solicitud Registrada</div><h1 style="font-size:22px;margin:8px 0 12px">Mesa de Partes Virtual</h1><p style="font-size:14px;line-height:1.6;color:#333">Se ha registrado una nueva solicitud en la plataforma.</p><div style="padding:16px;background:#f7f7f7;border-left:4px solid #d4af37;border-radius:6px;font-size:13px;line-height:1.6;margin:15px 0"><strong>Detalles de la solicitud:</strong><br><ul style="margin:8px 0;padding-left:20px"><li><strong>Código de registro:</strong> ${codigo}</li><li><strong>Solicitante:</strong> ${solicitante}</li><li><strong>Tipo/Materia:</strong> ${materia}</li><li><strong>Asunto:</strong> ${asunto}</li><li><strong>Archivos adjuntos:</strong> ${documentosCount}</li><li><strong>Fecha y hora:</strong> ${fecha}</li></ul></div><div style="text-align:center;margin-top:26px"><a href="${baseUrl}/public/admin/solicitudes.html" style="display:inline-block;background:#d4af37;color:#111;text-decoration:none;padding:13px 25px;border-radius:9px;font-size:13px;font-weight:bold">Ver en Panel Administrador</a></div></td></tr><tr><td style="background:#111;padding:19px;text-align:center;color:#aaa;font-size:10px"><strong style="color:#d4af37">SISTEMA TMARC</strong><br>Notificación automática institucional</td></tr></table></td></tr></table></body></html>`;
+}
+
 // Crear nueva solicitud con archivos
 router.post('/solicitudes', upload.fields([
     { name: 'documentos_principales', maxCount: 5 },
@@ -509,6 +524,25 @@ router.post('/solicitudes', upload.fields([
             documentos_principales: req.files?.documentos_principales?.length || 0,
             anexos: req.files?.anexos?.length || 0
         });
+
+        // Notificar al administrador por correo
+        const correoAdmin = process.env.ADMIN_EMAIL;
+        if (correoAdmin) {
+            try {
+                console.log(`✉️ Enviando notificación al administrador (${correoAdmin})`);
+                await smtpConfigManager.enviarEmail({
+                    destinatario: correoAdmin,
+                    asunto: `[Nueva Solicitud] Código: ${id}`,
+                    contenido: plantillaNuevaSolicitudAdmin(solicitudCompleta, documentos.length),
+                    tipo: 'notificacion_nueva_solicitud_admin'
+                });
+                console.log('✅ Notificación enviada al administrador exitosamente');
+            } catch (adminEmailError) {
+                console.error('❌ Falló la notificación al administrador por correo:', adminEmailError.message);
+            }
+        } else {
+            console.warn('⚠️ No se pudo enviar notificación de administración: ADMIN_EMAIL no está configurado');
+        }
 
         res.status(201).json({
             success: true,
@@ -929,7 +963,7 @@ router.get('/notificaciones', async (req, res) => {
 });
 
 // Crear nueva notificación (desde admin) - con soporte para archivos y multi-canal
-router.post('/notificaciones', upload.single('archivo'), async (req, res) => {
+router.post('/notificaciones', upload.any(), async (req, res) => {
     try {
         const {
             usuario_id,
@@ -941,7 +975,8 @@ router.post('/notificaciones', upload.single('archivo'), async (req, res) => {
             referencia_tipo,
             referencia_id,
             enviar_casilla = true, // Por defecto true si viene de la casilla
-            enviar_email = false
+            enviar_email = false,
+            documentos_metadata
         } = req.body;
 
         // Validación
@@ -957,13 +992,21 @@ router.post('/notificaciones', upload.single('archivo'), async (req, res) => {
         // 1. Enviar por CASILLA (Base de Datos)
         if (enviar_casilla === 'true' || enviar_casilla === true) {
             let archivoAdjunto = null;
-            if (req.file) {
-                archivoAdjunto = JSON.stringify({
-                    nombre: req.file.originalname,
-                    ruta: req.file.path,
-                    tipo: req.file.mimetype,
-                    tamano: req.file.size
+            if (req.files && req.files.length > 0) {
+                const metadatos = documentos_metadata ? JSON.parse(documentos_metadata) : [];
+                const archivos = req.files.map((file, idx) => {
+                    const meta = metadatos[idx] || {};
+                    return {
+                        nombre: file.originalname,
+                        ruta: file.path,
+                        tipo: file.mimetype,
+                        tamano: file.size,
+                        pagina_fin: Number(meta.pagina_fin) || 0,
+                        descripcion: meta.descripcion || '',
+                        folios: Number(meta.folios) || 0
+                    };
                 });
+                archivoAdjunto = JSON.stringify(archivos);
             }
 
             await query(`

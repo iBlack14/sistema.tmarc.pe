@@ -1083,7 +1083,7 @@ const CasillaUnificada = {
                                 </div>
 
                                 <div>
-                                    ${window.FileUploadTable ? FileUploadTable.render({ id:'respuestaMpArchivo', title:'Documento adjunto', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. PDF, Word, JPG o PNG. Máximo 10 MB.' }) : '<input type="file" id="respuesta-mp-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">'}
+                                    ${window.FileUploadTable ? FileUploadTable.render({ id:'respuestaMpArchivo', title:'Archivos adjuntos', multiple:true, maxFiles:10, showMetadata:true, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Máximo 10 archivos. Complete la información de cada anexo.' }) : '<input type="file" id="respuesta-mp-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>'}
                                 </div>
 
                                 <!-- Botones de Acción -->
@@ -1141,16 +1141,18 @@ const CasillaUnificada = {
         const asunto = document.getElementById('respuesta-mp-asunto').value;
         const mensaje = document.getElementById('respuesta-mp-mensaje').value;
         const archivoInput = document.getElementById('respuesta-mp-archivo');
-        const archivo = (window.FileUploadTable?.getFiles('respuestaMpArchivo') || [])[0] || archivoInput?.files[0];
+        const archivosRespuesta = window.FileUploadTable?.getItems('respuestaMpArchivo') || [];
+        const legacyFiles = archivoInput?.files ? Array.from(archivoInput.files) : [];
 
         if (!asunto || !mensaje) {
             alert('Por favor, complete todos los campos obligatorios');
             return;
         }
 
-        // Validar tamaño del archivo (10MB máximo)
-        if (archivo && archivo.size > 10 * 1024 * 1024) {
-            alert('El archivo es demasiado grande. Máximo 10MB.');
+        // Validar tamaño del archivo (10MB máximo por archivo)
+        const tieneArchivoGrande = archivosRespuesta.some(item => item.file.size > 10 * 1024 * 1024) || legacyFiles.some(f => f.size > 10 * 1024 * 1024);
+        if (tieneArchivoGrande) {
+            alert('Uno de los archivos es demasiado grande. Máximo 10MB por archivo.');
             return;
         }
 
@@ -1165,10 +1167,17 @@ const CasillaUnificada = {
             formData.append('referencia_tipo', 'mesa_partes');
             formData.append('referencia_id', presentacionId);
 
-            // Agregar archivo si existe
-            if (archivo) {
-                formData.append('archivo', archivo);
-                console.log('📎 Archivo adjunto:', archivo.name);
+            // Agregar archivos y metadatos si existen
+            let tieneArchivo = false;
+            if (archivosRespuesta.length > 0) {
+                tieneArchivo = true;
+                archivosRespuesta.forEach(item => formData.append('documentos', item.file));
+                formData.append('documentos_metadata', JSON.stringify(window.FileUploadTable.getMetadata('respuestaMpArchivo')));
+                console.log(`📎 Archivos adjuntos (${archivosRespuesta.length})`);
+            } else if (legacyFiles.length > 0) {
+                tieneArchivo = true;
+                legacyFiles.forEach(file => formData.append('documentos', file));
+                console.log(`📎 Archivos adjuntos legacy (${legacyFiles.length})`);
             }
 
             // Crear notificación con archivo en la casilla del usuario
@@ -1180,8 +1189,8 @@ const CasillaUnificada = {
             const data = await response.json();
 
             if (data.success) {
-                const mensajeExito = archivo
-                    ? '✅ Respuesta enviada correctamente con archivo adjunto. El usuario la verá en su Casilla Electrónica.'
+                const mensajeExito = tieneArchivo
+                    ? '✅ Respuesta enviada correctamente con archivo(s) adjunto(s). El usuario la verá en su Casilla Electrónica.'
                     : '✅ Respuesta enviada correctamente. El usuario la verá en su Casilla Electrónica.';
 
                 alert(mensajeExito);
@@ -1352,7 +1361,7 @@ const CasillaUnificada = {
                                     onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#eee'"></textarea>
                             </div>
                             <div>
-                                ${window.FileUploadTable ? FileUploadTable.render({ id:'solRespArchivo', title:'Adjuntar archivo', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. PDF, Word o imágenes. Máximo 10 MB.' }) : '<input type="file" id="sol-resp-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">'}
+                                ${window.FileUploadTable ? FileUploadTable.render({ id:'solRespArchivo', title:'Archivos adjuntos', multiple:true, maxFiles:10, showMetadata:true, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Máximo 10 archivos. Complete la información de cada anexo.' }) : '<input type="file" id="sol-resp-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>'}
                             </div>
                             <div style="display:flex; gap:15px; justify-content:flex-end; padding-top:10px; border-top:1px solid #eee;">
                                 <button type="button" onclick="CasillaUnificada.cerrarModalRespuestaSolicitud()"
@@ -1392,14 +1401,18 @@ const CasillaUnificada = {
         const asunto = document.getElementById('sol-resp-asunto').value;
         const mensaje = document.getElementById('sol-resp-mensaje').value;
         const archivoInput = document.getElementById('sol-resp-archivo');
-        const archivo = (window.FileUploadTable?.getFiles('solRespArchivo') || [])[0] || archivoInput?.files[0];
+        const archivosRespuesta = window.FileUploadTable?.getItems('solRespArchivo') || [];
+        const legacyFiles = archivoInput?.files ? Array.from(archivoInput.files) : [];
 
         if (!asunto || !mensaje) {
             this.mostrarError('Por favor, complete todos los campos obligatorios');
             return;
         }
-        if (archivo && archivo.size > 10 * 1024 * 1024) {
-            this.mostrarError('El archivo es demasiado grande. Máximo 10 MB.');
+        
+        // Validar tamaño del archivo (10MB máximo por archivo)
+        const tieneArchivoGrande = archivosRespuesta.some(item => item.file.size > 10 * 1024 * 1024) || legacyFiles.some(f => f.size > 10 * 1024 * 1024);
+        if (tieneArchivoGrande) {
+            this.mostrarError('Uno de los archivos es demasiado grande. Máximo 10 MB por archivo.');
             return;
         }
 
@@ -1413,9 +1426,18 @@ const CasillaUnificada = {
             formData.append('mensaje', mensaje);
             formData.append('referencia_tipo', 'solicitud');
             formData.append('referencia_id', solicitudId);
-            if (archivo) {
-                formData.append('archivo', archivo);
-                console.log('📎 Archivo adjunto:', archivo.name);
+            
+            // Agregar archivos y metadatos si existen
+            let tieneArchivo = false;
+            if (archivosRespuesta.length > 0) {
+                tieneArchivo = true;
+                archivosRespuesta.forEach(item => formData.append('documentos', item.file));
+                formData.append('documentos_metadata', JSON.stringify(window.FileUploadTable.getMetadata('solRespArchivo')));
+                console.log(`📎 Archivos adjuntos (${archivosRespuesta.length})`);
+            } else if (legacyFiles.length > 0) {
+                tieneArchivo = true;
+                legacyFiles.forEach(file => formData.append('documentos', file));
+                console.log(`📎 Archivos adjuntos legacy (${legacyFiles.length})`);
             }
 
             const response = await fetch('/api/notificaciones', {
@@ -1425,8 +1447,8 @@ const CasillaUnificada = {
             const data = await response.json();
 
             if (data.success) {
-                const mensajeExito = archivo
-                    ? '✅ Respuesta enviada con archivo adjunto. El usuario la verá en su Casilla Electrónica.'
+                const mensajeExito = tieneArchivo
+                    ? '✅ Respuesta enviada con archivo(s) adjunto(s). El usuario la verá en su Casilla Electrónica.'
                     : '✅ Respuesta enviada correctamente. El usuario la verá en su Casilla Electrónica.';
                 this.cerrarModalRespuestaSolicitud();
                 this.cerrarModal();
@@ -1436,7 +1458,7 @@ const CasillaUnificada = {
                 throw new Error(data.error || 'Error enviando respuesta');
             }
         } catch (error) {
-            console.error('❌ Error enviando respuesta a solicitud:', error);
+            console.error('❌ Error sending response to request:', error);
             this.mostrarError('Error al enviar la respuesta: ' + error.message);
         }
     },

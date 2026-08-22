@@ -84,7 +84,7 @@ class ExpedientesModule {
                 </div>
                 <div class="form-group" style="margin-top:16px;"><label class="stat-label">Asunto</label><input type="text" id="info-exp-asunto" class="form-input" maxlength="200" placeholder="Asunto de la presentación"></div>
                 <div class="form-group" style="margin-top:16px;"><label class="stat-label">Información adicional</label><textarea id="info-exp-sumilla" class="form-input" rows="4" maxlength="1000" placeholder="Detalle, sumilla u observaciones relevantes"></textarea></div>
-                <div style="margin-top:16px;">${window.FileUploadTable ? FileUploadTable.render({ id:'infoExpDocumento', title:'Documento adjunto', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. Formatos permitidos: PDF, Word, JPG y PNG.' }) : '<input type="file" id="info-exp-documento" class="form-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">'}</div>
+                <div style="margin-top:16px;">${window.FileUploadTable ? FileUploadTable.render({ id:'infoExpDocumento', title:'Archivos adjuntos', multiple:true, maxFiles:10, showMetadata:true, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Máximo 10 archivos. Complete la información de cada anexo.' }) : '<input type="file" id="info-exp-documento" class="form-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>'}</div>
                 <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:22px;"><button type="button" class="btn btn-secondary" onclick="closeAllModals()">Cancelar</button><button type="submit" id="btnAgregarInfoExp" class="btn btn-primary">Guardar información</button></div>
             </form>`;
         this.dashboard.openModal('Agregar información o documentos', content);
@@ -103,7 +103,10 @@ class ExpedientesModule {
         data.append('asunto', document.getElementById('info-exp-asunto').value.trim());
         data.append('sumilla', document.getElementById('info-exp-sumilla').value.trim());
         data.append('creado_por', sessionStorage.getItem('userId') || '');
-        const archivo = (window.FileUploadTable?.getFiles('infoExpDocumento') || [])[0] || document.getElementById('info-exp-documento')?.files?.[0];
+        
+        const archivosInfo = window.FileUploadTable?.getItems('infoExpDocumento') || [];
+        const legacyFiles = document.getElementById('info-exp-documento')?.files ? Array.from(document.getElementById('info-exp-documento').files) : [];
+        
         const datosConstancia = {
             fecha: document.getElementById('info-exp-fecha').value,
             tipo: document.getElementById('info-exp-tipo').value,
@@ -111,9 +114,16 @@ class ExpedientesModule {
             presentadoPor: document.getElementById('info-exp-presentado').value.trim(),
             asunto: document.getElementById('info-exp-asunto').value.trim(),
             detalle: document.getElementById('info-exp-sumilla').value.trim(),
-            archivo: archivo?.name || ''
+            archivo: archivosInfo.length > 0 ? archivosInfo[0].file.name : (legacyFiles.length > 0 ? legacyFiles[0].name : '')
         };
-        if (archivo) data.append('documento', archivo);
+
+        if (archivosInfo.length > 0) {
+            archivosInfo.forEach(item => data.append('documentos', item.file));
+            data.append('documentos_metadata', JSON.stringify(window.FileUploadTable.getMetadata('infoExpDocumento')));
+        } else if (legacyFiles.length > 0) {
+            legacyFiles.forEach(file => data.append('documentos', file));
+        }
+
         try {
             button.disabled = true;
             button.textContent = 'Guardando...';
@@ -122,13 +132,17 @@ class ExpedientesModule {
             if (!response.ok || !result.success) throw new Error(result.error || 'No se pudo guardar la información');
             this.dashboard.closeAllModals();
             const numeroConstancia = `CONST-${expedienteId}-${String(result.data.id).padStart(4, '0')}`;
+            const foliosText = archivosInfo.length > 0 
+                ? `${archivosInfo.length} archivos: ${archivosInfo.map(a => a.file.name).join(', ')}`
+                : (legacyFiles.length > 0 ? `${legacyFiles.length} archivos legacy` : 'Sin archivos adjuntos');
+
             const cargo = {
                 expediente: expedienteId,
                 numero_constancia: numeroConstancia,
                 titulo: 'CONSTANCIA DE ENVÍO DE INFORMACIÓN',
                 solicitante: datosConstancia.presentadoPor || sessionStorage.getItem('userName') || 'Usuario TMARC',
                 fecha: new Date().toLocaleString('es-PE'),
-                folios: datosConstancia.archivo ? `1 archivo: ${datosConstancia.archivo}` : 'Sin archivo adjunto',
+                folios: foliosText,
                 tipo_servicio: datosConstancia.tipo,
                 asunto: datosConstancia.asunto || datosConstancia.detalle || 'Información adicional'
             };

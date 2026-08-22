@@ -136,7 +136,7 @@ class MesaPartesModule {
         const modal = document.createElement('div');
         modal.id = 'modalAgregarInfoMesa';
         modal.className = 'modal-overlay active';
-        modal.innerHTML = `<div class="modal-content glass-panel" style="max-width:720px;border-radius:18px;overflow:hidden;"><div class="modal-header" style="padding:20px 24px;"><div><strong style="display:block;color:var(--color-primary);">Agregar información o documentos</strong><small style="color:var(--color-text-muted);">Mesa de Partes · ${presentacionId}</small></div><button class="modal-close" type="button" onclick="document.getElementById('modalAgregarInfoMesa').remove();document.body.style.overflow=''">×</button></div><div class="modal-body" style="padding:24px;"><form id="formAgregarInfoMesa"><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;"><div class="form-group"><label class="stat-label">Fecha del documento *</label><input type="date" id="mesa-info-fecha" class="form-input" value="${hoy}" required></div><div class="form-group"><label class="stat-label">Tipo de información *</label><select id="mesa-info-tipo" class="form-select" required><option value="">Seleccionar</option><option value="ESCRITO">Escrito</option><option value="CARTA">Carta</option><option value="INFORME">Informe</option><option value="SUBSANACION">Subsanación</option><option value="ANEXO">Anexo</option><option value="OTRO">Otro</option></select></div><div class="form-group"><label class="stat-label">Número del documento</label><input type="text" id="mesa-info-numero" class="form-input" maxlength="60" placeholder="Ej. Escrito N.° 02"></div><div class="form-group"><label class="stat-label">Presentado por</label><input type="text" id="mesa-info-presentado" class="form-input" maxlength="150" placeholder="Nombre o razón social"></div></div><div class="form-group" style="margin-top:16px;"><label class="stat-label">Asunto</label><input type="text" id="mesa-info-asunto" class="form-input" maxlength="200" placeholder="Asunto de la presentación"></div><div class="form-group" style="margin-top:16px;"><label class="stat-label">Información adicional</label><textarea id="mesa-info-sumilla" class="form-input" rows="4" maxlength="1000" placeholder="Detalle o descripción"></textarea></div><div style="margin-top:16px;">${window.FileUploadTable ? FileUploadTable.render({ id:'mesaInfoDocumento', title:'Documento adjunto', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. Formatos permitidos: PDF, Word, JPG y PNG.' }) : '<input type="file" id="mesa-info-documento" class="form-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">'}</div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;"><button type="button" class="btn btn-secondary" onclick="document.getElementById('modalAgregarInfoMesa').remove();document.body.style.overflow=''">Cancelar</button><button type="submit" id="btnAgregarInfoMesa" class="btn btn-primary">Guardar información</button></div></form></div></div>`;
+        modal.innerHTML = `<div class="modal-content glass-panel" style="max-width:720px;border-radius:18px;overflow:hidden;"><div class="modal-header" style="padding:20px 24px;"><div><strong style="display:block;color:var(--color-primary);">Agregar información o documentos</strong><small style="color:var(--color-text-muted);">Mesa de Partes · ${presentacionId}</small></div><button class="modal-close" type="button" onclick="document.getElementById('modalAgregarInfoMesa').remove();document.body.style.overflow=''">×</button></div><div class="modal-body" style="padding:24px;"><form id="formAgregarInfoMesa"><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;"><div class="form-group"><label class="stat-label">Fecha del documento *</label><input type="date" id="mesa-info-fecha" class="form-input" value="${hoy}" required></div><div class="form-group"><label class="stat-label">Tipo de información *</label><select id="mesa-info-tipo" class="form-select" required><option value="">Seleccionar</option><option value="ESCRITO">Escrito</option><option value="CARTA">Carta</option><option value="INFORME">Informe</option><option value="SUBSANACION">Subsanación</option><option value="ANEXO">Anexo</option><option value="OTRO">Otro</option></select></div><div class="form-group"><label class="stat-label">Número del documento</label><input type="text" id="mesa-info-numero" class="form-input" maxlength="60" placeholder="Ej. Escrito N.° 02"></div><div class="form-group"><label class="stat-label">Presentado por</label><input type="text" id="mesa-info-presentado" class="form-input" maxlength="150" placeholder="Nombre o razón social"></div></div><div class="form-group" style="margin-top:16px;"><label class="stat-label">Asunto</label><input type="text" id="mesa-info-asunto" class="form-input" maxlength="200" placeholder="Asunto de la presentación"></div><div class="form-group" style="margin-top:16px;"><label class="stat-label">Información adicional</label><textarea id="mesa-info-sumilla" class="form-input" rows="4" maxlength="1000" placeholder="Detalle o descripción"></textarea></div><div style="margin-top:16px;">${window.FileUploadTable ? FileUploadTable.render({ id:'mesaInfoDocumento', title:'Archivos adjuntos', multiple:true, maxFiles:10, showMetadata:true, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Máximo 10 archivos. Complete la información de cada anexo.' }) : '<input type="file" id="mesa-info-documento" class="form-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>'}</div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;"><button type="button" class="btn btn-secondary" onclick="document.getElementById('modalAgregarInfoMesa').remove();document.body.style.overflow=''">Cancelar</button><button type="submit" id="btnAgregarInfoMesa" class="btn btn-primary">Guardar información</button></div></form></div></div>`;
         document.body.appendChild(modal);
         document.body.style.overflow = 'hidden';
         document.getElementById('formAgregarInfoMesa').addEventListener('submit', event => this.guardarInformacion(event, presentacionId));
@@ -154,7 +154,9 @@ class MesaPartesModule {
         data.append('asunto', document.getElementById('mesa-info-asunto').value.trim());
         data.append('sumilla', document.getElementById('mesa-info-sumilla').value.trim());
         data.append('creado_por', sessionStorage.getItem('userId') || '');
-        const archivo = (window.FileUploadTable?.getFiles('mesaInfoDocumento') || [])[0] || document.getElementById('mesa-info-documento')?.files?.[0];
+        const archivosInfo = window.FileUploadTable?.getItems('mesaInfoDocumento') || [];
+        const legacyFiles = document.getElementById('mesa-info-documento')?.files ? Array.from(document.getElementById('mesa-info-documento').files) : [];
+        
         const datosConstancia = {
             fecha: document.getElementById('mesa-info-fecha').value,
             tipo: document.getElementById('mesa-info-tipo').value,
@@ -162,9 +164,16 @@ class MesaPartesModule {
             presentadoPor: document.getElementById('mesa-info-presentado').value.trim(),
             asunto: document.getElementById('mesa-info-asunto').value.trim(),
             detalle: document.getElementById('mesa-info-sumilla').value.trim(),
-            archivo: archivo?.name || ''
+            archivo: archivosInfo.length > 0 ? archivosInfo[0].file.name : (legacyFiles.length > 0 ? legacyFiles[0].name : '')
         };
-        if (archivo) data.append('documento', archivo);
+
+        if (archivosInfo.length > 0) {
+            archivosInfo.forEach(item => data.append('documentos', item.file));
+            data.append('documentos_metadata', JSON.stringify(window.FileUploadTable.getMetadata('mesaInfoDocumento')));
+        } else if (legacyFiles.length > 0) {
+            legacyFiles.forEach(file => data.append('documentos', file));
+        }
+
         try {
             button.disabled = true; button.textContent = 'Guardando...';
             const response = await fetch(`/api/mesa-partes/${encodeURIComponent(presentacionId)}/timeline`, { method:'POST', body:data });
@@ -172,13 +181,17 @@ class MesaPartesModule {
             if (!response.ok || !result.success) throw new Error(result.error || 'No se pudo guardar la información');
             document.getElementById('modalAgregarInfoMesa')?.remove(); document.body.style.overflow = '';
             const numeroConstancia = `CONST-${presentacionId}-${String(result.data.id).padStart(4, '0')}`;
+            const foliosText = archivosInfo.length > 0 
+                ? `${archivosInfo.length} archivos: ${archivosInfo.map(a => a.file.name).join(', ')}`
+                : (legacyFiles.length > 0 ? `${legacyFiles.length} archivos legacy` : 'Sin archivos adjuntos');
+
             const cargo = {
                 expediente: presentacionId,
                 numero_constancia: numeroConstancia,
                 titulo: 'CONSTANCIA DE ENVÍO DE INFORMACIÓN',
                 solicitante: datosConstancia.presentadoPor || sessionStorage.getItem('userName') || 'Usuario TMARC',
                 fecha: new Date().toLocaleString('es-PE'),
-                folios: datosConstancia.archivo ? `1 archivo: ${datosConstancia.archivo}` : 'Sin archivo adjunto',
+                folios: foliosText,
                 tipo_servicio: datosConstancia.tipo,
                 asunto: datosConstancia.asunto || datosConstancia.detalle || 'Información adicional'
             };
