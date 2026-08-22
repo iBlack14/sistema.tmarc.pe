@@ -66,7 +66,7 @@ const AlertasAdmin = {
                     <td style="text-align: center;">${estadoIcono}</td>
                     <td>
                         <div style="font-size: 13px; color: #111;">${this.escaparHTML(notif.titulo)}</div>
-                        <small style="font-size: 11px; color: #666; font-weight: normal;">${this.escaparHTML(notif.mensaje)}</small>
+                        <small style="font-size: 11px; color: #666; font-weight: normal;">${this.escaparHTML((notif.mensaje || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim())}</small>
                     </td>
                     <td>
                         <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #d4af37;">${this.escaparHTML(notif.expediente_id || notif.solicitud_id || 'N/A')}</span>

@@ -46,7 +46,7 @@ function manejarHashInicial() {
     const hash = window.location.hash.substring(1);
     if (hash) {
         // Mapear hash a sectionId (por si son diferentes, aunque aquí coinciden)
-        const validSections = ['dashboard', 'usuarios', 'casilla', 'configuracion'];
+        const validSections = ['dashboard', 'usuarios', 'casilla', 'configuracion', 'alertas-admin'];
         if (validSections.includes(hash)) {
             if (typeof window.showSection === 'function') {
                 window.showSection(hash);

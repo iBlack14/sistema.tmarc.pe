@@ -111,7 +111,8 @@ function showSection(sectionId, el) {
         'dashboard': 'Dashboard',
         'usuarios': 'Gestión de Usuarios',
         'casilla': 'Casilla Electrónica',
-        'configuracion': 'Configuración Sistema'
+        'configuracion': 'Configuración Sistema',
+        'alertas-admin': 'Notificaciones de Administración'
     };
     
     const pageTitle = sectionTitles[sectionId] || 'Panel Administrativo';
