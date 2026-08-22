@@ -435,19 +435,96 @@
 
     #casilla .table-container tbody td[data-label="Acciones"] {
         grid-template-columns: 76px minmax(0, 1fr);
+        align-items: flex-start;
     }
 
     #casilla .casilla-row-actions {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 42px;
-        gap: 7px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
         width: 100%;
     }
 
     #casilla .table-container tbody td[data-label="Acciones"] .btn {
-        width: 100%;
-        min-height: 38px;
+        flex: 1 1 auto;
+        min-height: 36px;
         margin: 0 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Alertas Admin - Table Mobile View */
+    #alertas-admin .table-container {
+        overflow: visible;
+    }
+
+    #alertas-admin .table-container table,
+    #alertas-admin .table-container tbody,
+    #alertas-admin .table-container tr,
+    #alertas-admin .table-container td {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    #alertas-admin .table-container thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+    }
+
+    #alertas-admin .table-container tbody {
+        display: grid;
+        gap: 12px;
+    }
+
+    #alertas-admin .table-container tbody tr {
+        padding: 14px;
+        overflow: hidden;
+        border: 1px solid #e6ebf1;
+        border-radius: 15px;
+        background: #fff;
+        box-shadow: 0 5px 15px rgba(15, 31, 56, .045);
+    }
+
+    #alertas-admin .table-container tbody td {
+        display: grid;
+        grid-template-columns: 86px minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+        border: 0;
+        border-bottom: 1px solid #eef1f4;
+        white-space: normal;
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+
+    #alertas-admin .table-container tbody td:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    #alertas-admin .table-container tbody td::before {
+        content: attr(data-label);
+        color: #7d8998;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+    }
+
+    #alertas-admin .table-container tbody td[data-label="Acciones"] {
+        align-items: center;
+    }
+
+    #alertas-admin .table-container tbody td[data-label="Acciones"] > div {
+        width: 100%;
+        justify-content: flex-start !important;
     }
 
     #configuracion > div[style*="grid-template-columns"] {

@@ -63,18 +63,18 @@ const AlertasAdmin = {
 
             return `
                 <tr style="${filaStyle} transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background='transparent'">
-                    <td style="text-align: center;">${estadoIcono}</td>
-                    <td>
+                    <td data-label="Estado" style="text-align: center;">${estadoIcono}</td>
+                    <td data-label="Asunto / Alerta">
                         <div style="font-size: 13px; color: #111;">${this.escaparHTML(notif.titulo)}</div>
                         <small style="font-size: 11px; color: #666; font-weight: normal;">${this.escaparHTML((notif.mensaje || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim())}</small>
                     </td>
-                    <td>
+                    <td data-label="Expediente">
                         <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #d4af37;">${this.escaparHTML(notif.expediente_id || notif.solicitud_id || 'N/A')}</span>
                     </td>
-                    <td>
+                    <td data-label="Fecha/Hora">
                         <span style="font-size: 11px; color: #888;">${fecha} · ${hora}</span>
                     </td>
-                    <td style="text-align: right;">
+                    <td data-label="Acciones" style="text-align: right;">
                         <div style="display: flex; gap: 5px; justify-content: flex-end;">
                             <button class="btn btn-secondary btn-sm" onclick="AlertasAdmin.verExpediente('${notif.expediente_id || notif.solicitud_id}')" style="padding: 4px 8px; font-size: 11px;">🔍 Ver</button>
                             ${notif.leida === 0 ? `<button class="btn btn-primary btn-sm" onclick="AlertasAdmin.marcarComoLeida('${notif.id}')" style="padding: 4px 8px; font-size: 11px; background: #27ae60; color:#fff;">✓ Leído</button>` : ''}

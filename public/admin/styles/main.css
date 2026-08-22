@@ -561,15 +561,39 @@ tr:hover {
 /* Estilos específicos para tabla de casilla electrónica */
 #casilla table {
     table-layout: fixed;
+    width: 100%;
 }
 
-#casilla table th:nth-child(1) { width: 5%; }  /* N° */
-#casilla table th:nth-child(2) { width: 12%; } /* N° Expediente */
-#casilla table th:nth-child(3) { width: 18%; } /* Presentante */
-#casilla table th:nth-child(4) { width: 15%; } /* Proceso/Materia */
-#casilla table th:nth-child(5) { width: 25%; } /* Sumilla */
-#casilla table th:nth-child(6) { width: 15%; } /* Datos del Expediente */
-#casilla table th:nth-child(7) { width: 10%; } /* Fecha/Acciones */
+#casilla table th:nth-child(1) { width: 5%; }   /* N° */
+#casilla table th:nth-child(2) { width: 12%; }  /* Tipo */
+#casilla table th:nth-child(3) { width: 38%; }  /* Asunto */
+#casilla table th:nth-child(4) { width: 15%; }  /* Fecha */
+#casilla table th:nth-child(5) { width: 10%; }  /* Estado */
+#casilla table th:nth-child(6) { width: 20%; }  /* Acciones */
+
+.casilla-row-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+.casilla-row-actions .btn {
+    padding: 6px 12px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 32px;
+    margin: 0 !important;
+}
+
+.casilla-row-actions span {
+    white-space: nowrap;
+}
 
 /* Modal para detalles de expediente */
 /* ========== EXPEDIENTE MODAL PRO MAX ========== */

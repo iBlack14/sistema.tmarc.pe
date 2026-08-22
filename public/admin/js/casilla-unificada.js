@@ -206,23 +206,22 @@ const CasillaUnificada = {
                 <td data-label="Acciones" style="text-align: center;">
                     <div class="casilla-row-actions">
                         <button class="btn btn-primary"
-                                style="padding: 6px 12px; font-size: 12px; margin-right: 4px;"
                                 onclick="CasillaUnificada.verDetalle('${item.tipo}', '${item.referencia_id}')"
                                 title="Ver detalles">
-                            👁️ Ver
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Ver
                         </button>
                         <button class="btn btn-primary"
-                                style="padding: 6px 12px; font-size: 12px; background:linear-gradient(135deg,#d4af37,#f1d582);color:#1a1a1a;"
+                                style="background:linear-gradient(135deg,#d4af37,#f1d582);color:#1a1a1a;"
                                 onclick="TimelineManager.abrir('${item.tipo === 'mesa_partes' ? 'mesa-partes' : item.tipo === 'expediente' ? 'expedientes' : 'solicitudes'}', '${item.referencia_id}', '${tipo.nombre}: ${item.referencia_id}')"
                                 title="Ver Timeline">
-                            📋
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
                         </button>
                         ${item.tipo === 'mesa_partes' && item.estado !== 'Recibido' ? `
                         <button class="btn btn-primary"
-                                style="padding:6px 12px;font-size:12px;background:#16794c;color:#fff;"
+                                style="background:#16794c;color:#fff;"
                                 onclick="CasillaUnificada.confirmarCambioEstado('mesa_partes','${item.referencia_id}','Recibido')"
                                 title="Confirmar recepción y notificar al usuario">
-                            📥 Confirmar recepción
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> Confirmar Recepción
                         </button>` : item.tipo === 'mesa_partes' ? `
                         <span style="display:inline-flex;align-items:center;padding:6px 10px;border-radius:8px;background:#e6f7ed;color:#16794c;font-size:11px;font-weight:800;">✓ Recepción confirmada</span>` : ''}
                     </div>
