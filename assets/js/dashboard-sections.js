@@ -179,45 +179,8 @@ class DashboardSections {
                     </div>
                 </section>
 
-                <section class="requests-summary" id="requestsSummary" aria-label="Resumen de solicitudes" style="display:flex"><div class="requests-summary-copy"><span class="requests-summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l2 2 4-4M7 3h10a2 2 0 0 1 2 2v14H5V5a2 2 0 0 1 2-2Z"/></svg></span><div><span>Solicitudes aprobadas</span><small>Trámites concluidos favorablemente</small></div></div><strong id="solicitudes-aprobadas">0</strong></section>
 
-                <section class="requests-history card" id="solicitudesHistoryView" style="display:block">
-                    <div class="requests-section-heading">
-                        <div>
-                            <span class="requests-eyebrow">Seguimiento</span>
-                            <h2>Historial de solicitudes</h2>
-                        </div>
-                        <span class="requests-secure-label">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8.2 7 10 4.1-1.8 7-5.4 7-10V6l-7-3Z"/></svg>
-                            Información protegida
-                        </span>
-                    </div>
-                    <div class="table-wrapper requests-table-wrapper">
-                        <table class="table requests-table" id="solicitudes-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Fecha</th>
-                                    <th>Tipo</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="solicitudes-tbody">
-                                <tr><td colspan="5" class="text-center text-muted">Cargando datos...</td></tr>
-                            </tbody>
-                        </table>
-                        <div id="no-solicitudes" class="requests-empty" style="display: none;">
-                            <span class="requests-empty-icon">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3V7Zm6 6h6M12 10v6"/></svg>
-                            </span>
-                            <h3>Aún no tiene solicitudes</h3>
-                            <p>Cuando registre un trámite podrá consultar aquí su estado y los últimos movimientos.</p>
-                            <button type="button" onclick="window.dashboardApp.modules.solicitudes?.crearNuevaSolicitud()">Registrar primera solicitud</button>
-                        </div>
-                    </div>
-                </section>
-            </div>
+        </div>
         `;
     }
 

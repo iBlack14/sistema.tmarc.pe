@@ -35,8 +35,16 @@ const AlertasAdmin = {
         const unreadCount = this.alertas.filter(n => n.leida === 0).length;
         const badges = document.querySelectorAll('.alertas-admin-badge');
         badges.forEach(badge => {
-            badge.textContent = unreadCount;
-            badge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            if (unreadCount > 0) {
+                badge.style.display = 'inline-block';
+                // Re-trigger pop animation
+                badge.style.animation = 'none';
+                void badge.offsetWidth; // force reflow
+                badge.style.animation = '';
+            } else {
+                badge.style.display = 'none';
+            }
         });
     },
 

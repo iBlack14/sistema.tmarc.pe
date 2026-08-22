@@ -30,23 +30,64 @@ body {
 .logo-section {
     display: flex;
     min-width: 0;
-    width: 58px;
-    height: 58px;
+    width: 64px;
+    height: 64px;
     justify-content: center;
+    align-items: center;
     gap: 0;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, .055);
-    border: 1px solid rgba(223, 181, 63, .2);
+    /* sin fondo ni borde — logo limpio */
+    background: transparent;
+    border: none;
+    border-radius: 0;
 }
 
 .logo-icon {
-    width: 42px;
-    height: 42px;
+    width: 56px;
+    height: 56px;
+}
+
+.logo-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .logo-text {
     display: none;
 }
+
+/* ── Nav badge (notification dot/counter) ── */
+.nav-icon--badged {
+    position: relative;
+}
+
+.nav-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 17px;
+    text-align: center;
+    letter-spacing: 0;
+    display: none;        /* JS lo muestra cuando count > 0 */
+    box-shadow: 0 0 0 2px var(--admin-sidebar-deep);
+    animation: badgePop 0.25s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes badgePop {
+    0%   { transform: scale(0); }
+    70%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+}
+
+
 
 .nav-menu {
     width: 100%;

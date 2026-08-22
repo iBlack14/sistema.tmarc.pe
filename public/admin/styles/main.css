@@ -573,7 +573,7 @@ tr:hover {
 
 .casilla-row-actions {
     display: flex;
-    gap: 6px;
+    gap: 5px;
     align-items: center;
     justify-content: center;
     flex-wrap: nowrap;
@@ -594,6 +594,96 @@ tr:hover {
 .casilla-row-actions span {
     white-space: nowrap;
 }
+
+/* ── Casilla Icon Action Buttons ─────────────────── */
+.casilla-action-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    flex-shrink: 0;
+}
+
+.casilla-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+.casilla-action-btn--dark {
+    background: #1a1a2e;
+    color: #c0c0c0;
+}
+.casilla-action-btn--dark:hover {
+    background: #2c2c4a;
+    color: #fff;
+}
+
+.casilla-action-btn--gold {
+    background: linear-gradient(135deg, #d4af37, #f1d582);
+    color: #1a1a1a;
+}
+.casilla-action-btn--gold:hover {
+    background: linear-gradient(135deg, #c49b22, #e8c94f);
+}
+
+.casilla-action-btn--green {
+    background: #16794c;
+    color: #fff;
+}
+.casilla-action-btn--green:hover {
+    background: #12613e;
+}
+
+/* Tooltip via data-tooltip */
+.casilla-action-btn::after,
+.casilla-action-badge--confirmed::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 7px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: #111827;
+    color: #f9fafb;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    padding: 4px 8px;
+    border-radius: 6px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    z-index: 100;
+}
+
+.casilla-action-btn:hover::after,
+.casilla-action-badge--confirmed:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Confirmed badge */
+.casilla-action-badge--confirmed {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: #e6f7ed;
+    color: #16794c;
+    cursor: default;
+    border: 1.5px solid #b7e8cc;
+}
+
+
 
 /* Modal para detalles de expediente */
 /* ========== EXPEDIENTE MODAL PRO MAX ========== */
