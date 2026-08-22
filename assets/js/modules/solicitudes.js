@@ -53,16 +53,15 @@ class SolicitudesModule {
             asuntoSolicitud.addEventListener('input', (e) => this.updateCharacterCount(e));
         }
 
-        // Documento principal file input
-        const documentoPrincipal = document.getElementById('documentoPrincipal');
-        if (documentoPrincipal) {
-            documentoPrincipal.addEventListener('change', (e) => this.handleDocumentoPrincipalChange(e));
-        }
-
-        // Anexos file input
-        const anexosFiles = document.getElementById('anexosFiles');
-        if (anexosFiles) {
-            anexosFiles.addEventListener('change', (e) => this.handleAnexosChange(e));
+        const solicitudArchivosMount = document.getElementById('solicitudArchivosMount');
+        if (solicitudArchivosMount && window.FileUploadTable) {
+            solicitudArchivosMount.innerHTML = FileUploadTable.render({
+                id: 'solicitudArchivos',
+                title: 'Documentos y anexos',
+                maxFiles: 10,
+                accept: '.pdf,.doc,.docx,.jpg,.jpeg,.png',
+                help: 'Máximo 10 archivos. Complete la información de cada documento o anexo.'
+            });
         }
 
         // Auto-fill user data if available
@@ -352,14 +351,10 @@ class SolicitudesModule {
                 correo: solicitudData.demandado_email
             }));
 
-            const documentoPrincipal = document.getElementById('documentoPrincipal');
-            if (documentoPrincipal && documentoPrincipal.files.length > 0) {
-                formData.append('documentos', documentoPrincipal.files[0]);
-            }
-
-            const anexosFiles = document.getElementById('anexosFiles');
-            if (anexosFiles && anexosFiles.files.length > 0) {
-                Array.from(anexosFiles.files).forEach(file => formData.append('documentos', file));
+            const archivosSolicitud = window.FileUploadTable?.getItems('solicitudArchivos') || [];
+            archivosSolicitud.forEach(item => formData.append('documentos', item.file));
+            if (archivosSolicitud.length) {
+                formData.append('documentos_metadata', JSON.stringify(window.FileUploadTable.getMetadata('solicitudArchivos')));
             }
 
             const response = await fetch('/api/mesa-partes', { method: 'POST', body: formData });
@@ -563,6 +558,7 @@ class SolicitudesModule {
             els.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = id.includes('Count') ? '0' : id.includes('fileName') ? 'Ningún archivo' : ''; });
             const containers = ['otrosContainer', 'anexosContainer'];
             containers.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML && (el.style.display = 'none'); });
+            window.FileUploadTable?.clear('solicitudArchivos');
             this.autoFillUserData();
         }
     }

@@ -1083,16 +1083,7 @@ const CasillaUnificada = {
                                 </div>
 
                                 <div>
-                                    <label style="display:block; margin-bottom:10px; color:#1a1a1a; font-weight:800; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">📎 Documento Adjunto (PDF/Doc/Imágenes)</label>
-                                    <div style="position: relative;">
-                                        <input type="file" id="respuesta-mp-archivo" 
-                                            style="width:100%; padding:12px 15px; border:2px dashed #ddd; border-radius:15px; font-size:13px; background: #fafafa;"
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                                        <div style="margin-top: 8px; font-size: 11px; color: #888; display: flex; justify-content: space-between; font-weight: 500;">
-                                            <span>Formatos: PDF, Word, JPG, PNG</span>
-                                            <span>Tamaño máx: 10MB</span>
-                                        </div>
-                                    </div>
+                                    ${window.FileUploadTable ? FileUploadTable.render({ id:'respuestaMpArchivo', title:'Documento adjunto', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. PDF, Word, JPG o PNG. Máximo 10 MB.' }) : '<input type="file" id="respuesta-mp-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">'}
                                 </div>
 
                                 <!-- Botones de Acción -->
@@ -1150,7 +1141,7 @@ const CasillaUnificada = {
         const asunto = document.getElementById('respuesta-mp-asunto').value;
         const mensaje = document.getElementById('respuesta-mp-mensaje').value;
         const archivoInput = document.getElementById('respuesta-mp-archivo');
-        const archivo = archivoInput?.files[0];
+        const archivo = (window.FileUploadTable?.getFiles('respuestaMpArchivo') || [])[0] || archivoInput?.files[0];
 
         if (!asunto || !mensaje) {
             alert('Por favor, complete todos los campos obligatorios');
@@ -1361,10 +1352,7 @@ const CasillaUnificada = {
                                     onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#eee'"></textarea>
                             </div>
                             <div>
-                                <label style="display: block; font-size: 11px; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">📎 Adjuntar archivo (opcional)</label>
-                                <input type="file" id="sol-resp-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                    style="width:100%; padding:12px 18px; border:2px solid #eee; border-radius:14px; font-size:13px; font-family:inherit;">
-                                <small style="color:#888; font-size:11px; margin-top:5px; display:block;">PDF, Word, imágenes — máx. 10 MB</small>
+                                ${window.FileUploadTable ? FileUploadTable.render({ id:'solRespArchivo', title:'Adjuntar archivo', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. PDF, Word o imágenes. Máximo 10 MB.' }) : '<input type="file" id="sol-resp-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">'}
                             </div>
                             <div style="display:flex; gap:15px; justify-content:flex-end; padding-top:10px; border-top:1px solid #eee;">
                                 <button type="button" onclick="CasillaUnificada.cerrarModalRespuestaSolicitud()"
@@ -1404,7 +1392,7 @@ const CasillaUnificada = {
         const asunto = document.getElementById('sol-resp-asunto').value;
         const mensaje = document.getElementById('sol-resp-mensaje').value;
         const archivoInput = document.getElementById('sol-resp-archivo');
-        const archivo = archivoInput?.files[0];
+        const archivo = (window.FileUploadTable?.getFiles('solRespArchivo') || [])[0] || archivoInput?.files[0];
 
         if (!asunto || !mensaje) {
             this.mostrarError('Por favor, complete todos los campos obligatorios');

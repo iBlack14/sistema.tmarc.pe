@@ -382,11 +382,7 @@ async function responderSolicitud(id) {
                         </div>
 
                         <div style="margin-bottom:20px;">
-                            <label style="display:block;margin-bottom:8px;color:#333;font-weight:600;">📎 Adjuntar archivo (opcional):</label>
-                            <input type="file" id="respuesta-archivo" 
-                                style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:14px;"
-                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                            <small style="color:#666;font-size:12px;">Formatos permitidos: PDF, Word, Imágenes (máx. 10MB)</small>
+                            ${window.FileUploadTable ? FileUploadTable.render({ id:'respuestaSolicitudArchivo', title:'Adjuntar archivo', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. PDF, Word o imágenes. Máximo 10 MB.' }) : '<input type="file" id="respuesta-archivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">'}
                         </div>
 
                         <div style="display:flex;gap:10px;justify-content:flex-end;">
@@ -437,7 +433,7 @@ async function enviarRespuestaSolicitud(event, solicitudId, usuarioId) {
     const asunto = document.getElementById('respuesta-asunto').value;
     const mensaje = document.getElementById('respuesta-mensaje').value;
     const archivoInput = document.getElementById('respuesta-archivo');
-    const archivo = archivoInput?.files[0];
+    const archivo = (window.FileUploadTable?.getFiles('respuestaSolicitudArchivo') || [])[0] || archivoInput?.files[0];
 
     if (!asunto || !mensaje) {
         if (window.showError) window.showError('Por favor, complete todos los campos obligatorios');

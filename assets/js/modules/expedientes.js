@@ -84,7 +84,7 @@ class ExpedientesModule {
                 </div>
                 <div class="form-group" style="margin-top:16px;"><label class="stat-label">Asunto</label><input type="text" id="info-exp-asunto" class="form-input" maxlength="200" placeholder="Asunto de la presentación"></div>
                 <div class="form-group" style="margin-top:16px;"><label class="stat-label">Información adicional</label><textarea id="info-exp-sumilla" class="form-input" rows="4" maxlength="1000" placeholder="Detalle, sumilla u observaciones relevantes"></textarea></div>
-                <div class="form-group" style="margin-top:16px; padding:16px; border:1px dashed var(--color-primary); border-radius:12px; background:rgba(212,175,55,.04);"><label class="stat-label">Documento adjunto (opcional)</label><input type="file" id="info-exp-documento" class="form-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"><small style="display:block; margin-top:7px; color:var(--color-text-muted);">Formatos permitidos: PDF, Word, JPG y PNG.</small></div>
+                <div style="margin-top:16px;">${window.FileUploadTable ? FileUploadTable.render({ id:'infoExpDocumento', title:'Documento adjunto', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. Formatos permitidos: PDF, Word, JPG y PNG.' }) : '<input type="file" id="info-exp-documento" class="form-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">'}</div>
                 <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:22px;"><button type="button" class="btn btn-secondary" onclick="closeAllModals()">Cancelar</button><button type="submit" id="btnAgregarInfoExp" class="btn btn-primary">Guardar información</button></div>
             </form>`;
         this.dashboard.openModal('Agregar información o documentos', content);
@@ -103,7 +103,7 @@ class ExpedientesModule {
         data.append('asunto', document.getElementById('info-exp-asunto').value.trim());
         data.append('sumilla', document.getElementById('info-exp-sumilla').value.trim());
         data.append('creado_por', sessionStorage.getItem('userId') || '');
-        const archivo = document.getElementById('info-exp-documento').files[0];
+        const archivo = (window.FileUploadTable?.getFiles('infoExpDocumento') || [])[0] || document.getElementById('info-exp-documento')?.files?.[0];
         const datosConstancia = {
             fecha: document.getElementById('info-exp-fecha').value,
             tipo: document.getElementById('info-exp-tipo').value,
@@ -434,18 +434,8 @@ class ExpedientesModule {
 
 
                 <!-- Sección 5: Documentos -->
-                <div class="form-section" style="margin-bottom: 24px; padding: 15px; background: rgba(212, 175, 55, 0.05); border-radius: 12px; border: 1px dashed var(--color-primary);">
-                    <h4 style="color: var(--color-primary); margin-bottom: 12px; font-size: 14px;">📄 Documentos Adjuntos (Máx 5MB - PDF Firmado)</h4>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div>
-                            <label class="stat-label">Documento Principal</label>
-                            <input type="file" id="exp-file-p" class="form-input" accept=".pdf" required>
-                        </div>
-                        <div>
-                            <label class="stat-label">Anexos</label>
-                            <input type="file" id="exp-file-a" class="form-input" accept=".pdf" multiple>
-                        </div>
-                    </div>
+                <div class="form-section" style="margin-bottom: 24px;">
+                    ${window.FileUploadTable ? FileUploadTable.render({ id:'expArchivos', title:'Documentos adjuntos', maxFiles:10, accept:'.pdf', help:'Adjunte primero el documento principal. Los demás archivos se registrarán como anexos. Solo PDF.' }) : '<input type="file" id="exp-file-p" class="form-input" accept=".pdf" required><input type="file" id="exp-file-a" class="form-input" accept=".pdf" multiple>'}
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
@@ -479,6 +469,12 @@ class ExpedientesModule {
         if (demandadoTelefono && !/^\d{9}$/.test(demandadoTelefono)) erroresDocumento.push('El teléfono del demandado debe tener 9 dígitos.');
         if (erroresDocumento.length) {
             Swal.fire({ title: 'Revise los datos', html: erroresDocumento.join('<br>'), icon: 'warning', confirmButtonColor: '#D4AF37' });
+            return;
+        }
+        const archivosIniciales = window.FileUploadTable?.getFiles('expArchivos') || [];
+        const tienePrincipalLegacy = document.getElementById('exp-file-p')?.files?.length > 0;
+        if (!archivosIniciales.length && !tienePrincipalLegacy) {
+            Swal.fire({ title: 'Documento requerido', text: 'Adjunte al menos el documento principal del expediente.', icon: 'warning', confirmButtonColor: '#D4AF37' });
             return;
         }
 
@@ -528,12 +524,18 @@ class ExpedientesModule {
             formData.append('demandado_domicilio', document.getElementById('exp-demandado-domicilio').value);
 
             // Files
-            const fileP = document.getElementById('exp-file-p');
-            if (fileP.files.length > 0) formData.append('documentos_principales', fileP.files[0]);
-            
-            const fileA = document.getElementById('exp-file-a');
-            if (fileA.files.length > 0) {
-                Array.from(fileA.files).forEach(f => formData.append('anexos', f));
+            const archivosExp = window.FileUploadTable?.getItems('expArchivos') || [];
+            if (archivosExp.length) {
+                formData.append('documentos_principales', archivosExp[0].file);
+                archivosExp.slice(1).forEach(item => formData.append('anexos', item.file));
+            } else {
+                const fileP = document.getElementById('exp-file-p');
+                if (fileP?.files.length > 0) formData.append('documentos_principales', fileP.files[0]);
+
+                const fileA = document.getElementById('exp-file-a');
+                if (fileA?.files.length > 0) {
+                    Array.from(fileA.files).forEach(f => formData.append('anexos', f));
+                }
             }
 
             const response = await fetch('/api/expedientes', {

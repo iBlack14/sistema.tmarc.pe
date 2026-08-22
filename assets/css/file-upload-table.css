@@ -1,0 +1,71 @@
+.mesa-upload-table {
+    padding: 14px;
+    border: 1px dashed #d4af37;
+    border-radius: 11px;
+    background: rgba(212, 175, 55, 0.04);
+}
+
+.mesa-upload-title {
+    margin-bottom: 9px;
+    color: #9b7413;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+}
+
+.mesa-upload-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mesa-upload-picker .text-muted {
+    color: #777;
+    font-size: 11px;
+}
+
+.mesa-upload-help {
+    display: block;
+    margin: 8px 0;
+    color: #777;
+    font-size: 11px;
+}
+
+.mesa-upload-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.mesa-upload-table-grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.mesa-upload-table-grid th,
+.mesa-upload-table-grid td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.mesa-upload-table-grid input {
+    min-width: 75px;
+    padding: 6px;
+}
+
+.mesa-upload-total {
+    margin-top: 10px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+@media (max-width: 700px) {
+    .mesa-upload-table {
+        padding: 12px;
+    }
+}

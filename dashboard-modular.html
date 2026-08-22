@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="assets/css/dashboard-service-selector.css?v=1.2">
     <link rel="stylesheet" href="assets/css/dashboard-support.css?v=1.1">
     <link rel="stylesheet" href="assets/css/dashboard-support-contact.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/file-upload-table.css?v=1.0">
 
     <!-- External Libs -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -265,32 +266,7 @@
                 </div>
 
                 <!-- Zona de Carga de Archivos -->
-                <div style="margin-top: 24px; padding: 20px; background: rgba(212, 175, 55, 0.05); border-radius: 16px; border: 1px dashed var(--color-primary);">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div>
-                            <label class="stat-label">📄 Documento Principal (PDF, Word, etc.)</label>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
-                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('documentoPrincipal').click()" style="padding: 8px 16px; font-size: 12px;">Seleccionar Archivo</button>
-                                <span id="fileNamePrincipal" class="text-muted" style="font-size: 11px;">Ningún archivo seleccionado</span>
-                                <input type="file" id="documentoPrincipal" style="display: none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="stat-label" style="display: flex; align-items: center; gap: 8px;">
-                                <input type="checkbox" id="checkAnexos" onchange="window.solicitudesModule?.toggleAnexosContainer(event)">
-                                ¿Adjuntar Anexos?
-                            </label>
-                            <div id="anexosContainer" style="display: none; margin-top: 8px;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('anexosFiles').click()" style="padding: 8px 16px; font-size: 12px;">Añadir Archivos</button>
-                                    <span id="fileNameAnexos" class="text-muted" style="font-size: 11px;">0 archivos</span>
-                                    <input type="file" id="anexosFiles" style="display: none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" multiple>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="anexosList" style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
-                </div>
+                <div id="solicitudArchivosMount" style="margin-top: 24px;"></div>
 
                 <div style="margin-top: 32px; display: flex; justify-content: flex-end; gap: 12px;">
                     <button type="button" class="btn btn-secondary" onclick="closeAllModals()" style="padding: 12px 24px;">Cancelar</button>
@@ -317,6 +293,7 @@
         function closeAllModals() { window.dashboardApp.closeAllModals(); }
     </script>
     <script src="assets/js/dashboard-sections.js?v=17.5"></script>
+    <script src="assets/js/components/file-upload-table.js?v=1.0"></script>
 
     <!-- Modules -->
     <script src="assets/js/modules/solicitudes.js?v=16.5"></script>

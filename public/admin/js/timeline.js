@@ -353,10 +353,7 @@ const TimelineManager = {
                     
                     ${!editId ? `
                     <div style="margin-bottom: 15px;">
-                        <label class="premium-label">Archivo Adjunto (Máx. 1GB)</label>
-                        <div class="file-upload-wrapper">
-                            <input type="file" id="tl_documento" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="premium-input" style="padding-top: 10px !important;">
-                        </div>
+                        ${window.FileUploadTable ? FileUploadTable.render({ id:'timelineDocumento', title:'Archivo adjunto', multiple:false, maxFiles:1, showMetadata:false, accept:'.pdf,.doc,.docx,.jpg,.jpeg,.png', help:'Opcional. PDF, Word, JPG o PNG. Máximo 1 GB.' }) : '<input type="file" id="tl_documento" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="premium-input">'}
                     </div>
                     ` : ''}
                     
@@ -411,7 +408,8 @@ const TimelineManager = {
             if (userData?.id) formData.append(editId ? 'actualizado_por' : 'creado_por', userData.id);
 
             const fileInput = document.getElementById('tl_documento');
-            if (fileInput?.files?.[0]) formData.append('documento', fileInput.files[0]);
+            const archivoTimeline = (window.FileUploadTable?.getFiles('timelineDocumento') || [])[0] || fileInput?.files?.[0];
+            if (archivoTimeline) formData.append('documento', archivoTimeline);
 
             const token = await getSecureItem('authToken');
             const url = editId ? `/api/timeline/${editId}` : `/api/${this.currentFuente}/${this.currentId}/timeline`;
