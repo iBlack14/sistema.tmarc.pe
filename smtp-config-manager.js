@@ -152,37 +152,40 @@ class SMTPConfigManager {
         if (!this.hayConfiguracionValida()) {
             return {
                 success: false,
-                message: 'Configuración SMTP no encontrada. Email guardado localmente.',
+                message: 'Configuración SMTP no encontrada o inválida.',
                 estado: 'pendiente_smtp'
             };
         }
 
         try {
+            // En Node.js, enlazar el servicio real bajo demanda. Esto evita que
+            // una solicitud llegue durante la inicialización asíncrona y termine
+            // usando el antiguo fallback de correo simulado.
+            if (!this.smtpService && typeof require === 'function') {
+                const smtpService = require('./smtp-service');
+                const resultadoConfig = smtpService.configurar(this.config);
+
+                if (!resultadoConfig?.success) {
+                    return {
+                        success: false,
+                        message: resultadoConfig?.message || 'No se pudo configurar el servicio SMTP real',
+                        estado: 'error_configuracion'
+                    };
+                }
+
+                this.smtpService = smtpService;
+            }
+
             // Usar el servicio SMTP real si está disponible
             if (this.smtpService) {
                 const resultado = await this.smtpService.enviarEmail(emailData);
                 return resultado;
             }
 
-            // Fallback: simulación si no hay servicio disponible
-            console.log('📧 Simulando envío de email (SMTP real no disponible):', {
-                servidor: this.config.server,
-                puerto: this.config.port,
-                usuario: this.config.user,
-                ssl_enabled: this.config.ssl_enabled,
-                remitente: this.config.fromEmail,
-                destinatario: emailData.destinatario,
-                asunto: emailData.asunto
-            });
-
-            // Simular delay de envío
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
             return {
-                success: true,
-                message: 'Email simulado exitosamente (configure SMTP real)',
-                estado: 'simulado',
-                smtpConfig: this.config
+                success: false,
+                message: 'El servicio SMTP real no está disponible en este entorno.',
+                estado: 'servicio_no_disponible'
             };
 
         } catch (error) {
