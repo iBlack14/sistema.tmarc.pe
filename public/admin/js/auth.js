@@ -77,7 +77,8 @@ class AdminAuthCheck {
         }
     }
 
-    logout() {
+    async logout() {
+        await window.clearApiSession?.();
         sessionStorage.removeItem('authToken');
         sessionStorage.removeItem('userData');
         this.redirectToLogin();

@@ -102,6 +102,7 @@ async function emitirCodigo(usuario) {
 // Logout de usuario
 router.post('/logout', async (req, res) => {
     try {
+        res.clearCookie('tmarc_session', { path: '/', httpOnly: true, sameSite: 'strict', secure: req.secure });
         // En este caso, como usamos tokens básicos, solo confirmamos el logout
         // En un sistema con JWT, aquí invalidaríamos el token en una blacklist
         res.json({

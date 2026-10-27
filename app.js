@@ -24,19 +24,7 @@ const { inicializarBaseDatos } = require('./database-config');
 const apiRoutes = require('./routes/api');
 const passwordRecovery = require('./routes/password-recovery');
 
-// === SMTP: manager + servicio ===
-const smtpConfigManager = require('./smtp-config-manager');
-const smtpServiceModule = require('./smtp-service');
-const smtpService = (typeof smtpServiceModule === 'function')
-  ? new smtpServiceModule()
-  : smtpServiceModule;
-
-// === Verificación de IP de salida ===
-require('https').get('https://api.ipify.org', (res) => {
-  let data = '';
-  res.on('data', (chunk) => data += chunk);
-  res.on('end', () => console.log('🌐 [SISTEMA] IP de salida detectada:', data));
-});
+const smtpConfigManager = require('./email-service');
 
 // === Ruta de descarga segura ===
 const downloadRoutes = require('./routes/download');
@@ -91,24 +79,20 @@ app.use(cors({
 }));
 app.options('*', cors());
 
-app.use(express.json({ limit: '1gb' }));
-app.use(express.urlencoded({ extended: true, limit: '1gb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // -------------------------------------------------------------------
 // Archivos estáticos
 // -------------------------------------------------------------------
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/templates', express.static(path.join(__dirname, 'templates')));
-
-const STATIC_DIR = fs.existsSync(path.join(__dirname, 'public', 'login.html'))
-  ? path.join(__dirname, 'public')
-  : __dirname;
-
-app.use(express.static(STATIC_DIR, {
-  index: false,
-  extensions: ['html', 'htm'],
-  maxAge: '1h',
-}));
+const { policy, fileAccess } = require('./middleware/access-policy');
+const STATIC_DIR = __dirname;
+app.use('/api', policy);
+const uploadOptions = { index: false, dotfiles: 'deny', setHeaders: res => res.setHeader('Content-Security-Policy', "sandbox; default-src 'none'; img-src data:; style-src 'unsafe-inline'") };
+app.use('/api/files', fileAccess, express.static(path.join(__dirname, 'uploads'), uploadOptions));
+app.use('/api', require('./routes/email'));
+app.use('/uploads', fileAccess, express.static(path.join(__dirname, 'uploads'), uploadOptions));
+require('./middleware/public-files')(app, __dirname);
 
 // Ruta raíz
 app.get('/', (_req, res) => {
@@ -119,6 +103,11 @@ app.get('/', (_req, res) => {
 app.get(['/login', '/login.html'], (_req, res) => {
   res.sendFile(path.join(STATIC_DIR, 'login.html'));
 });
+
+app.get('/registrarse', (_req, res) => res.sendFile(path.join(STATIC_DIR, 'registrarse.html')));
+app.get('/seguimiento', (_req, res) => res.sendFile(path.join(STATIC_DIR, 'seguimiento.html')));
+app.get('/admin', (_req, res) => res.sendFile(path.join(__dirname, 'public/admin/index.html')));
+app.get('/admin/login', (_req, res) => res.sendFile(path.join(__dirname, 'public/admin/login.html')));
 
 // -------------------------------------------------------------------
 // Salud y diagnóstico
@@ -186,8 +175,8 @@ app.post('/api/email/test', async (req, res) => {
   try {
     const r = await smtpConfigManager.enviarEmail({
       destinatario: req.body.to,
-      asunto: 'Prueba SMTP',
-      contenido: '<b>SMTP OK</b>',
+      asunto: 'Prueba de correo Brevo',
+      contenido: '<b>Brevo API OK</b>',
       fechaEnvio: new Date().toISOString(),
       tipo: 'test'
     });
@@ -258,48 +247,7 @@ async function inicializarServicios() {
   }
 
   try {
-    let configSMTP = null;
-    if (process.env.SMTP_HOST && process.env.SMTP_FROM_EMAIL) {
-      configSMTP = {
-        server: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '465', 10),
-        user: process.env.SMTP_USER,
-        password: process.env.SMTP_PASSWORD,
-        ssl_enabled: String(process.env.SMTP_SSL_ENABLED).toLowerCase() === 'true',
-        use_auth: String(process.env.SMTP_USE_AUTH).toLowerCase() !== 'false',
-        require_tls: String(process.env.SMTP_REQUIRE_TLS).toLowerCase() !== 'false',
-        fromEmail: process.env.SMTP_FROM_EMAIL,
-        fromName: process.env.SMTP_FROM_NAME || 'Sistema Mesa de Partes Virtual',
-        activo: true
-      };
-      console.log('📧 SMTP cargado desde variables de entorno');
-    }
-
-    const guardada = smtpConfigManager.obtenerConfig();
-    if (!configSMTP && guardada && guardada.activo) {
-      configSMTP = guardada;
-      console.log('📧 SMTP cargado desde configuración guardada');
-    }
-
-    if (configSMTP && configSMTP.activo) {
-      smtpConfigManager.guardarConfig(configSMTP);
-
-      const rCfg = (typeof smtpService?.configurar === 'function')
-        ? smtpService.configurar(configSMTP)
-        : { success:true };
-
-      if (!rCfg?.success) {
-        console.log('⚠️ Error configurando SMTP:', rCfg?.message || 'desconocido');
-      } else {
-        console.log('✅ Servicio SMTP configurado');
-      }
-
-      if (typeof smtpConfigManager.setSMTPService === 'function') {
-        smtpConfigManager.setSMTPService(smtpService);
-      }
-    } else {
-      console.log('ℹ️ SMTP no configurado');
-    }
+    console.log(smtpConfigManager.hayConfiguracionValida() ? '✅ Brevo API configurada' : 'ℹ️ Configure BREVO_API_KEY y BREVO_FROM_EMAIL');
 
     console.log('✅ Servicios inicializados');
   } catch (e) {

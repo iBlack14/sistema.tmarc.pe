@@ -84,3 +84,5 @@ sistema.tmarc.pe.zip
 # Archivos de composer (si no usas PHP, descomenta)
 # composer.json
 # composer.lock
+
+.env2

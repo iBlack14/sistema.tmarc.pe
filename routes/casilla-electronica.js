@@ -50,6 +50,7 @@ router.get('/:tipo/:id', async (req, res) => {
         }
         const item = rows[0];
         if (!item) return res.status(404).json({ success:false, error:'Item no encontrado' });
+        delete item.password;
         for (const campo of ['demandante','demandado','documentos']) {
             if (typeof item[campo] === 'string') { try { item[campo] = JSON.parse(item[campo]); } catch (_) {} }
         }

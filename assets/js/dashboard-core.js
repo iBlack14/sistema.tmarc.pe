@@ -737,7 +737,8 @@ class DashboardApp {
                 color: '#ffffff'
             });
 
-            setTimeout(() => {
+            setTimeout(async () => {
+                await window.clearApiSession?.();
                 sessionStorage.clear();
                 window.location.href = 'login.html';
             }, 1000);

@@ -9,7 +9,7 @@ const { query } = require('../database-config');
  * Verifica que el archivo existe antes de servirlo
  * Soporta rutas dinámicas según entorno (local/producción)
  */
-router.get('/archivo/:filename', async (req, res) => {
+router.get('/archivo/:filename', require('../middleware/access-policy').fileAccess, async (req, res) => {
     try {
         const filename = req.params.filename;
         

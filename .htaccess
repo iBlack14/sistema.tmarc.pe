@@ -31,6 +31,18 @@ RedirectMatch 403 /tmp
 RedirectMatch 403 /logs
 # Deshabilitar listado de directorios
 Options -Indexes
+# Bloquear código y archivos de distribución aunque Apache sirva archivos existentes.
+RedirectMatch 403 ^/(routes|models|middleware|migrations|scratch|design-system|\.agents|\.codex)(/|$)
+RedirectMatch 403 ^/output/(?!pdf/(instructivo-uso-sistmarc\.pdf|manuales/manual-(registro-usuarios|acceso-cuenta|mesa-partes-virtual|seguimiento-trazabilidad)\.pdf)$)
+<FilesMatch "^(server\.js|app\.js|email-service\.js|smtp-service\.js|smtp-config-manager\.js|database-config\.js|user-sync-manager\.js|diagnostico-archivos\.js|.*\.zip)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+# Enviar los adjuntos a la descarga autenticada de Node/Passenger.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^uploads/(.+)$ /api/files/$1 [PT,L]
+</IfModule>
 # ============================================
 # CONFIGURACIÓN ORIGINAL DE CLOUDLINUX
 # ============================================

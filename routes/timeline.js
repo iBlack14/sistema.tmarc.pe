@@ -116,9 +116,10 @@ router.get('/resumen-actividad', verificarAuth, async (req, res) => {
             LEFT JOIN usuarios u ON st.creado_por = u.id
             LEFT JOIN mesa_partes mp ON st.mesa_partes_id = mp.id
             WHERE st.mesa_partes_id IS NOT NULL
+              AND (? = 'admin' OR mp.usuario_id = ?)
             ORDER BY st.id DESC
             LIMIT 10
-        `);
+        `, [req.usuario.tipo, req.usuario.id]);
 
         res.json({
             success: true,
@@ -190,6 +191,7 @@ router.get('/:fuente/:id/timeline', async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 router.post('/:fuente/:id/timeline', upload.any(), async (req, res) => {
+    req.body.creado_por = req.usuario.id;
     try {
         const { fuente, id } = req.params;
         const fk = buildForeignKey(fuente);

@@ -448,6 +448,7 @@
         }
     </style>
     <link rel="stylesheet" href="assets/css/manuals.css?v=1.2">
+    <script src="/assets/js/api-session.js?v=1"></script>
 </head>
 
 <body>
@@ -642,7 +643,8 @@
                 }
             }
 
-            logout() {
+            async logout() {
+                await window.clearApiSession?.();
                 this.limpiarSesion();
                 window.location.href = 'login.html';
             }
