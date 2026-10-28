@@ -144,7 +144,7 @@ router.post('/forgot-password', async (req, res) => {
                         <td style="background-color: #f8f9fa; padding: 25px 30px; border-top: 1px solid #e0e0e0;">
                             <p style="color: #666; font-size: 13px; margin: 0 0 10px 0; text-align: center;">
                                 <strong>Soporte Técnico</strong><br>
-                                📧 ${process.env.EMAIL_FROM || 'sistema@tmarc.pe'}<br>
+                                📧 ${process.env.BREVO_FROM_EMAIL || 'sistema@tmarc.pe'}<br>
                                 📞 (044) - 538899 | Celular: +51 968 183 889
                             </p>
                             <p style="color: #999; font-size: 12px; margin: 15px 0 0 0; text-align: center;">

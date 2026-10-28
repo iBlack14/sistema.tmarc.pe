@@ -40,13 +40,13 @@ router.get('/', async (req, res) => {
         // Mapear valores por defecto desde .env si no existen en la DB
         const defaults = {
             'nombre_sistema': {
-                valor: process.env.SMTP_FROM_NAME || 'TMARC',
+                valor: process.env.BREVO_FROM_NAME || 'TMARC',
                 tipo: 'texto',
                 descripcion: 'Nombre de la institución',
                 categoria: 'general'
             },
             'correo_soporte': {
-                valor: process.env.SMTP_FROM_EMAIL || 'soporte@tmarc.org',
+                valor: process.env.BREVO_FROM_EMAIL || 'sistema@tmarc.pe',
                 tipo: 'texto',
                 descripcion: 'Email de contacto',
                 categoria: 'general'
@@ -217,7 +217,7 @@ router.get('/smtp', async (req, res) => {
         res.json({
             success: true,
             data: {
-                fromEmail: config.fromEmail || process.env.SMTP_FROM_EMAIL || ''
+                fromEmail: config.fromEmail || process.env.BREVO_FROM_EMAIL || ''
             }
         });
     } catch (error) {
