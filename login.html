@@ -448,6 +448,8 @@
         }
     </style>
     <link rel="stylesheet" href="assets/css/manuals.css?v=1.2">
+    <script src="/assets/js/api-session.js?v=1"></script>
+    <script src="/assets/js/auth-request.js?v=1"></script>
 </head>
 
 <body>
@@ -582,18 +584,7 @@
 
             async login(username, password) {
                 try {
-                    const response = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            usernameOEmail: username,
-                            password: password
-                        })
-                    });
-
-                    const data = await response.json();
+                    const data = await window.requestAuth('/api/auth/login', { usernameOEmail: username, password });
 
                     if (data.success && data.requiresVerification) {
                         return {
@@ -637,12 +628,13 @@
                     console.error('Error en login:', error);
                     return {
                         success: false,
-                        message: 'Error de conexión. Intente nuevamente.'
+                        message: error.message || 'Error de conexión. Intente nuevamente.'
                     };
                 }
             }
 
-            logout() {
+            async logout() {
+                await window.clearApiSession?.();
                 this.limpiarSesion();
                 window.location.href = 'login.html';
             }
@@ -795,13 +787,8 @@
             verifyButton.disabled = true;
             verifyButton.innerHTML = '<div class="loading-spinner"></div> VERIFICANDO...';
             try {
-                const response = await fetch('/api/auth/verify-first-login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ challengeId: activeChallengeId, code })
-                });
-                const data = await response.json();
-                if (!response.ok || !data.success) throw new Error(data.error || 'Código inválido');
+                const data = await window.requestAuth('/api/auth/verify-first-login', { challengeId: activeChallengeId, code });
+                if (!data.success) throw new Error(data.error || 'Código inválido');
                 saveSessionAndRedirect(data.data);
             } catch (error) {
                 verificationError.textContent = error.message;
@@ -819,13 +806,8 @@
             button.disabled = true;
             button.textContent = 'Enviando...';
             try {
-                const response = await fetch('/api/auth/resend-first-login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ challengeId: activeChallengeId })
-                });
-                const data = await response.json();
-                if (!response.ok || !data.success) throw new Error(data.error || 'No se pudo reenviar');
+                const data = await window.requestAuth('/api/auth/resend-first-login', { challengeId: activeChallengeId });
+                if (!data.success) throw new Error(data.error || 'No se pudo reenviar');
                 activeChallengeId = data.data.challengeId;
                 document.getElementById('maskedEmail').textContent = data.data.maskedEmail;
                 verificationError.style.color = 'var(--success)';

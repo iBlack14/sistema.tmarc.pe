@@ -27,25 +27,25 @@
         registro: {
             titulo: 'Manual para el registro de usuarios',
             archivo: 'manual-registro-usuarios.pdf',
-            publicado: false,
+            publicado: true,
             respaldo: `${instructivoActual}#page=3`
         },
         acceso: {
             titulo: 'Acceso y uso de la cuenta',
             archivo: 'manual-acceso-cuenta.pdf',
-            publicado: false,
+            publicado: true,
             respaldo: `${instructivoActual}#page=4`
         },
         mesaPartes: {
             titulo: 'Uso de la mesa de partes virtual',
             archivo: 'manual-mesa-partes-virtual.pdf',
-            publicado: false,
+            publicado: true,
             respaldo: `${instructivoActual}#page=6`
         },
         seguimiento: {
             titulo: 'Seguimiento y trazabilidad de la información',
             archivo: 'manual-seguimiento-trazabilidad.pdf',
-            publicado: false,
+            publicado: true,
             respaldo: `${instructivoActual}#page=7`
         }
     };

@@ -139,7 +139,7 @@ function closeModal() {
 }
 
 // Función para logout
-function logout() {
+async function logout() {
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             title: '¿Cerrar Sesión?',
@@ -155,8 +155,9 @@ function logout() {
                 title: 'swal2-title-custom',
                 content: 'swal2-content-custom'
             }
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
+                await window.clearApiSession?.();
                 sessionStorage.removeItem('authToken');
                 sessionStorage.removeItem('userData');
                 window.location.href = 'login.html';
@@ -164,6 +165,7 @@ function logout() {
         });
     } else {
         if (confirm('¿Está seguro de cerrar sesión?')) {
+            await window.clearApiSession?.();
             sessionStorage.removeItem('authToken');
             sessionStorage.removeItem('userData');
             window.location.href = 'login.html';

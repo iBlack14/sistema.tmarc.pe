@@ -40,8 +40,8 @@ dist/
 build/
 .cache/
 
-# Archivos de uploads (opcional - descomentar si no quieres versionar uploads)
-# uploads/
+# Archivos subidos por usuarios (no versionar documentos de expedientes)
+uploads/
 
 # Archivos de base de datos locales
 *.sqlite
@@ -84,3 +84,6 @@ sistema.tmarc.pe.zip
 # Archivos de composer (si no usas PHP, descomenta)
 # composer.json
 # composer.lock
+
+.env2
+tmarcpe_sistema.sql

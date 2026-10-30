@@ -9,7 +9,7 @@ const { query } = require('../database-config');
  * Verifica que el archivo existe antes de servirlo
  * Soporta rutas dinámicas según entorno (local/producción)
  */
-router.get('/archivo/:filename', async (req, res) => {
+router.get('/archivo/:filename', require('../middleware/access-policy').fileAccess, async (req, res) => {
     try {
         const filename = req.params.filename;
         
@@ -66,6 +66,40 @@ router.get('/archivo/:filename', async (req, res) => {
             }
         }
         
+        // Los movimientos guardan el documento principal en columnas y los anexos en JSON.
+        if (!doc) {
+            const movimientos = await query(
+                `SELECT documento_archivo, documento_nombre, documento_ruta, documentos
+                 FROM seguimiento_timeline
+                 WHERE documento_archivo = ? OR JSON_SEARCH(documentos, 'one', ?) IS NOT NULL`,
+                [filename, filename]
+            );
+            for (const movimiento of movimientos) {
+                let archivos = movimiento.documentos;
+                if (typeof archivos === 'string') {
+                    try { archivos = JSON.parse(archivos); } catch (_) { archivos = []; }
+                }
+                const archivo = Array.isArray(archivos) && archivos.find(item => item &&
+                    (item.filename === filename || item.nombre_archivo === filename));
+                if (archivo) {
+                    doc = {
+                        nombre_archivo: filename,
+                        nombre_original: archivo.nombre_original || archivo.nombre || filename,
+                        ruta: archivo.ruta,
+                        tipo: archivo.tipo || archivo.mimetype,
+                        tamano: archivo.tamano
+                    };
+                } else if (movimiento.documento_archivo === filename) {
+                    doc = {
+                        nombre_archivo: filename,
+                        nombre_original: movimiento.documento_nombre,
+                        ruta: movimiento.documento_ruta
+                    };
+                }
+                if (doc) break;
+            }
+        }
+
         // 3. Si no se encuentra, buscar en mesa_partes
         if (!doc) {
             const presentaciones = await query(
@@ -188,6 +222,8 @@ router.get('/archivo/:filename', async (req, res) => {
         const possiblePaths = [
             doc.ruta, // Ruta guardada en BD
             path.join(uploadsBase, filename), // Desde .env
+            path.join(uploadsBase, 'timeline', filename),
+            path.join(uploadsBase, 'mesa-partes', filename),
             path.join(__dirname, '../uploads', filename), // Relativa al proyecto
             path.join(__dirname, '../uploads/mesa-partes', filename),
             path.join(__dirname, '../uploads/timeline', filename),

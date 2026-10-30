@@ -76,11 +76,11 @@ class SolicitudesModule {
             this.dashboard.showLoading();
             const usuarioId = this.dashboard.getCurrentUserId();
 
-            const response = await fetch(`/api/solicitudes/usuario/${usuarioId}`);
+            const response = await fetch(`/api/mesa-partes?usuario_id=${usuarioId}`);
             const data = await response.json();
 
             if (data.success) {
-                this.solicitudes = data.data || [];
+                this.solicitudes = (data.data || []).map(s => this.normalizarSolicitud(s));
                 this.mostrarSolicitudes(this.solicitudes);
             } else {
                 throw new Error(data.error || 'Error loading solicitudes');
@@ -96,6 +96,21 @@ class SolicitudesModule {
     /**
      * Obtener clase CSS según estado
      */
+    normalizarSolicitud(solicitud) {
+        let demandante = solicitud.demandante || {};
+        if (typeof demandante === 'string') {
+            try { demandante = JSON.parse(demandante); } catch (_) { demandante = { nombre: demandante }; }
+        }
+        return { ...solicitud,
+            fecha: solicitud.fecha || solicitud.fecha_presentacion,
+            fecha_creacion: solicitud.fecha_creacion || solicitud.fecha_presentacion,
+            tipo: solicitud.tipo || solicitud.tipo_presentacion,
+            asunto: solicitud.asunto || solicitud.sumilla,
+            descripcion: solicitud.descripcion || solicitud.sumilla,
+            nombre: solicitud.nombre || demandante.nombre || demandante.razon_social || solicitud.nombre_usuario
+        };
+    }
+
     getStatusClass(estado) {
         const e = (estado || '').toLowerCase();
         if (e.includes('pend')) return 'status-pending';
@@ -185,10 +200,10 @@ class SolicitudesModule {
     async descargarCargoSolicitud(id) {
         try {
             if (!window.CargoGenerator) throw new Error('El generador de cargos no está disponible');
-            const response = await fetch(`/api/solicitudes/${encodeURIComponent(id)}`);
+            const response = await fetch(`/api/mesa-partes/${encodeURIComponent(id)}`);
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || 'Solicitud no encontrada');
-            await window.CargoGenerator.descargar(this.crearDatosCargoSolicitud(result.data));
+            await window.CargoGenerator.descargar(this.crearDatosCargoSolicitud(this.normalizarSolicitud(result.data)));
         } catch (error) {
             console.error('Error generando cargo de solicitud:', error);
             this.dashboard.showError('No se pudo generar el cargo: ' + error.message);
@@ -565,7 +580,7 @@ class SolicitudesModule {
 
     async verDetalleSolicitud(solicitudId) {
         try {
-            const response = await fetch(`/api/solicitudes/${solicitudId}`);
+            const response = await fetch(`/api/mesa-partes/${solicitudId}`);
             const data = await response.json();
             
             if (!data.success) {
@@ -573,7 +588,7 @@ class SolicitudesModule {
                 return;
             }
             
-            const solicitud = data.data;
+            const solicitud = this.normalizarSolicitud(data.data);
             
             // Modal de detalle completo
             let detailModal = document.getElementById('modalDetalleSolicitud');

@@ -285,6 +285,8 @@
 </style>
     <title>Acceso de Seguridad | Panel Administrativo TMARC</title>
     <meta name="description" content="Portal de acceso seguro para la gestión judicial administrativa del sistema TMARC.">
+    <script src="/assets/js/api-session.js?v=1"></script>
+    <script src="/assets/js/auth-request.js?v=1"></script>
 </head>
 
 <body>
@@ -373,12 +375,7 @@
 
             async login(username, password) {
                 try {
-                    const response = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ usernameOEmail: username, password: password })
-                    });
-                    const data = await response.json();
+                    const data = await window.requestAuth('/api/auth/login', { usernameOEmail: username, password });
                     if (!data.success) {
                         return { success: false, message: data.error || 'Credenciales inválidas' };
                     }
@@ -403,14 +400,13 @@
                     return { success: true, message: `Bienvenido, ${usuario.nombre}` };
                 } catch (e) {
                     console.error('Login error:', e);
-                    return { success: false, message: 'Error de conexión con el servidor judicial.' };
+                    return { success: false, message: e.message || 'Error de conexión con el servidor judicial.' };
                 }
             }
 
             async verifyCode(challengeId, code) {
-                const response = await fetch('/api/auth/verify-first-login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ challengeId, code }) });
-                const data = await response.json();
-                if (!response.ok || !data.success) return { success:false, message:data.error || 'Código inválido' };
+                const data = await window.requestAuth('/api/auth/verify-first-login', { challengeId, code });
+                if (!data.success) return { success:false, message:data.error || 'Código inválido' };
                 const usuario = data.data.usuario;
                 if (usuario.tipo !== 'admin') return { success:false, message:'Acceso restringido a administradores.' };
                 await setSecureItem('authToken', data.data.token);
@@ -451,36 +447,47 @@
         document.getElementById('adminCodeVerify').addEventListener('click', async () => {
             if (!adminChallengeId || adminSecurityCode.value.length !== 6) { adminCodeError.textContent='Ingrese los 6 dígitos.'; return; }
             const button=document.getElementById('adminCodeVerify'); button.disabled=true; button.textContent='Verificando...';
-            const result=await auth.verifyCode(adminChallengeId,adminSecurityCode.value);
-            button.disabled=false; button.textContent='Verificar e ingresar';
-            if (!result.success) { adminCodeError.textContent=result.message; adminSecurityCode.value=''; adminSecurityCode.focus(); return; }
-            window.location.href='/public/admin/index.html';
+            try {
+                const result = await auth.verifyCode(adminChallengeId, adminSecurityCode.value);
+                if (!result.success) throw new Error(result.message);
+                window.location.href = '/public/admin/index.html';
+            } catch (error) {
+                adminCodeError.textContent = error.message || 'No se pudo verificar el código.';
+                adminSecurityCode.value = ''; adminSecurityCode.focus();
+            } finally {
+                button.disabled = false; button.textContent = 'Verificar e ingresar';
+            }
         });
         document.getElementById('adminCodeResend').addEventListener('click', async (event) => {
             if (!adminChallengeId) return; const button=event.currentTarget; button.disabled=true; button.textContent='Enviando...';
-            try { const response=await fetch('/api/auth/resend-first-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({challengeId:adminChallengeId})});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.error||'No se pudo reenviar');adminChallengeId=data.data.challengeId;document.getElementById('adminMaskedEmail').textContent=data.data.maskedEmail;adminCodeError.style.color='#7bdc9b';adminCodeError.textContent='Código reenviado correctamente.'; } catch(error){adminCodeError.style.color='';adminCodeError.textContent=error.message;} finally{button.disabled=false;button.textContent='Reenviar código';}
+            try { const data=await window.requestAuth('/api/auth/resend-first-login',{challengeId:adminChallengeId});if(!data.success)throw new Error(data.error||'No se pudo reenviar');adminChallengeId=data.data.challengeId;document.getElementById('adminMaskedEmail').textContent=data.data.maskedEmail;adminCodeError.style.color='#7bdc9b';adminCodeError.textContent='Código reenviado correctamente.'; } catch(error){adminCodeError.style.color='';adminCodeError.textContent=error.message;} finally{button.disabled=false;button.textContent='Reenviar código';}
         });
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value;
+            const originalButton = btn.innerHTML;
 
             btn.disabled = true;
             btn.innerHTML = '<div class="loader"></div><span>Verificando...</span>';
 
-            const res = await auth.login(user, pass);
-            if (res.success && res.requiresVerification) {
-                abrirCodigoAdmin(res);
-            } else if (res.success) {
-                auth.mostrarMensaje('success', res.message);
-                // Esperar un momento para mostrar el mensaje, luego redirigir
-                await new Promise(r => setTimeout(r, 600));
-                window.location.href = '/public/admin/index.html';
-            } else {
-                auth.mostrarMensaje('error', res.message);
+            try {
+                const res = await auth.login(user, pass);
+                if (res.success && res.requiresVerification) {
+                    abrirCodigoAdmin(res);
+                } else if (res.success) {
+                    auth.mostrarMensaje('success', res.message);
+                    await new Promise(r => setTimeout(r, 600));
+                    window.location.href = '/public/admin/index.html';
+                } else {
+                    auth.mostrarMensaje('error', res.message);
+                }
+            } catch (error) {
+                auth.mostrarMensaje('error', error.message || 'No se pudo completar el acceso.');
+            } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<span>AUTENTICAR ACCESO</span><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>';
+                btn.innerHTML = originalButton;
             }
         });
     </script>

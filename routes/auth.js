@@ -90,11 +90,35 @@ async function emitirCodigo(usuario) {
     });
 
     if (!envio.success || envio.estado === 'simulado' || envio.estado === 'pendiente_smtp') {
-        await query('DELETE FROM codigos_primer_ingreso WHERE challenge_id = ?', [challengeId]);
-        throw new Error(envio.message || 'No fue posible enviar el código');
+        try { await query('DELETE FROM codigos_primer_ingreso WHERE challenge_id = ?', [challengeId]); }
+        catch (cleanupError) { console.error('Error limpiando código no enviado:', cleanupError.code); }
+        const error = new Error(envio.message || 'No fue posible enviar el código');
+        error.code = envio.code || 'AUTH_CODE_SEND_FAILED';
+        error.providerCode = envio.providerCode;
+        throw error;
     }
 
     return { challengeId, maskedEmail: ocultarCorreo(usuario.email) };
+}
+
+function errorCodigoAcceso(error) {
+    const messages = {
+        BREVO_NOT_CONFIGURED: 'El proceso del servidor no tiene una API key y remitente válidos de Brevo. Revise el entorno y reinicie la aplicación.',
+        BREVO_HTTP_400: 'Brevo rechazó los datos del correo. Revise el remitente y el destinatario.',
+        BREVO_HTTP_401: 'Brevo rechazó la autenticación. Revise la API key y la autorización de la IP del servidor.',
+        BREVO_HTTP_403: 'Brevo denegó el envío. Revise los permisos y restricciones de la cuenta.',
+        BREVO_HTTP_429: 'Brevo está limitando las solicitudes. Espere antes de reintentar.',
+        BREVO_INVALID_RECIPIENT: 'El correo guardado en su cuenta no es válido.',
+        BREVO_TIMEOUT: 'La API de Brevo no respondió a tiempo.',
+        BREVO_NETWORK: 'El servidor no pudo conectarse por HTTPS con la API de Brevo.',
+        BREVO_NO_CONFIRMATION: 'Brevo no confirmó la aceptación del correo.'
+    };
+    if (['ER_NO_SUCH_TABLE', 'ER_BAD_FIELD_ERROR'].includes(error.code)) {
+        return { code: 'AUTH_CODE_DB_SCHEMA', error: 'No se pudo guardar el código: revise la estructura de la tabla codigos_primer_ingreso. Referencia: AUTH_CODE_DB_SCHEMA.' };
+    }
+    const code = messages[error.code] || /^BREVO_HTTP_\d{3}$/.test(error.code || '') ? error.code : 'AUTH_CODE_SEND_FAILED';
+    const providerCode = /^[a-z_]{1,48}$/i.test(error.providerCode || '') ? error.providerCode : null;
+    return { code, error: `${messages[code] || 'No se pudo preparar o enviar el código de seguridad.'} Referencia: ${code}${providerCode ? ' (' + providerCode + ')' : ''}.` };
 }
 
 // ========== ENDPOINTS DE AUTENTICACIÓN ==========
@@ -102,6 +126,7 @@ async function emitirCodigo(usuario) {
 // Logout de usuario
 router.post('/logout', async (req, res) => {
     try {
+        res.clearCookie('tmarc_session', { path: '/', httpOnly: true, sameSite: 'strict', secure: req.secure });
         // En este caso, como usamos tokens básicos, solo confirmamos el logout
         // En un sistema con JWT, aquí invalidaríamos el token en una blacklist
         res.json({
@@ -216,11 +241,18 @@ router.post('/login', async (req, res) => {
             console.error('Error enviando código de seguridad:', emailError);
             return res.status(503).json({
                 success: false,
-                error: 'Tus credenciales son correctas, pero no pudimos enviar el código de seguridad. Inténtalo nuevamente o contacta a soporte.'
+                ...errorCodigoAcceso(emailError)
             });
         }
     } catch (error) {
         console.error('Error en login:', error);
+        const connectionErrors = ['ENOTFOUND', 'EAI_AGAIN', 'ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET', 'PROTOCOL_CONNECTION_LOST', 'ER_ACCESS_DENIED_ERROR', 'ER_DBACCESS_DENIED_ERROR', 'ER_BAD_DB_ERROR', 'ER_CON_COUNT_ERROR'];
+        if (connectionErrors.includes(error.code)) {
+            return res.status(503).json({ success: false, code: 'AUTH_DB_CONNECTION', error: 'No se pudo conectar con la base de datos. Revise la configuración MySQL del servidor. Referencia: AUTH_DB_CONNECTION.' });
+        }
+        if (['ER_NO_SUCH_TABLE', 'ER_BAD_FIELD_ERROR'].includes(error.code)) {
+            return res.status(503).json({ success: false, code: 'AUTH_DB_SCHEMA', error: 'La estructura de la base de datos está incompleta. Referencia: AUTH_DB_SCHEMA.' });
+        }
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -289,7 +321,7 @@ router.post('/resend-first-login', async (req, res) => {
         res.json({ success: true, message: 'Enviamos un código nuevo', data: challenge });
     } catch (error) {
         console.error('Error reenviando código:', error);
-        res.status(503).json({ success: false, error: 'No pudimos reenviar el código en este momento.' });
+        res.status(503).json({ success: false, ...errorCodigoAcceso(error) });
     }
 });
 

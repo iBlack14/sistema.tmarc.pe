@@ -1,7 +1,7 @@
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
-PassengerAppRoot "/home/zyryrqst/sistema.tmarc.pe"
+PassengerAppRoot "/home/tmarcpe/public_html/sistema.tmarc.pe"
 PassengerBaseURI "/"
-PassengerNodejs "/home/zyryrqst/nodevenv/sistema.tmarc.pe/22/bin/node"
+PassengerNodejs "/home/tmarcpe/nodevenv/public_html/sistema.tmarc.pe/22/bin/node"
 PassengerAppType node
 PassengerStartupFile app.js
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
@@ -31,6 +31,18 @@ RedirectMatch 403 /tmp
 RedirectMatch 403 /logs
 # Deshabilitar listado de directorios
 Options -Indexes
+# Bloquear código y archivos de distribución aunque Apache sirva archivos existentes.
+RedirectMatch 403 ^/(routes|models|middleware|migrations|scratch|design-system|\.agents|\.codex)(/|$)
+RedirectMatch 403 ^/output/(?!pdf/(instructivo-uso-sistmarc\.pdf|manuales/manual-(registro-usuarios|acceso-cuenta|mesa-partes-virtual|seguimiento-trazabilidad)\.pdf)$)
+<FilesMatch "^(server\.js|app\.js|email-service\.js|smtp-service\.js|smtp-config-manager\.js|database-config\.js|user-sync-manager\.js|diagnostico-archivos\.js|.*\.zip)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+# Enviar los adjuntos a la descarga autenticada de Node/Passenger.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^uploads/(.+)$ /api/files/$1 [PT,L]
+</IfModule>
 # ============================================
 # CONFIGURACIÓN ORIGINAL DE CLOUDLINUX
 # ============================================
@@ -56,10 +68,14 @@ Options -Indexes
 SetEnv noabort 1
 </IfModule>
 # END LiteSpeed
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION BEGIN
+<IfModule Litespeed>
+</IfModule>
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION END
 
 # php -- BEGIN cPanel-generated handler, do not edit
 # Set the “ea-php82” package as the default “PHP” programming language.
 <IfModule mime_module>
-  AddHandler application/x-httpd-ea-php82___lsphp .php .php8 .phtml
+  AddHandler application/x-httpd-ea-php82 .php .php8 .phtml
 </IfModule>
 # php -- END cPanel-generated handler, do not edit

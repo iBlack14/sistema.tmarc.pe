@@ -146,12 +146,8 @@ router.get('/existe/:email', async (req, res) => {
         res.json({
             success: true,
             data: {
-                existe: existe,
-                id: existe ? usuario.id : null,
-                detalles: {
-                    mysql: usuario,
-                    localStorage: null
-                }
+                existe: existe
+
             }
         });
     } catch (error) {

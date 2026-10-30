@@ -19,7 +19,7 @@ const CODE_EXPIRATION = 10 * 60 * 1000;
  * Generar código de verificación de 6 dígitos
  */
 function generateVerificationCode() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    return crypto.randomInt(100000, 1000000).toString();
 }
 
 /**
@@ -68,7 +68,7 @@ router.post('/forgot-password', async (req, res) => {
             userId: usuario.id
         });
 
-        console.log('✅ Código generado:', code, 'para', email);
+        console.log('✅ Código de recuperación generado');
 
         // Enviar email con el código
         try {
@@ -144,7 +144,7 @@ router.post('/forgot-password', async (req, res) => {
                         <td style="background-color: #f8f9fa; padding: 25px 30px; border-top: 1px solid #e0e0e0;">
                             <p style="color: #666; font-size: 13px; margin: 0 0 10px 0; text-align: center;">
                                 <strong>Soporte Técnico</strong><br>
-                                📧 ${process.env.EMAIL_FROM || 'sistema@tmarc.pe'}<br>
+                                📧 ${process.env.BREVO_FROM_EMAIL || 'sistema@tmarc.pe'}<br>
                                 📞 (044) - 538899 | Celular: +51 968 183 889
                             </p>
                             <p style="color: #999; font-size: 12px; margin: 15px 0 0 0; text-align: center;">
@@ -161,17 +161,19 @@ router.post('/forgot-password', async (req, res) => {
             `;
 
             console.log('📧 [AUTH-RECOVERY] Solicitando envío de email a:', usuario.email);
-            await smtpConfigManager.enviarEmail({
+            const envio = await smtpConfigManager.enviarEmail({
                 destinatario: usuario.email,
                 asunto: '🔐 Código de Recuperación de Contraseña',
                 contenido: htmlContent,
                 tipo: 'recuperacion_password'
             });
 
+            if (!envio.success) throw new Error('No se pudo enviar el código de recuperación');
             console.log('✨ [AUTH-RECOVERY] Email enviado exitosamente a:', usuario.email);
         } catch (emailError) {
             console.error('❌ [AUTH-RECOVERY] Error enviando email de recuperación:', emailError.message);
-            // Continuar aunque falle el email (para desarrollo)
+            verificationCodes.delete(email);
+            return res.status(503).json({ success: false, error: 'No pudimos enviar el código. Inténtalo nuevamente más tarde.' });
         }
 
         // Limpiar códigos expirados
@@ -376,6 +378,6 @@ function cleanExpiredCodes() {
 }
 
 // Limpiar códigos expirados cada 5 minutos
-setInterval(cleanExpiredCodes, 5 * 60 * 1000);
+setInterval(cleanExpiredCodes, 5 * 60 * 1000).unref();
 
 module.exports = router;

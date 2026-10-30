@@ -85,6 +85,7 @@ const upload = multer({
  * Crear nueva presentación en mesa de partes
  */
 router.post('/', upload.array('documentos', 20), async (req, res) => {
+    if (req.usuario.tipo !== 'admin') req.body.usuario_id = req.usuario.id;
     try {
         console.log('📥 Nueva presentación en Mesa de Partes');
         console.log('📦 Archivos recibidos:', req.files?.length || 0);
@@ -433,31 +434,8 @@ router.get('/seguimiento/:codigo', async (req, res) => {
         const codigo = req.params.codigo;
         console.log('🔍 Buscando expediente:', codigo);
         
-        // Verificar autenticación (token en header)
-        const token = req.headers.authorization?.replace('Bearer ', '');
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                error: 'Autenticación requerida. Inicia sesión para ver tu expediente.'
-            });
-        }
-        
-        // Verificar token y obtener usuario
-        const jwt = require('jsonwebtoken');
-        let usuarioId, usuarioTipo;
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            
-            // Token de sesión normal
-            usuarioId = decoded.id;
-            usuarioTipo = decoded.tipo;
-            console.log('👤 Token de sesión para usuario:', usuarioId, 'Tipo:', usuarioTipo);
-        } catch (error) {
-            return res.status(401).json({
-                success: false,
-                error: 'Token inválido o expirado'
-            });
-        }
+        const usuarioId = req.usuario.id;
+        const usuarioTipo = req.usuario.tipo;
 
         // Buscar primero en mesa de partes
         let expediente = await MesaPartesModel.obtenerPorNumero(codigo);
