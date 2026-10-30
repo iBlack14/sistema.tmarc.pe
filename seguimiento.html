@@ -836,11 +836,38 @@
                                     <span>${mov.presentado_por || mov.tipo_parte}</span>
                                 </div>` : ''}
                                 
-                                ${mov.tiene_documento ? `
-                                <a href="/api/download/archivo/${mov.documento_archivo}" target="_blank" class="footer-item" style="text-decoration:none; font-weight:600">
-                                    <i class="fas fa-paperclip"></i>
-                                    <span>${mov.documento_nombre || 'Ver Adjunto'}</span>
-                                </a>` : ''}
+                                ${(() => {
+                                    let adjuntos = [];
+                                    if (mov.documentos) {
+                                        try {
+                                            const documentos = typeof mov.documentos === 'string'
+                                                ? JSON.parse(mov.documentos)
+                                                : mov.documentos;
+                                            if (Array.isArray(documentos)) adjuntos = documentos;
+                                        } catch (error) {
+                                            console.warn('No se pudieron leer los adjuntos del movimiento:', error);
+                                        }
+                                    }
+
+                                    // Compatibilidad con movimientos antiguos que solo guardan el primer archivo.
+                                    if (adjuntos.length === 0 && (mov.tiene_documento || mov.documento_archivo)) {
+                                        adjuntos = [{
+                                            nombre: mov.documento_nombre || 'Ver Adjunto',
+                                            filename: mov.documento_archivo
+                                        }];
+                                    }
+
+                                    return adjuntos.map(doc => {
+                                        const filename = doc.filename || (doc.ruta ? doc.ruta.split('/').pop() : '');
+                                        if (!filename) return '';
+                                        const nombre = doc.nombre || doc.nombre_original || mov.documento_nombre || 'Ver Adjunto';
+                                        return `
+                                        <a href="/api/download/archivo/${encodeURIComponent(filename)}" target="_blank" rel="noopener noreferrer" class="footer-item" style="text-decoration:none; font-weight:600">
+                                            <i class="fas fa-paperclip"></i>
+                                            <span>${nombre}</span>
+                                        </a>`;
+                                    }).join('');
+                                })()}
                             </div>
 
                             ${(mov.fecha_notificacion_virtual || mov.forma_entrega) ? `
