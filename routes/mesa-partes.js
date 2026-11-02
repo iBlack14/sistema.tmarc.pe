@@ -23,8 +23,9 @@ function plantillaNuevaPresentacionAdmin(presentacion, documentosCount) {
     const baseUrl = (process.env.APP_URL || process.env.BASE_URL || 'https://sistema.tmarc.pe').replace(/\/+$/, '');
     const codigo = escaparHtml(presentacion.numero_registro);
     const solicitante = escaparHtml(presentacion.nombre_usuario || presentacion.remitente_nombre || 'Usuario TMARC');
-    const materia = escaparHtml(presentacion.materia || presentacion.tipo_presentacion || 'N/A');
-    const asunto = escaparHtml(presentacion.sumilla || presentacion.asunto || 'Sin asunto');
+    const materia = escaparHtml(presentacion.tipo_servicio || presentacion.materia || presentacion.tipo_presentacion || 'N/A');
+    const docInfo = presentacion.tipo_documento ? `${presentacion.tipo_documento}${presentacion.numero_documento ? ' N° ' + presentacion.numero_documento : ''}` : '';
+    const asunto = escaparHtml(presentacion.sumilla || presentacion.asunto || docInfo || 'Sin asunto');
     const fecha = new Date().toLocaleString('es-PE');
     
     return `<!doctype html><html lang="es"><body style="margin:0;background:#f1f2f4;font-family:Arial,Helvetica,sans-serif;color:#222"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 12px;background:#f1f2f4"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:18px;overflow:hidden;border:1px solid #dfd8c2"><tr><td style="background:#111;padding:26px 30px;border-bottom:4px solid #d4af37"><div style="font-family:Georgia,serif;color:#fff;font-size:28px;font-weight:bold">Tmarc</div><div style="color:#d4af37;font-size:10px;letter-spacing:1.5px;text-transform:uppercase">Notificación de Administración</div></td></tr><tr><td style="padding:32px"><div style="color:#b22222;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.2px">Nueva Solicitud Registrada</div><h1 style="font-size:22px;margin:8px 0 12px">Mesa de Partes Virtual</h1><p style="font-size:14px;line-height:1.6;color:#333">Se ha registrado una nueva presentación en la Mesa de Partes Virtual.</p><div style="padding:16px;background:#f7f7f7;border-left:4px solid #d4af37;border-radius:6px;font-size:13px;line-height:1.6;margin:15px 0"><strong>Detalles de la presentación:</strong><br><ul style="margin:8px 0;padding-left:20px"><li><strong>Código de registro:</strong> ${codigo}</li><li><strong>Solicitante:</strong> ${solicitante}</li><li><strong>Materia:</strong> ${materia}</li><li><strong>Asunto:</strong> ${asunto}</li><li><strong>Archivos adjuntos:</strong> ${documentosCount}</li><li><strong>Fecha y hora:</strong> ${fecha}</li></ul></div><div style="text-align:center;margin-top:26px"><a href="${baseUrl}/public/admin/solicitudes.html" style="display:inline-block;background:#d4af37;color:#111;text-decoration:none;padding:13px 25px;border-radius:9px;font-size:13px;font-weight:bold">Ver en Panel Administrador</a></div></td></tr><tr><td style="background:#111;padding:19px;text-align:center;color:#aaa;font-size:10px"><strong style="color:#d4af37">SISTEMA TMARC</strong><br>Notificación automática institucional</td></tr></table></td></tr></table></body></html>`;
@@ -131,11 +132,24 @@ router.post('/', upload.array('documentos', 20), async (req, res) => {
 
         // Parsear JSON si vienen como strings
         if (typeof datosPresentacion.demandante === 'string') {
-            datosPresentacion.demandante = JSON.parse(datosPresentacion.demandante);
+            try {
+                datosPresentacion.demandante = JSON.parse(datosPresentacion.demandante);
+            } catch (e) {
+                console.warn('Error parseando demandante JSON:', e.message);
+            }
         }
         if (typeof datosPresentacion.demandado === 'string') {
-            datosPresentacion.demandado = JSON.parse(datosPresentacion.demandado);
+            try {
+                datosPresentacion.demandado = JSON.parse(datosPresentacion.demandado);
+            } catch (e) {
+                datosPresentacion.demandado = null;
+            }
         }
+
+        // Mapear campos de servicio y documento
+        datosPresentacion.tipo_servicio = datosPresentacion.tipo_servicio || datosPresentacion.servicio || datosPresentacion.tipo_presentacion;
+        datosPresentacion.tipo_documento = datosPresentacion.tipo_documento || null;
+        datosPresentacion.numero_documento = datosPresentacion.numero_documento || null;
 
         // Agregar documentos
         datosPresentacion.documentos = documentos;

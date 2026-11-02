@@ -10,6 +10,9 @@ class MesaPartesModel {
             const {
                 usuario_id,
                 tipo_presentacion = 'Arbitraje',
+                tipo_servicio,
+                tipo_documento,
+                numero_documento,
                 demandante,
                 demandado,
                 materia,
@@ -21,27 +24,65 @@ class MesaPartesModel {
             // Generar número de registro único
             const numero_registro = await this.generarNumeroRegistro();
 
-            const sql = `
-                INSERT INTO mesa_partes (
-                    numero_registro, usuario_id, tipo_presentacion,
-                    demandante, demandado, materia, cuantia, sumilla,
-                    documentos, estado
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendiente')
-            `;
+            const servicioFinal = tipo_servicio || tipo_presentacion || 'Mesa de Partes';
+            const presentacionFinal = tipo_presentacion || tipo_servicio || 'Mesa de Partes';
 
-            const params = [
-                numero_registro,
-                usuario_id,
-                tipo_presentacion,
-                JSON.stringify(demandante),
-                JSON.stringify(demandado),
-                materia,
-                cuantia,
-                sumilla,
-                documentos ? JSON.stringify(documentos) : null
-            ];
+            const demandanteJson = demandante ? (typeof demandante === 'string' ? demandante : JSON.stringify(demandante)) : null;
+            const demandadoJson = demandado ? (typeof demandado === 'string' ? demandado : JSON.stringify(demandado)) : null;
+            const documentosJson = documentos ? (typeof documentos === 'string' ? documentos : JSON.stringify(documentos)) : null;
 
-            const resultado = await query(sql, params);
+            let resultado;
+            try {
+                const sql = `
+                    INSERT INTO mesa_partes (
+                        numero_registro, usuario_id, tipo_presentacion,
+                        demandante, demandado, materia, cuantia, sumilla,
+                        documentos, estado, tipo_servicio, tipo_documento, numero_documento
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendiente', ?, ?, ?)
+                `;
+
+                const params = [
+                    numero_registro,
+                    usuario_id,
+                    presentacionFinal,
+                    demandanteJson,
+                    demandadoJson,
+                    materia || null,
+                    cuantia || null,
+                    sumilla || null,
+                    documentosJson,
+                    servicioFinal,
+                    tipo_documento || null,
+                    numero_documento || null
+                ];
+
+                resultado = await query(sql, params);
+            } catch (errInsert) {
+                // Fallback si las nuevas columnas aún no existen en la BD
+                if (errInsert.message && (errInsert.message.includes('Unknown column') || errInsert.code === 'ER_BAD_FIELD_ERROR')) {
+                    const sqlFallback = `
+                        INSERT INTO mesa_partes (
+                            numero_registro, usuario_id, tipo_presentacion,
+                            demandante, demandado, materia, cuantia, sumilla,
+                            documentos, estado
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendiente')
+                    `;
+                    const paramsFallback = [
+                        numero_registro,
+                        usuario_id,
+                        presentacionFinal,
+                        demandanteJson,
+                        demandadoJson,
+                        materia || null,
+                        cuantia || null,
+                        sumilla || null,
+                        documentosJson
+                    ];
+                    resultado = await query(sqlFallback, paramsFallback);
+                } else {
+                    throw errInsert;
+                }
+            }
 
             console.log('✅ Presentación creada:', numero_registro);
 

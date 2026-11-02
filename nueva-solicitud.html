@@ -616,111 +616,59 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN 2: DEMANDADO -->
+            <!-- SECCIÓN 2: DETALLES DE LA SOLICITUD -->
             <div class="form-section">
                 <div class="form-header" onclick="toggleSection(this)">
-                    <div class="form-title"><i>⚖️</i> DATOS DE LA OTRA PARTE O DEMANDADO</div>
-                    <span class="toggle-icon">▼</span>
-                </div>
-                <div class="form-body">
-                    <div class="radio-container">
-                        <label class="radio-option active">
-                            <input type="radio" name="tipo_persona_demandado" value="natural" checked
-                                onchange="updateRadioUI(this); toggleFields('demandado', 'natural')">
-                            Persona Natural
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" name="tipo_persona_demandado" value="juridica"
-                                onchange="updateRadioUI(this); toggleFields('demandado', 'juridica')">
-                            Persona Jurídica
-                        </label>
-                    </div>
-
-                    <!-- Campos Persona Natural (Demandado) -->
-                    <div id="fields_demandado_natural" class="form-grid">
-                        <div class="form-item full-width">
-                            <label>Nombre Completo</label>
-                            <input type="text" id="nombre_demandado" class="form-input"
-                                placeholder="Nombres y apellidos del demandado">
-                        </div>
-                        <div class="form-item">
-                            <label>Tipo Documento</label>
-                            <select id="doc_tipo_demandado" class="form-select">
-                                <option value="DNI">DNI</option>
-                                <option value="CE">Carné de Extranjería</option>
-                                <option value="RUC">RUC</option>
-                            </select>
-                        </div>
-                        <div class="form-item">
-                            <label>Número Documento</label>
-                            <input type="text" id="doc_num_demandado" class="form-input"
-                                placeholder="Número de documento">
-                        </div>
-                    </div>
-
-                    <!-- Campos Persona Jurídica (Demandado) -->
-                    <div id="fields_demandado_juridica" class="form-grid" style="display:none;">
-                        <div class="form-item full-width">
-                            <label>Razón Social</label>
-                            <input type="text" id="razon_social_demandado" class="form-input"
-                                placeholder="Nombre legal de la empresa demandada">
-                        </div>
-                        <div class="form-item">
-                            <label>RUC</label>
-                            <input type="text" id="ruc_demandado" class="form-input"
-                                placeholder="Número de RUC (11 dígitos)">
-                        </div>
-                        <div class="form-item">
-                            <label>Representante Legal / Procurador</label>
-                            <input type="text" id="rep_legal_demandado" class="form-input"
-                                placeholder="Nombre del representante (si se conoce)">
-                        </div>
-                    </div>
-
-                    <div class="form-grid" style="margin-top:20px;">
-                        <div class="form-item">
-                            <label>Correo (Si se Conoce)</label>
-                            <input type="email" id="email_demandado" class="form-input"
-                                placeholder="correo@ejemplo.com">
-                        </div>
-                        <div class="form-item">
-                            <label>Celular (Si se Conoce)</label>
-                            <input type="tel" id="tel_demandado" class="form-input" placeholder="+51 900 000 000">
-                        </div>
-                        <div class="form-item full-width">
-                            <label>Dirección de Domicilio</label>
-                            <input type="text" id="domicilio_demandado" class="form-input"
-                                placeholder="Dirección conocida">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECCIÓN 3: DETALLES DE LA SOLICITUD -->
-            <div class="form-section">
-                <div class="form-header" onclick="toggleSection(this)">
-                    <div class="form-title"><i>📋</i> 3. DETALLES DE LA SOLICITUD</div>
+                    <div class="form-title"><i>📋</i> 2. DETALLES DE LA SOLICITUD</div>
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="form-body">
                     <div class="form-grid">
-                        <div class="form-item">
-                            <label>Asunto</label>
+                        <div class="form-item full-width">
+                            <label>Asunto *</label>
                             <input type="text" id="asunto" class="form-input"
                                 placeholder="Ej: Solicitud de Inicio de Arbitraje" required>
                         </div>
                         <div class="form-item">
-                            <label>Tipo de Solicitud</label>
-                            <select id="tipo_solicitud" class="form-select">
-                                <option value="">Seleccione una solicitud</option>
-                                <option value="Arbitraje">Arbitraje</option>
-                                <option value="Arbitraje Express">Arbitraje Express</option>
-                                <option value="Arbitraje de Emergencia">Arbitraje de Emergencia</option>
-                                <option value="Junta de Prevención y Resolución de Disputas">Junta de Prevención y Resolución de Disputas</option>
-                                <option value="Conciliación Extrajudicial">Conciliación Extrajudicial</option>
-                                <option value="Recusación">Recusación</option>
-                                <option value="Mesa de Partes">Mesa de Partes</option>
+                            <label>Servicio *</label>
+                            <select id="tipo_servicio" class="form-select" required>
+                                <option value="">[SELECCIONE SERVICIO]</option>
+                                <option value="Contestación a Solicitud de Inicio de Arbitraje">Contestación a Solicitud de Inicio de Arbitraje</option>
+                                <option value="Absolución a Constitución de JPRD">Absolución a Constitución de JPRD</option>
+                                <option value="Contestación a Solicitud de Conciliación Extrajudicial">Contestación a Solicitud de Conciliación Extrajudicial</option>
+                                <option value="Solicitud dirigida a la Institución Arbitral (IA)">Solicitud dirigida a la Institución Arbitral (IA)</option>
+                                <option value="Solicitud dirigida al Centro de Administración de JPRD (CAJPRD)">Solicitud dirigida al Centro de Administración de JPRD (CAJPRD)</option>
+                                <option value="Solicitud dirigida al Centro de Conciliación Extrajudicial">Solicitud dirigida al Centro de Conciliación Extrajudicial</option>
+                                <option value="Solicitud dirigida al Centro de Formación y Capacitación">Solicitud dirigida al Centro de Formación y Capacitación</option>
+                                <option value="Solicitud dirigida a Tmarc Centro de Arbitraje y Dispute Boards S.A.C.">Solicitud dirigida a Tmarc Centro de Arbitraje y Dispute Boards S.A.C.</option>
+                                <option value="Postulación a la Nómina de Árbitros">Postulación a la Nómina de Árbitros</option>
+                                <option value="Postulación a la Nómina de Adjudicadores">Postulación a la Nómina de Adjudicadores</option>
+                                <option value="Comunicaciones Diversas">Comunicaciones Diversas</option>
+                                <option value="Trámite Administrativo">Trámite Administrativo</option>
+                                <option value="Otro">Otro</option>
                             </select>
+                        </div>
+                        <div class="form-item">
+                            <label>Tipo de Documento *</label>
+                            <select id="tipo_documento" class="form-select" required>
+                                <option value="">[SELECCIONE TIPO DE DOCUMENTO]</option>
+                                <option value="Carta">Carta</option>
+                                <option value="Oficio">Oficio</option>
+                                <option value="Escrito">Escrito</option>
+                                <option value="Expediente">Expediente</option>
+                                <option value="Memorando">Memorando</option>
+                                <option value="Notificación">Notificación</option>
+                                <option value="Resolución">Resolución</option>
+                                <option value="Proveído">Proveído</option>
+                                <option value="Respuesta">Respuesta</option>
+                                <option value="Trámite Administrativo">Trámite Administrativo</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-item full-width">
+                            <label>Número de Documento</label>
+                            <input type="text" id="numero_documento" class="form-input"
+                                placeholder="Ej: Carta N° 012-2026, Escrito N° 01">
                         </div>
                         <div class="form-item full-width">
                             <label>Descripción / Sumilla (Opcional)</label>
@@ -731,10 +679,10 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN 4: ANEXOS -->
+            <!-- SECCIÓN 3: ANEXOS -->
             <div class="form-section">
                 <div class="form-header" onclick="toggleSection(this)">
-                    <div class="form-title"><i>▼</i> 4. ANEXOS</div>
+                    <div class="form-title"><i>📎</i> 3. ANEXOS</div>
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="form-body">
@@ -1017,23 +965,27 @@
                 // 2. FormData
                 const fd = new FormData();
                 fd.append('usuario_id', usuarioId);
-                fd.append('tipo_presentacion', V('tipo_solicitud'));
-                fd.append('materia', 'Arbitraje');
-                fd.append('asunto', V('asunto'));
-                fd.append('descripcion', V('descripcion'));
-                fd.append('sumilla', V('descripcion'));
+                const tipoServicio = V('tipo_servicio');
+                const tipoDocumento = V('tipo_documento');
+                const numeroDoc = V('numero_documento');
+                const asunto = V('asunto');
+                const descripcion = V('descripcion');
 
-                const tipoDemandado = document.querySelector('input[name="tipo_persona_demandado"]:checked').value;
-                const demandado = {
-                    tipo_persona: tipoDemandado,
-                    nombre: tipoDemandado === 'natural' ? V('nombre_demandado') : V('razon_social_demandado'),
-                    documento_tipo: tipoDemandado === 'natural' ? V('doc_tipo_demandado') : 'RUC',
-                    documento_numero: tipoDemandado === 'natural' ? V('doc_num_demandado') : V('ruc_demandado'),
-                    representante: tipoDemandado === 'juridica' ? V('rep_legal_demandado') : null,
-                    correo: V('email_demandado'),
-                    telefono: V('tel_demandado'),
-                    domicilio: V('domicilio_demandado')
-                };
+                if (!tipoServicio || !tipoDocumento || !asunto) {
+                    alert('Por favor complete los campos obligatorios: Servicio, Tipo de Documento y Asunto');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                    return;
+                }
+
+                fd.append('tipo_presentacion', tipoServicio);
+                fd.append('tipo_servicio', tipoServicio);
+                fd.append('tipo_documento', tipoDocumento);
+                fd.append('numero_documento', numeroDoc);
+                fd.append('materia', asunto);
+                fd.append('asunto', asunto);
+                fd.append('descripcion', descripcion);
+                fd.append('sumilla', descripcion || asunto);
 
                 const demandante = {
                     tipo_persona: tipoDemandante,
@@ -1047,7 +999,7 @@
                 };
 
                 fd.append('demandante', JSON.stringify(demandante));
-                fd.append('demandado', JSON.stringify(demandado));
+                fd.append('demandado', JSON.stringify(null));
 
                 uploadedFiles.forEach(f => fd.append('documentos', f));
 
@@ -1091,7 +1043,7 @@
                 solicitante: V('nombre_demandante') || V('razon_social_demandante'),
                 fecha: new Date().toLocaleString(),
                 folios: uploadedFiles.length,
-                tipo_servicio: V('tipo_solicitud'),
+                tipo_servicio: V('tipo_servicio'),
                 asunto: V('asunto'),
                 token: window.tokenSeguimientoActual
             };

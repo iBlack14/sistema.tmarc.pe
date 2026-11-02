@@ -571,8 +571,8 @@ class MesaPartesModule {
         document.body.style.overflow = 'hidden';
         const catalogo = window.solicitudesModule?.getServiceCatalog?.() || {};
         const servicio = catalogo[this.servicioPreseleccionado];
-        const selector = modal.querySelector('#tipoDocumentoMesa');
-        if (servicio && selector) selector.value = servicio.title;
+        const selectorServicio = modal.querySelector('#tipoServicioMesa');
+        if (servicio && selectorServicio) selectorServicio.value = servicio.title;
         const titulo = modal.querySelector('[data-mesa-form-title]');
         const subtitulo = modal.querySelector('[data-mesa-form-subtitle]');
         if (titulo) titulo.textContent = this.modoPresentacion === 'solicitud_servicio' ? `Nueva solicitud: ${servicio?.title || 'TMARC'}` : 'Nueva Presentación Procesal';
@@ -624,18 +624,62 @@ class MesaPartesModule {
                     </div>
 
                     <div class="mesa-seccion">
-                        <div class="mesa-seccion-titulo">⚖️ 2. Datos de la otra parte o demandado</div>
+                        <div class="mesa-seccion-titulo">📋 2. Detalles de la solicitud</div>
                         <div class="mesa-seccion-cuerpo">
-                            <div class="mesa-persona"><label><input type="radio" name="mesaTipoDemandado" value="natural" checked onchange="mesaPartesModule.alternarPersonaMesa('demandado','natural')"> Persona natural</label><label><input type="radio" name="mesaTipoDemandado" value="juridica" onchange="mesaPartesModule.alternarPersonaMesa('demandado','juridica')"> Persona jurídica</label></div>
-                            <div id="mesaDemandadoNatural" class="mesa-form-grid"><div class="form-group mesa-full"><label class="stat-label">Nombre completo</label><input id="mesaDemandadoNombre" class="form-input"></div><div class="form-group"><label class="stat-label">Tipo de documento</label><select id="mesaDemandadoDocTipo" class="form-select"><option>DNI</option><option>CE</option><option>RUC</option></select></div><div class="form-group"><label class="stat-label">Número de documento</label><input id="mesaDemandadoDni" class="form-input" inputmode="numeric" maxlength="11" oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)"></div></div>
-                            <div id="mesaDemandadoJuridica" class="mesa-form-grid" style="display:none"><div class="form-group mesa-full"><label class="stat-label">Razón social</label><input id="mesaDemandadoRazon" class="form-input"></div><div class="form-group"><label class="stat-label">RUC</label><input id="mesaDemandadoRuc" class="form-input" inputmode="numeric" maxlength="11" oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)"></div><div class="form-group"><label class="stat-label">Representante / Apoderado</label><input id="mesaDemandadoRepresentante" class="form-input"></div></div>
-                            <div class="mesa-form-grid" style="margin-top:13px"><div class="form-group"><label class="stat-label">Correo electrónico</label><input type="email" id="mesaDemandadoEmail" class="form-input"></div><div class="form-group"><label class="stat-label">Celular / WhatsApp</label><input type="tel" id="mesaDemandadoTelefono" class="form-input" inputmode="numeric" maxlength="9" oninput="this.value=this.value.replace(/\D/g,'').slice(0,9)"></div><div class="form-group mesa-full"><label class="stat-label">Dirección de domicilio</label><input id="mesaDemandadoDomicilio" class="form-input"></div></div>
+                            <div class="mesa-form-grid">
+                                <div class="form-group mesa-full">
+                                    <label class="stat-label">Asunto *</label>
+                                    <input id="mesaAsunto" class="form-input" maxlength="150" placeholder="Ej. Solicitud de inicio, contestación de escrito, etc." required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="stat-label">Servicio *</label>
+                                    <select id="tipoServicioMesa" class="form-select" required>
+                                        <option value="">[SELECCIONE SERVICIO]</option>
+                                        <option value="Contestación a Solicitud de Inicio de Arbitraje">Contestación a Solicitud de Inicio de Arbitraje</option>
+                                        <option value="Absolución a Constitución de JPRD">Absolución a Constitución de JPRD</option>
+                                        <option value="Contestación a Solicitud de Conciliación Extrajudicial">Contestación a Solicitud de Conciliación Extrajudicial</option>
+                                        <option value="Solicitud dirigida a la Institución Arbitral (IA)">Solicitud dirigida a la Institución Arbitral (IA)</option>
+                                        <option value="Solicitud dirigida al Centro de Administración de JPRD (CAJPRD)">Solicitud dirigida al Centro de Administración de JPRD (CAJPRD)</option>
+                                        <option value="Solicitud dirigida al Centro de Conciliación Extrajudicial">Solicitud dirigida al Centro de Conciliación Extrajudicial</option>
+                                        <option value="Solicitud dirigida al Centro de Formación y Capacitación">Solicitud dirigida al Centro de Formación y Capacitación</option>
+                                        <option value="Solicitud dirigida a Tmarc Centro de Arbitraje y Dispute Boards S.A.C.">Solicitud dirigida a Tmarc Centro de Arbitraje y Dispute Boards S.A.C.</option>
+                                        <option value="Postulación a la Nómina de Árbitros">Postulación a la Nómina de Árbitros</option>
+                                        <option value="Postulación a la Nómina de Adjudicadores">Postulación a la Nómina de Adjudicadores</option>
+                                        <option value="Comunicaciones Diversas">Comunicaciones Diversas</option>
+                                        <option value="Trámite Administrativo">Trámite Administrativo</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="stat-label">Tipo de documento *</label>
+                                    <select id="tipoDocumentoMesa" class="form-select" required>
+                                        <option value="">[SELECCIONE TIPO DE DOCUMENTO]</option>
+                                        <option value="Carta">Carta</option>
+                                        <option value="Oficio">Oficio</option>
+                                        <option value="Escrito">Escrito</option>
+                                        <option value="Expediente">Expediente</option>
+                                        <option value="Memorando">Memorando</option>
+                                        <option value="Notificación">Notificación</option>
+                                        <option value="Resolución">Resolución</option>
+                                        <option value="Proveído">Proveído</option>
+                                        <option value="Respuesta">Respuesta</option>
+                                        <option value="Trámite Administrativo">Trámite Administrativo</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mesa-full">
+                                    <label class="stat-label">Número de documento</label>
+                                    <input id="numeroDocumentoMesa" class="form-input" maxlength="100" placeholder="Ej. Carta N° 012-2026, Escrito N° 01">
+                                </div>
+                                <div class="form-group mesa-full">
+                                    <label class="stat-label">Descripción / Sumilla</label>
+                                    <textarea id="descripcionMesa" class="form-input" rows="4" placeholder="Breve descripción o sumilla de la presentación..."></textarea>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mesa-seccion"><div class="mesa-seccion-titulo">📋 3. Detalles de la solicitud</div><div class="mesa-seccion-cuerpo"><div class="mesa-form-grid"><div class="form-group mesa-full"><label class="stat-label">Asunto *</label><input id="mesaAsunto" class="form-input" maxlength="150" required></div><div class="form-group"><label class="stat-label">Tipo de solicitud *</label><select id="tipoDocumentoMesa" class="form-select"><option value="">Seleccione una solicitud</option><option value="Arbitraje">Arbitraje</option><option value="Arbitraje Express">Arbitraje Express</option><option value="Arbitraje de Emergencia">Arbitraje de Emergencia</option><option value="Junta de Prevención y Resolución de Disputas">Junta de Prevención y Resolución de Disputas</option><option value="Conciliación Extrajudicial">Conciliación Extrajudicial</option><option value="Recusación">Recusación</option><option value="Mesa de Partes">Mesa de Partes</option></select></div><div class="form-group"><label class="stat-label">Cuantía (S/) — opcional</label><input type="number" id="mesaCuantia" class="form-input" min="0" step="0.01"></div><div class="form-group mesa-full"><label class="stat-label">Descripción / Sumilla</label><textarea id="descripcionMesa" class="form-input" rows="4"></textarea></div></div></div></div>
-
-                    <div class="mesa-seccion"><div class="mesa-seccion-titulo">📎 4. Anexos</div><div class="mesa-seccion-cuerpo"><div style="padding:14px;border:1px dashed #d4af37;border-radius:11px"><button type="button" class="btn btn-secondary" onclick="mesaPartesModule.getControlMesa('archivosMesa')?.click()">＋ Seleccionar archivos</button><span id="archivosMesaResumen" class="text-muted" style="font-size:11px;margin-left:10px">Ningún archivo seleccionado</span><input type="file" id="archivosMesa" multiple style="display:none" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"></div><small style="display:block;margin:8px 0;color:#777">Máximo 10 archivos. Complete la información de cada anexo.</small><div id="mesaArchivosWrap"><table id="mesaArchivosTabla"><thead><tr><th>#</th><th>Archivo</th><th>Página fin</th><th>Descripción</th><th>Folios</th><th>Peso</th><th></th></tr></thead><tbody id="mesaArchivosLista"><tr><td colspan="7" style="text-align:center;padding:20px;color:#888">No se han agregado archivos</td></tr></tbody></table></div><div style="margin-top:10px;text-align:right;font-size:12px;font-weight:700">Total: <span id="mesaPesoTotal">0 MB</span></div></div></div>
+                    <div class="mesa-seccion"><div class="mesa-seccion-titulo">📎 3. Anexos</div><div class="mesa-seccion-cuerpo"><div style="padding:14px;border:1px dashed #d4af37;border-radius:11px"><button type="button" class="btn btn-secondary" onclick="mesaPartesModule.getControlMesa('archivosMesa')?.click()">＋ Seleccionar archivos</button><span id="archivosMesaResumen" class="text-muted" style="font-size:11px;margin-left:10px">Ningún archivo seleccionado</span><input type="file" id="archivosMesa" multiple style="display:none" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"></div><small style="display:block;margin:8px 0;color:#777">Máximo 10 archivos. Complete la información de cada anexo.</small><div id="mesaArchivosWrap"><table id="mesaArchivosTabla"><thead><tr><th>#</th><th>Archivo</th><th>Página fin</th><th>Descripción</th><th>Folios</th><th>Peso</th><th></th></tr></thead><tbody id="mesaArchivosLista"><tr><td colspan="7" style="text-align:center;padding:20px;color:#888">No se han agregado archivos</td></tr></tbody></table></div><div style="margin-top:10px;text-align:right;font-size:12px;font-weight:700">Total: <span id="mesaPesoTotal">0 MB</span></div></div></div>
 
                     <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--glass-border);display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap"><button type="submit" class="btn btn-primary" style="padding:11px 36px;font-weight:600">🚀 Enviar solicitud</button></div>
                     <div id="mesaCamposAntiguos" style="display:none">
@@ -858,20 +902,19 @@ class MesaPartesModule {
      */
     async submitDocumento() {
         const formulario = this.getFormularioMesaActivo();
-        const tipo        = this.getControlMesa('tipoDocumentoMesa')?.value;
-        const tipoDemandante = formulario?.querySelector('input[name="mesaTipoDemandante"]:checked')?.value || 'natural';
-        const tipoDemandado = formulario?.querySelector('input[name="mesaTipoDemandado"]:checked')?.value || 'natural';
-        const nombre      = (tipoDemandante === 'juridica' ? this.getControlMesa('mesaRazonSocial')?.value : this.getControlMesa('mesaNombre')?.value)?.trim();
-        const dni         = (tipoDemandante === 'juridica' ? this.getControlMesa('mesaRuc')?.value : this.getControlMesa('mesaDni')?.value)?.trim();
-        const telefono    = this.getControlMesa('mesaTelefono')?.value?.trim() || '';
-        const email       = this.getControlMesa('mesaEmail')?.value?.trim() || '';
-        const asunto      = this.getControlMesa('mesaAsunto')?.value?.trim();
-        const descripcion = this.getControlMesa('descripcionMesa')?.value?.trim() || '';
-        const cuantia     = this.getControlMesa('mesaCuantia')?.value || null;
-        const demNombre   = (tipoDemandado === 'juridica' ? this.getControlMesa('mesaDemandadoRazon')?.value : this.getControlMesa('mesaDemandadoNombre')?.value)?.trim() || 'N/A';
-        const demDni      = (tipoDemandado === 'juridica' ? this.getControlMesa('mesaDemandadoRuc')?.value : this.getControlMesa('mesaDemandadoDni')?.value)?.trim() || '';
-        if (!tipo || !nombre || !dni || !asunto) {
-            this.dashboard.showError('Por favor, complete los campos obligatorios: Nombre, DNI, Tipo y Asunto.');
+        const tipoServicio    = this.getControlMesa('tipoServicioMesa')?.value?.trim();
+        const tipoDocumento   = this.getControlMesa('tipoDocumentoMesa')?.value?.trim();
+        const numeroDocumento = this.getControlMesa('numeroDocumentoMesa')?.value?.trim() || '';
+        const tipoDemandante  = formulario?.querySelector('input[name="mesaTipoDemandante"]:checked')?.value || 'natural';
+        const nombre          = (tipoDemandante === 'juridica' ? this.getControlMesa('mesaRazonSocial')?.value : this.getControlMesa('mesaNombre')?.value)?.trim();
+        const dni             = (tipoDemandante === 'juridica' ? this.getControlMesa('mesaRuc')?.value : this.getControlMesa('mesaDni')?.value)?.trim();
+        const telefono        = this.getControlMesa('mesaTelefono')?.value?.trim() || '';
+        const email           = this.getControlMesa('mesaEmail')?.value?.trim() || '';
+        const asunto          = this.getControlMesa('mesaAsunto')?.value?.trim();
+        const descripcion     = this.getControlMesa('descripcionMesa')?.value?.trim() || '';
+
+        if (!tipoServicio || !tipoDocumento || !nombre || !dni || !asunto) {
+            this.dashboard.showError('Por favor, complete los campos obligatorios: Nombre, DNI/RUC, Servicio, Tipo de documento y Asunto.');
             return;
         }
 
@@ -899,26 +942,15 @@ class MesaPartesModule {
                 documento_numero: dni
             };
 
-            const demandado = {
-                tipo_persona:     tipoDemandado,
-                nombre:           demNombre,
-                documento_tipo:   tipoDemandado === 'juridica' ? 'RUC' : this.getControlMesa('mesaDemandadoDocTipo')?.value,
-                documento_numero: demDni,
-                representante:    tipoDemandado === 'juridica' ? this.getControlMesa('mesaDemandadoRepresentante')?.value?.trim() || '' : '',
-                correo:           this.getControlMesa('mesaDemandadoEmail')?.value?.trim() || '',
-                telefono:         this.getControlMesa('mesaDemandadoTelefono')?.value?.trim() || '',
-                domicilio:        this.getControlMesa('mesaDemandadoDomicilio')?.value?.trim() || ''
-            };
-
             formData.append('usuario_id', usuarioId);
-            // Toda solicitud institucional es una presentación de Mesa de Partes.
-            // No se crea un registro paralelo SOL/EXP.
-            formData.append('tipo_presentacion', tipo);
+            formData.append('tipo_presentacion', tipoServicio);
+            formData.append('tipo_servicio', tipoServicio);
+            formData.append('tipo_documento', tipoDocumento);
+            formData.append('numero_documento', numeroDocumento);
             formData.append('materia', asunto);
             formData.append('sumilla', descripcion || asunto);
-            if (cuantia) formData.append('cuantia', cuantia);
             formData.append('demandante', JSON.stringify(demandante));
-            formData.append('demandado', JSON.stringify(demandado));
+            formData.append('demandado', JSON.stringify(null));
             this.mesaArchivos.forEach(item => formData.append('documentos', item.archivo));
             formData.append('documentos_metadata', JSON.stringify(this.mesaArchivos.map(item => ({ nombre: item.archivo.name, pagina_fin: item.paginaFin, descripcion: item.descripcion, folios: item.folios }))));
 
@@ -932,7 +964,10 @@ class MesaPartesModule {
                     id: result.numero_registro,
                     numero_registro: result.numero_registro,
                     demandante: { nombre },
-                    tipo_presentacion: tipo,
+                    tipo_presentacion: tipoServicio,
+                    tipo_servicio: tipoServicio,
+                    tipo_documento: tipoDocumento,
+                    numero_documento: numeroDocumento,
                     materia: asunto,
                     sumilla: descripcion,
                     fecha_presentacion: new Date().toISOString(),

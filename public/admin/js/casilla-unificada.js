@@ -540,8 +540,9 @@ const CasillaUnificada = {
                                     <div style="position:absolute; top:0; left:0; width:3px; height:100%; background:var(--color-gold); border-radius:12px 0 0 12px;"></div>
                                     <h3 style="color:#111; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; margin:0 0 10px 8px;">📜 Información Estratégica</h3>
                                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding-left:8px;">
-                                        ${this.renderizarCampoModerno('Tipo', presentacion.tipo_presentacion)}
-                                        ${this.renderizarCampoModerno('Materia', presentacion.materia)}
+                                        ${this.renderizarCampoModerno('Servicio', presentacion.tipo_servicio || presentacion.tipo_presentacion || 'N/A')}
+                                        ${this.renderizarCampoModerno('Documento', `${presentacion.tipo_documento || ''} ${presentacion.numero_documento || ''}`.trim() || 'No especificado')}
+                                        ${this.renderizarCampoModerno('Asunto', presentacion.materia || 'Sin asunto')}
                                         ${this.renderizarCampoModerno('Estado', `<span class="status-badge ${estadoClass}" style="padding:3px 10px; font-size:10px; font-weight:700; border-radius:50px;">${presentacion.estado}</span>`)}
                                         ${this.renderizarCampoModerno('Fecha', new Date(presentacion.fecha_presentacion).toLocaleString('es-ES', {dateStyle:'short', timeStyle:'short'}))}
                                     </div>
@@ -558,10 +559,10 @@ const CasillaUnificada = {
                                 </div>
                                 <div style="background:#fafafa; border-radius:12px; padding:14px; border:1px solid rgba(0,0,0,0.07); position:relative;">
                                     <div style="position:absolute; top:0; left:0; width:3px; height:100%; background:#e67e22; border-radius:12px 0 0 12px;"></div>
-                                    <h3 style="color:#111; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; margin:0 0 10px 8px;">⚖️ Demandado</h3>
+                                    <h3 style="color:#111; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; margin:0 0 10px 8px;">⚖️ Demandado / Contraparte</h3>
                                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding-left:8px;">
-                                        ${this.renderizarCampoModerno('Nombre / Razón Social', `<span style="font-weight:700; font-size:13px;">${demandado.nombre || 'N/A'}</span>`)}
-                                        ${this.renderizarCampoModerno('Documento / RUC', `${demandado.documento_tipo || ''} ${demandado.documento_numero || ''}`)}
+                                        ${this.renderizarCampoModerno('Nombre / Razón Social', `<span style="font-weight:700; font-size:13px;">${demandado && demandado.nombre && demandado.nombre !== 'N/A' ? demandado.nombre : 'No aplica (Sin contraparte)'}</span>`)}
+                                        ${this.renderizarCampoModerno('Documento / RUC', (demandado && (demandado.documento_tipo || demandado.documento_numero)) ? `${demandado.documento_tipo || ''} ${demandado.documento_numero || ''}`.trim() : 'No aplica')}
                                     </div>
                                 </div>
                             </div>
@@ -1329,14 +1330,22 @@ const CasillaUnificada = {
                                     <label style="color:#888; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; display:block;">📂 Tipo de Presentación</label>
                                     <select id="edit-tipo-presentacion" style="width:100%; padding:15px 20px; border:2px solid #eee; border-radius:15px; font-size:15px; background:#f9f9f9; font-weight:600; font-family:inherit; transition:0.3s;"
                                             onfocus="this.style.borderColor='#d4af37'; this.style.background='white';">
-                                        <option value="" ${!presentacion.tipo_presentacion ? 'selected' : ''}>Seleccione una solicitud</option>
-                                        <option value="Arbitraje" ${presentacion.tipo_presentacion === 'Arbitraje' ? 'selected' : ''}>Arbitraje</option>
-                                        <option value="Arbitraje Express" ${presentacion.tipo_presentacion === 'Arbitraje Express' ? 'selected' : ''}>Arbitraje Express</option>
-                                        <option value="Arbitraje de Emergencia" ${presentacion.tipo_presentacion === 'Arbitraje de Emergencia' ? 'selected' : ''}>Arbitraje de Emergencia</option>
-                                        <option value="Junta de Prevención y Resolución de Disputas" ${presentacion.tipo_presentacion === 'Junta de Prevención y Resolución de Disputas' ? 'selected' : ''}>Junta de Prevención y Resolución de Disputas</option>
-                                        <option value="Conciliación Extrajudicial" ${presentacion.tipo_presentacion === 'Conciliación Extrajudicial' ? 'selected' : ''}>Conciliación Extrajudicial</option>
-                                        <option value="Recusación" ${presentacion.tipo_presentacion === 'Recusación' ? 'selected' : ''}>Recusación</option>
-                                        <option value="Mesa de Partes" ${presentacion.tipo_presentacion === 'Mesa de Partes' ? 'selected' : ''}>Mesa de Partes</option>
+                                        <option value="" ${!presentacion.tipo_servicio && !presentacion.tipo_presentacion ? 'selected' : ''}>Seleccione un servicio</option>
+                                        <option value="Contestación a Solicitud de Inicio de Arbitraje" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Contestación a Solicitud de Inicio de Arbitraje' ? 'selected' : ''}>Contestación a Solicitud de Inicio de Arbitraje</option>
+                                        <option value="Absolución a Constitución de JPRD" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Absolución a Constitución de JPRD' ? 'selected' : ''}>Absolución a Constitución de JPRD</option>
+                                        <option value="Contestación a Solicitud de Conciliación Extrajudicial" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Contestación a Solicitud de Conciliación Extrajudicial' ? 'selected' : ''}>Contestación a Solicitud de Conciliación Extrajudicial</option>
+                                        <option value="Solicitud dirigida a la Institución Arbitral (IA)" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Solicitud dirigida a la Institución Arbitral (IA)' ? 'selected' : ''}>Solicitud dirigida a la Institución Arbitral (IA)</option>
+                                        <option value="Solicitud dirigida al Centro de Administración de JPRD (CAJPRD)" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Solicitud dirigida al Centro de Administración de JPRD (CAJPRD)' ? 'selected' : ''}>Solicitud dirigida al Centro de Administración de JPRD (CAJPRD)</option>
+                                        <option value="Solicitud dirigida al Centro de Conciliación Extrajudicial" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Solicitud dirigida al Centro de Conciliación Extrajudicial' ? 'selected' : ''}>Solicitud dirigida al Centro de Conciliación Extrajudicial</option>
+                                        <option value="Solicitud dirigida al Centro de Formación y Capacitación" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Solicitud dirigida al Centro de Formación y Capacitación' ? 'selected' : ''}>Solicitud dirigida al Centro de Formación y Capacitación</option>
+                                        <option value="Solicitud dirigida a Tmarc Centro de Arbitraje y Dispute Boards S.A.C." ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Solicitud dirigida a Tmarc Centro de Arbitraje y Dispute Boards S.A.C.' ? 'selected' : ''}>Solicitud dirigida a Tmarc Centro de Arbitraje y Dispute Boards S.A.C.</option>
+                                        <option value="Postulación a la Nómina de Árbitros" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Postulación a la Nómina de Árbitros' ? 'selected' : ''}>Postulación a la Nómina de Árbitros</option>
+                                        <option value="Postulación a la Nómina de Adjudicadores" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Postulación a la Nómina de Adjudicadores' ? 'selected' : ''}>Postulación a la Nómina de Adjudicadores</option>
+                                        <option value="Comunicaciones Diversas" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Comunicaciones Diversas' ? 'selected' : ''}>Comunicaciones Diversas</option>
+                                        <option value="Trámite Administrativo" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Trámite Administrativo' ? 'selected' : ''}>Trámite Administrativo</option>
+                                        <option value="Arbitraje" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Arbitraje' ? 'selected' : ''}>Arbitraje</option>
+                                        <option value="Mesa de Partes" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Mesa de Partes' ? 'selected' : ''}>Mesa de Partes</option>
+                                        <option value="Otro" ${(presentacion.tipo_servicio || presentacion.tipo_presentacion) === 'Otro' ? 'selected' : ''}>Otro</option>
                                     </select>
                                 </div>
                             </div>

@@ -270,7 +270,10 @@ async function inicializarBaseDatos(reset = false) {
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 numero_registro VARCHAR(20) UNIQUE NOT NULL,
                 usuario_id INT,
-                tipo_presentacion VARCHAR(100) DEFAULT 'Arbitraje',
+                tipo_presentacion VARCHAR(255) DEFAULT 'Arbitraje',
+                tipo_servicio VARCHAR(255) DEFAULT 'Arbitraje',
+                tipo_documento VARCHAR(100),
+                numero_documento VARCHAR(100),
                 materia VARCHAR(100) DEFAULT 'General',
                 demandante JSON,
                 demandado JSON,
@@ -689,8 +692,22 @@ async function inicializarBaseDatos(reset = false) {
                 console.log('✅ Columna numero_expediente_externo agregada a mesa_partes');
             }
             if (!(await columnaExiste('mesa_partes', 'tipo_servicio'))) {
-                await query("ALTER TABLE mesa_partes ADD COLUMN tipo_servicio VARCHAR(50) DEFAULT 'Arbitraje'");
+                await query("ALTER TABLE mesa_partes ADD COLUMN tipo_servicio VARCHAR(255) DEFAULT 'Arbitraje'");
                 console.log('✅ Columna tipo_servicio agregada a mesa_partes');
+            } else {
+                try {
+                    await query("ALTER TABLE mesa_partes MODIFY COLUMN tipo_servicio VARCHAR(255) DEFAULT 'Arbitraje'");
+                } catch (e) {
+                    console.warn('Nota: no se pudo modificar longitud de tipo_servicio:', e.message);
+                }
+            }
+            if (!(await columnaExiste('mesa_partes', 'tipo_documento'))) {
+                await query('ALTER TABLE mesa_partes ADD COLUMN tipo_documento VARCHAR(100)');
+                console.log('✅ Columna tipo_documento agregada a mesa_partes');
+            }
+            if (!(await columnaExiste('mesa_partes', 'numero_documento'))) {
+                await query('ALTER TABLE mesa_partes ADD COLUMN numero_documento VARCHAR(100)');
+                console.log('✅ Columna numero_documento agregada a mesa_partes');
             }
             if (!(await columnaExiste('mesa_partes', 'responsable'))) {
                 await query('ALTER TABLE mesa_partes ADD COLUMN responsable VARCHAR(150)');
